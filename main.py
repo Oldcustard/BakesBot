@@ -63,12 +63,17 @@ async def on_message(message):
 @client.event
 async def on_reaction_add(reaction: discord.Reaction, user: discord.Member):
     if user != client.user and reaction.message == pugMessage:
+        if reaction.emoji == "\U0000274C":  # Withdraw player
+            await withdraw_player(user)
+            for user_reaction in reaction.message.reactions:
+                await user_reaction.remove(user)
+            return
         players = start_pug.signups.get(str(reaction.emoji))
         if players is None:  # User added their own reaction
             await reaction.remove(user)
             return
-        if user.display_name not in start_pug.player_classes:
-            start_pug.player_classes[user.display_name] = []  # Add player to the player list
+        if user.display_name not in start_pug.player_classes:  # Add player to the player list
+            start_pug.player_classes[user.display_name] = []
         if reaction.emoji in start_pug.player_classes[user.display_name]:  # Player already signed up for this class
             return
         start_pug.player_classes[user.display_name].append(reaction.emoji)  # Add class to that player's list
@@ -81,6 +86,17 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.Member):
         else:
             await start_pug.signupsMessage.edit(content=await start_pug.list_players())
         await user.send(f"Successfully signed up for {reaction.emoji} (preference {preference})")
+
+
+async def withdraw_player(user: discord.Member):
+    start_pug.player_classes.pop(user.display_name)
+    for signup_class in start_pug.signups.values():
+        user_signup = [s for s in signup_class if user.display_name in s]
+        if len(user_signup) == 1:
+            signup_class.remove(user_signup[0])
+    print(f'{user.display_name} has withdrawn')
+    await start_pug.signupsMessage.edit(content=await start_pug.list_players())
+    await user.send(f"You have withdrawn from the pug")
 
 
 client.run(os.getenv('TOKEN'))

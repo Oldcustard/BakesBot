@@ -25,7 +25,7 @@ emojis_ids = [
     '<:spy:902551045853560842>'
 ]
 
-signups = {
+signups: Dict[str, List] = {
     emojis_ids[0]: [],
     emojis_ids[1]: [],
     emojis_ids[2]: [],
@@ -44,19 +44,15 @@ signupsMessage: discord.Message = None
 
 async def start_pug(channel: discord.TextChannel):
     pug_day = time.strptime(pug_wday, "%A")
-    print(f"Pug is on day {pug_day.tm_wday}")
     current_date = datetime.datetime.now(datetime.timezone.utc).astimezone()
     if current_date.utcoffset().seconds == datetime.timedelta(hours=11).seconds:  # Daylight savings currently active
         timezone_string = "AEDT"
     else:
         timezone_string = "AEST"
-    print(f"Current date is {current_date}")
     current_day = current_date.weekday()
-    print(f"Current day is {current_day}")
     time_to_pug = datetime.timedelta(days=pug_day.tm_wday - current_day)
     if time_to_pug.days < 0:
         time_to_pug = datetime.timedelta(days=time_to_pug.days + 7)  # Ensure pug is in the future
-    print(f"It is {time_to_pug} to pug")
     pug_date = current_date + time_to_pug
     pug_date = pug_date.replace(hour=int(pug_hour), minute=0, second=0, microsecond=0)
     print(f"Pug is on {pug_date}")
@@ -65,6 +61,7 @@ async def start_pug(channel: discord.TextChannel):
     pugMessage: discord.Message = await channel.send(announce_message)
     for reactionEmoji in emojis_ids:
         await pugMessage.add_reaction(reactionEmoji)
+    await pugMessage.add_reaction('\U0000274C')
     return pugMessage
 
 
