@@ -1,5 +1,6 @@
 import discord
 import time
+import datetime
 import configparser
 
 config = configparser.ConfigParser()
@@ -37,9 +38,25 @@ signupsMessage: discord.Message = None
 
 
 async def start_pug(channel: discord.TextChannel):
-    pug_time = time.strptime(pug_wday + ' ' + pug_hour, "%A %H")
-    pug_time_string = time.strftime("%A at %I%p", pug_time)
-    announce_message = announce_string+"\nPug will be **" + pug_time_string + "**"
+    pug_day = time.strptime(pug_wday, "%A")
+    print(f"Pug is on day {pug_day.tm_wday}")
+    current_date = datetime.datetime.now(datetime.timezone.utc).astimezone()
+    if current_date.utcoffset().seconds == datetime.timedelta(hours=11).seconds:  # Daylight savings currently active
+        timezone_string = "AEDT"
+    else:
+        timezone_string = "AEST"
+    print(f"Current date is {current_date}")
+    current_day = current_date.weekday()
+    print(f"Current day is {current_day}")
+    time_to_pug = datetime.timedelta(days=pug_day.tm_wday - current_day)
+    if time_to_pug.days < 0:
+        time_to_pug = datetime.timedelta(days=time_to_pug.days + 7)  # Ensure pug is in the future
+    print(f"It is {time_to_pug} to pug")
+    pug_date = current_date + time_to_pug
+    pug_date = pug_date.replace(hour=int(pug_hour), minute=0, second=0, microsecond=0)
+    print(f"Pug is on {pug_date}")
+    pug_time_string = pug_date.strftime(f"%A (%d %B) at %I %p {timezone_string}")
+    announce_message = announce_string + "\nPug will be **" + pug_time_string + "**"
     pugMessage: discord.Message = await channel.send(announce_message)
     for reactionEmoji in emojis_ids:
         await pugMessage.add_reaction(reactionEmoji)
