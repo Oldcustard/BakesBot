@@ -1,3 +1,5 @@
+from typing import Dict, List
+
 import discord
 import time
 import datetime
@@ -34,6 +36,9 @@ signups = {
     emojis_ids[7]: [],
     emojis_ids[8]: []
 }
+
+player_classes: Dict[str, List[discord.Emoji]] = {}
+
 signupsMessage: discord.Message = None
 
 

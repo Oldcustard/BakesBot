@@ -40,7 +40,7 @@ async def send_to_admin(message: str):
 
 @client.event
 async def on_ready():
-    print(f'We have logged in as {client.user}')
+    print(f'{client.user} logged in')
     global announceChannel, adminChannel, admin
     announceChannel = client.get_channel(announce_channel_id)
     adminChannel = client.get_channel(admin_channel_id)
@@ -64,28 +64,23 @@ async def on_message(message):
 async def on_reaction_add(reaction: discord.Reaction, user: discord.Member):
     if user != client.user and reaction.message == pugMessage:
         players = start_pug.signups.get(str(reaction.emoji))
-        if players is None:
+        if players is None:  # User added their own reaction
             await reaction.remove(user)
             return
-        players.append(user.display_name)
+        if user.display_name not in start_pug.player_classes:
+            start_pug.player_classes[user.display_name] = []  # Add player to the player list
+        if reaction.emoji in start_pug.player_classes[user.display_name]:  # Player already signed up for this class
+            return
+        start_pug.player_classes[user.display_name].append(reaction.emoji)  # Add class to that player's list
+        preference = len(start_pug.player_classes[user.display_name])  # Preference for this class
+        players.append(user.display_name + f' ({preference})')
         print(f'{user.display_name} has signed up for {reaction.emoji}')
         print(reaction.emoji, players)
         if start_pug.signupsMessage is None:
             start_pug.signupsMessage = await send_to_admin(await start_pug.list_players())
         else:
             await start_pug.signupsMessage.edit(content=await start_pug.list_players())
-
-
-@client.event
-async def on_reaction_remove(reaction: discord.Reaction, user: discord.Member):
-    if reaction.message == pugMessage:
-        players = start_pug.signups.get(str(reaction.emoji))
-        if players is None:
-            return
-        players.remove(user.display_name)
-        print(f'{user.display_name} has withdrawn from {reaction.emoji}')
-        print(reaction.emoji, players)
-        await start_pug.signupsMessage.edit(content=(await start_pug.list_players()))
+        await user.send(f"Successfully signed up for {reaction.emoji} (preference {preference})")
 
 
 client.run(os.getenv('TOKEN'))
