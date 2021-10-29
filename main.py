@@ -1,11 +1,13 @@
 # main.py
-
+import datetime
 import os
 import configparser
 import discord
+from discord.ext import tasks
 import logging
 from distutils.util import strtobool
 
+import pug_scheduler
 import start_pug
 
 logging.basicConfig(level=logging.WARNING)
@@ -44,6 +46,7 @@ async def on_ready():
     adminChannel = client.get_channel(admin_channel_id)
     admin = await client.fetch_user(admin_id)
     print('')
+    await pug_scheduler.schedule_announcement(announceChannel)
 
 
 @client.event
@@ -53,14 +56,14 @@ async def on_message(message):
 
     if message.content.startswith('$start'):
         global pugMessage
-        pugMessage = await start_pug.start_pug(announceChannel)
+        pugMessage = await start_pug.announce_pug(announceChannel)
         await send_to_admin("**Bakes Pug has been announced.** Signups will be listed below as they come in")
         print("Pug has been announced")
 
 
 @client.event
 async def on_reaction_add(reaction: discord.Reaction, user: discord.Member):
-    if user != client.user and reaction.message == pugMessage:
+    if user != client.user and reaction.message == pug_scheduler.pugMessage:
         if reaction.emoji == "\U0000274C":  # Withdraw player
             await withdraw_player(user)
             for user_reaction in reaction.message.reactions:

@@ -10,6 +10,7 @@ config.read('config.ini')
 config = config['Pug Settings']
 
 announce_string = config['intro string']
+
 pug_wday = config['pug weekday']
 pug_hour = config['pug hour']
 
@@ -42,7 +43,7 @@ player_classes: Dict[str, List[discord.Emoji]] = {}
 signupsMessage: discord.Message = None
 
 
-async def start_pug(channel: discord.TextChannel):
+async def announce_pug(channel: discord.TextChannel):
     pug_day = time.strptime(pug_wday, "%A")
     current_date = datetime.datetime.now(datetime.timezone.utc).astimezone()
     if current_date.utcoffset().seconds == datetime.timedelta(hours=11).seconds:  # Daylight savings currently active
