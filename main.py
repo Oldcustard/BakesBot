@@ -4,6 +4,7 @@ import os
 import configparser
 import discord
 import logging
+from distutils.util import strtobool
 
 import start_pug
 
@@ -19,10 +20,7 @@ announce_channel_id = int(os.getenv('announce_channel_id'))
 admin_channel_id = int(os.getenv('admin_channel_id'))
 admin_id = int(os.getenv('admin_id'))
 
-if config['Message Settings']['use DMs'] == 'true':
-    useDM = True
-else:
-    useDM = False
+useDM = bool(strtobool(config['Message Settings']['use DMs']))
 
 announceChannel: discord.TextChannel
 adminChannel: discord.TextChannel
