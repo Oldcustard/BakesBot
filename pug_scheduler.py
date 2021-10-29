@@ -6,6 +6,7 @@ from distutils.util import strtobool
 
 import discord
 
+import messages
 import start_pug
 
 config = configparser.ConfigParser()
@@ -42,4 +43,5 @@ async def schedule_announcement(announce_channel: discord.TextChannel):
         await asyncio.sleep(seconds_until(announce_date))
         global pugMessage
         pugMessage = await start_pug.announce_pug(announce_channel)
+        await messages.send_to_admin("**Bakes Pug has been announced.** Signups will be listed below as they come in")
         await asyncio.sleep(60)
