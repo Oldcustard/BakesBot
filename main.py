@@ -1,4 +1,6 @@
 # main.py
+from dotenv import load_dotenv
+
 import datetime
 import os
 import configparser
@@ -9,6 +11,9 @@ from distutils.util import strtobool
 
 import pug_scheduler
 import start_pug
+
+
+load_dotenv()
 
 logging.basicConfig(level=logging.WARNING)
 config = configparser.ConfigParser()
