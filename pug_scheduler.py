@@ -40,6 +40,7 @@ async def schedule_announcement(announce_channel: discord.TextChannel):
         announce_date = current_date + time_to_announce
         announce_date = announce_date.replace(hour=int(announce_hour), minute=int(announce_minute), second=0, microsecond=0)
         print(f"Pug announcement scheduled for {announce_date}")
+        await messages.send_to_admin(f"{messages.host_role.mention}: Pug announcement scheduled for {datetime.datetime.strftime(announce_date, '%A (%d %B) at %X')}")
         await asyncio.sleep(seconds_until(announce_date))
         global pugMessage
         pugMessage = await start_pug.announce_pug(announce_channel)
