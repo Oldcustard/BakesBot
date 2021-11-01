@@ -37,8 +37,7 @@ async def schedule_announcement(announce_channel: discord.TextChannel):
                                               hours=int(announce_hour) - current_date.hour,
                                               minutes=int(announce_minute) - current_date.minute)
         if time_to_announce.total_seconds() < 0:
-            time_to_announce = datetime.timedelta(
-                days=time_to_announce.days + 7)  # Ensure announcement is in the future
+            time_to_announce = time_to_announce + datetime.timedelta(days=7)  # Ensure announcement is in the future
         announce_date = current_date + time_to_announce
         announce_date = announce_date.replace(hour=int(announce_hour), minute=int(announce_minute), second=0,
                                               microsecond=0)
