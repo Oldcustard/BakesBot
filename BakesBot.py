@@ -45,6 +45,10 @@ async def on_ready():
 
 @client.event
 async def on_reaction_add(reaction: discord.Reaction, user: discord.Member):
+    try:
+        pug_scheduler.pugMessage  # Pug not announced yet, ignore
+    except AttributeError:
+        return
     if user != client.user and reaction.message == pug_scheduler.pugMessage:
         if reaction.emoji == "\U0000274C":  # Withdraw player
             await withdraw_player(user)
