@@ -4,9 +4,11 @@ from dotenv import load_dotenv
 import os
 import configparser
 import discord
+import discord.ext.commands
 import logging
 
 import messages
+import player_selection
 import pug_scheduler
 import start_pug
 
@@ -18,7 +20,7 @@ config.read('config.ini')
 
 intents = discord.Intents().default()
 intents.members = True
-client = discord.Client(intents=intents)
+client = discord.ext.commands.Bot('!', intents=intents)
 
 announce_channel_id = int(os.getenv('announce_channel_id'))
 admin_channel_id = int(os.getenv('admin_channel_id'))
@@ -85,6 +87,17 @@ async def withdraw_player(user: discord.Member):
     await start_pug.signupsMessage.edit(content=await start_pug.list_players())
     await messages.send_to_admin(f"{messages.host_role.mention}: {user.display_name} has withdrawn from the pug")
     await user.send("You have withdrawn from the pug")
+
+
+@client.command(name='select')
+async def select_player(ctx, team, player_class, player):
+    await player_selection.select_player(ctx, team, player_class, player)
+
+
+@select_player.error
+async def select_player_error(ctx, error):
+    if isinstance(error, discord.ext.commands.MissingRequiredArgument):
+        ctx.channel.send("Missing all parameters")
 
 
 def main():
