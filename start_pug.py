@@ -56,7 +56,7 @@ async def announce_pug(channel: discord.TextChannel):
         time_to_pug = time_to_pug + datetime.timedelta(days=7)  # Ensure pug is in the future
     pug_date = current_date + time_to_pug
     pug_date = pug_date.replace(hour=int(pug_hour), minute=0, second=0, microsecond=0)
-    print(f"Pug is on {pug_date}")
+    print(f"Pug announced. Pug is on {pug_date}")
     pug_time_string = pug_date.strftime(f"%A (%d %B) at %I %p {timezone_string}")
     announce_message = announce_string + "\nPug will be **" + pug_time_string + "**" + "\nPress \U0000274C to withdraw from the pug."
     pugMessage: discord.Message = await channel.send(announce_message)

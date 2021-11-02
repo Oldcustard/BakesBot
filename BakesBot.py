@@ -4,9 +4,11 @@ from dotenv import load_dotenv
 import os
 import configparser
 import discord
+import discord.ext.commands
 import logging
 
 import messages
+import player_selection
 import pug_scheduler
 import start_pug
 
@@ -18,7 +20,7 @@ config.read('config.ini')
 
 intents = discord.Intents().default()
 intents.members = True
-client = discord.Client(intents=intents)
+client = discord.ext.commands.Bot('!', intents=intents)
 
 announce_channel_id = int(os.getenv('announce_channel_id'))
 admin_channel_id = int(os.getenv('admin_channel_id'))
@@ -26,7 +28,6 @@ admin_id = int(os.getenv('admin_id'))
 host_role_id = int(os.getenv('host_role_id'))
 
 announceChannel: discord.TextChannel
-pugMessage: discord.Message
 
 
 @client.event
@@ -68,6 +69,7 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.Member):
         print(f'{user.display_name} has signed up for {reaction.emoji}')
         if start_pug.signupsMessage is None:
             start_pug.signupsMessage = await messages.send_to_admin(await start_pug.list_players())
+            await start_pug.signupsMessage.pin()
         else:
             await start_pug.signupsMessage.edit(content=await start_pug.list_players())
         await user.send(f"Successfully signed up for {reaction.emoji} (preference {preference})")
@@ -85,6 +87,24 @@ async def withdraw_player(user: discord.Member):
     await start_pug.signupsMessage.edit(content=await start_pug.list_players())
     await messages.send_to_admin(f"{messages.host_role.mention}: {user.display_name} has withdrawn from the pug")
     await user.send("You have withdrawn from the pug")
+
+
+@client.command(name='select', aliases=['s'])
+async def select_player(ctx: discord.ext.commands.Context, team, player_class, player: discord.Member):
+    if start_pug.signupsMessage is None:
+        await ctx.channel.send("Player selection only available after pug is announced")
+        return
+    await player_selection.select_player(ctx, team, player_class, player)
+
+
+@select_player.error
+async def select_player_error(ctx, error):
+    if isinstance(error, discord.ext.commands.MissingRequiredArgument):
+        await ctx.channel.send("Missing all parameters")
+    elif isinstance(error, discord.ext.commands.MemberNotFound):
+        await ctx.channel.send(f"Player not found. Try different capitalisation or mention them directly.")
+    else:
+        raise error
 
 
 def main():
