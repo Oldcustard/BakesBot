@@ -10,7 +10,6 @@ import messages
 import pug_scheduler
 import start_pug
 
-
 load_dotenv()
 
 logging.basicConfig(level=logging.WARNING)
@@ -88,4 +87,9 @@ async def withdraw_player(user: discord.Member):
     await user.send("You have withdrawn from the pug")
 
 
-client.run(os.getenv('TOKEN'))
+def main():
+    client.run(os.getenv('TOKEN'))
+
+
+if __name__ == '__main__':
+    main()
