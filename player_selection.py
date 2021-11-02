@@ -44,7 +44,7 @@ async def select_player(ctx: discord.ext.commands.Context, team: str, player_cla
             await ctx.channel.send(f"Player {player} not found. Try different capitalisation or mention them directly.")
             return
     if player_class.capitalize() not in blu_team:
-        await ctx.channel.send(f"Class not found")
+        await ctx.channel.send(f"Class not recognised")
         return
     if team.lower() in blu_name:
         blu_team[player_class.capitalize()] = player_obj
