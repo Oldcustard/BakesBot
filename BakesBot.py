@@ -26,6 +26,7 @@ announce_channel_id = int(os.getenv('announce_channel_id'))
 admin_channel_id = int(os.getenv('admin_channel_id'))
 admin_id = int(os.getenv('admin_id'))
 host_role_id = int(os.getenv('host_role_id'))
+dev_id = int(os.getenv('dev_id'))
 
 announceChannel: discord.TextChannel
 
@@ -39,6 +40,7 @@ async def on_ready():
     messages.host_role = guild.get_role(host_role_id)
     messages.adminChannel = client.get_channel(admin_channel_id)
     messages.admin = await client.fetch_user(admin_id)
+    messages.dev = await client.fetch_user(dev_id)
     print('')
     await pug_scheduler.schedule_announcement(announceChannel)
 
