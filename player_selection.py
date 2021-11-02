@@ -34,15 +34,11 @@ bluMessage: discord.Message = None
 redMessage: discord.Message = None
 
 
-async def select_player(ctx: discord.ext.commands.Context, team: str, player_class: str, player: str):
+async def select_player(ctx: discord.ext.commands.Context, team: str, player_class: str, player_obj: discord.Member):
     global bluMessage, redMessage
-    if len(ctx.message.mentions) > 0:
-        player_obj = ctx.message.mentions[0]
-    else:
-        player_obj = ctx.guild.get_member_named(player)
-        if player_obj is None:
-            await ctx.channel.send(f"Player {player} not found. Try different capitalisation or mention them directly.")
-            return
+    if player_obj is None:
+        await ctx.channel.send(f"Player {player_obj} not found. Try different capitalisation or mention them directly.")
+        return
     if player_class.capitalize() not in blu_team:
         await ctx.channel.send(f"Class not recognised")
         return
