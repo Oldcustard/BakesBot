@@ -53,7 +53,7 @@ async def announce_pug(channel: discord.TextChannel):
     current_day = current_date.weekday()
     time_to_pug = datetime.timedelta(days=pug_day.tm_wday - current_day)
     if time_to_pug.days < 0:
-        time_to_pug = datetime.timedelta(days=time_to_pug.days + 7)  # Ensure pug is in the future
+        time_to_pug = time_to_pug + datetime.timedelta(days=7)  # Ensure pug is in the future
     pug_date = current_date + time_to_pug
     pug_date = pug_date.replace(hour=int(pug_hour), minute=0, second=0, microsecond=0)
     print(f"Pug is on {pug_date}")
