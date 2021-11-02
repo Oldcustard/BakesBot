@@ -98,6 +98,8 @@ async def select_player(ctx, team, player_class, player):
 async def select_player_error(ctx, error):
     if isinstance(error, discord.ext.commands.MissingRequiredArgument):
         ctx.channel.send("Missing all parameters")
+    else:
+        raise error
 
 
 def main():
