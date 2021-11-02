@@ -69,6 +69,7 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.Member):
         print(f'{user.display_name} has signed up for {reaction.emoji}')
         if start_pug.signupsMessage is None:
             start_pug.signupsMessage = await messages.send_to_admin(await start_pug.list_players())
+            await start_pug.signupsMessage.pin()
         else:
             await start_pug.signupsMessage.edit(content=await start_pug.list_players())
         await user.send(f"Successfully signed up for {reaction.emoji} (preference {preference})")
