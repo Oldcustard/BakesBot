@@ -28,7 +28,6 @@ admin_id = int(os.getenv('admin_id'))
 host_role_id = int(os.getenv('host_role_id'))
 
 announceChannel: discord.TextChannel
-pugMessage: discord.Message
 
 
 @client.event
