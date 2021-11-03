@@ -5,6 +5,8 @@ import time
 import datetime
 import configparser
 
+import messages
+
 config = configparser.ConfigParser()
 config.read('config.ini')
 config = config['Pug Settings']
@@ -74,3 +76,44 @@ async def list_players():
         line = signupClass + ": " + ", ".join(players)
         msg = msg + "\n" + line
     return msg
+
+
+async def on_reaction_add(reaction: discord.Reaction, user: discord.Member):
+    global signupsMessage
+    if reaction.emoji == "\U0000274C":  # Withdraw player
+        await withdraw_player(user)
+        for user_reaction in reaction.message.reactions:
+            await user_reaction.remove(user)
+        return
+    players = signups.get(str(reaction.emoji))
+    if players is None:  # User added their own reaction
+        await reaction.remove(user)
+        return
+    if user.display_name not in player_classes:  # Add player to the player list
+        player_classes[user.display_name] = []
+    if reaction.emoji in player_classes[user.display_name]:  # Player already signed up for this class
+        return
+    player_classes[user.display_name].append(reaction.emoji)  # Add class to that player's list
+    preference = len(player_classes[user.display_name])  # Preference for this class
+    players.append(user.display_name + f' ({preference})')
+    print(f'{user.display_name} has signed up for {reaction.emoji}')
+    if signupsMessage is None:
+        signupsMessage = await messages.send_to_admin(await list_players())
+        await signupsMessage.pin()
+    else:
+        await signupsMessage.edit(content=await list_players())
+    await user.send(f"Successfully signed up for {reaction.emoji} (preference {preference})")
+
+
+async def withdraw_player(user: discord.Member):
+    if user.display_name not in player_classes:  # user pressed withdraw without being signed up
+        return
+    player_classes.pop(user.display_name)
+    for signup_class in signups.values():
+        user_signup = [s for s in signup_class if user.display_name in s]
+        if len(user_signup) == 1:
+            signup_class.remove(user_signup[0])
+    print(f'{user.display_name} has withdrawn')
+    await signupsMessage.edit(content=await list_players())
+    await messages.send_to_admin(f"{messages.host_role.mention}: {user.display_name} has withdrawn from the pug")
+    await user.send("You have withdrawn from the pug")
