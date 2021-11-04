@@ -16,7 +16,7 @@ announce_string = config['intro string']
 pug_wday = config['pug weekday']
 pug_hour = config['pug hour']
 
-emojis_ids = [
+emojis_ids = (
     '<:scout:902551045891309579>',
     '<:soldier:902551045861957642>',
     '<:pyro:902551046189092875>',
@@ -26,7 +26,7 @@ emojis_ids = [
     '<:medic:902551045761269782>',
     '<:sniper:902551045891313754>',
     '<:spy:902551045853560842>'
-]
+)
 
 signups: Dict[str, List] = {
     emojis_ids[0]: [],
