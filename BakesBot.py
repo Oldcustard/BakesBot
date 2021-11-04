@@ -22,11 +22,11 @@ intents = discord.Intents().default()
 intents.members = True
 client = discord.ext.commands.Bot('!', intents=intents)
 
-announce_channel_id = int(os.getenv('announce_channel_id'))
-admin_channel_id = int(os.getenv('admin_channel_id'))
-admin_id = int(os.getenv('admin_id'))
-host_role_id = int(os.getenv('host_role_id'))
-dev_id = int(os.getenv('dev_id'))
+ANNOUNCE_CHANNEL_ID = int(os.getenv('announce_channel_id'))
+ADMIN_CHANNEL_ID = int(os.getenv('admin_channel_id'))
+ADMIN_ID = int(os.getenv('admin_id'))
+HOST_ROLE_ID = int(os.getenv('host_role_id'))
+DEV_ID = int(os.getenv('dev_id'))
 
 announceChannel: discord.TextChannel
 
@@ -35,12 +35,12 @@ announceChannel: discord.TextChannel
 async def on_ready():
     print(f'{client.user} logged in')
     global announceChannel
-    announceChannel = client.get_channel(announce_channel_id)
+    announceChannel = client.get_channel(ANNOUNCE_CHANNEL_ID)
     guild: discord.Guild = announceChannel.guild
-    messages.host_role = guild.get_role(host_role_id)
-    messages.adminChannel = client.get_channel(admin_channel_id)
-    messages.admin = await client.fetch_user(admin_id)
-    messages.dev = await client.fetch_user(dev_id)
+    messages.host_role = guild.get_role(HOST_ROLE_ID)
+    messages.adminChannel = client.get_channel(ADMIN_CHANNEL_ID)
+    messages.admin = await client.fetch_user(ADMIN_ID)
+    messages.dev = await client.fetch_user(DEV_ID)
     print('')
     await pug_scheduler.schedule_announcement(announceChannel)
 

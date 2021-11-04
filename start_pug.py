@@ -11,10 +11,10 @@ config = configparser.ConfigParser()
 config.read('config.ini')
 config = config['Pug Settings']
 
-announce_string = config['intro string']
+ANNOUNCE_STRING = config['intro string']
 
-pug_wday = config['pug weekday']
-pug_hour = config['pug hour']
+PUG_WDAY = config['pug weekday']
+PUG_HOUR = config['pug hour']
 
 emojis_ids = (
     '<:scout:902551045891309579>',
@@ -46,7 +46,7 @@ signupsMessage: discord.Message = None
 
 
 async def announce_pug(channel: discord.TextChannel):
-    pug_day = time.strptime(pug_wday, "%A")
+    pug_day = time.strptime(PUG_WDAY, "%A")
     current_date = datetime.datetime.now(datetime.timezone.utc).astimezone()
     if current_date.utcoffset().seconds == datetime.timedelta(hours=11).seconds:  # Daylight savings currently active
         timezone_string = "AEDT"
@@ -57,10 +57,10 @@ async def announce_pug(channel: discord.TextChannel):
     if time_to_pug.days < 0:
         time_to_pug = time_to_pug + datetime.timedelta(days=7)  # Ensure pug is in the future
     pug_date = current_date + time_to_pug
-    pug_date = pug_date.replace(hour=int(pug_hour), minute=0, second=0, microsecond=0)
+    pug_date = pug_date.replace(hour=int(PUG_HOUR), minute=0, second=0, microsecond=0)
     print(f"Pug announced. Pug is on {pug_date}")
     pug_time_string = pug_date.strftime(f"%A (%d %B) at %I %p {timezone_string}")
-    announce_message = announce_string + "\nPug will be **" + pug_time_string + "**" + "\nPress \U0000274C to withdraw from the pug."
+    announce_message = ANNOUNCE_STRING + "\nPug will be **" + pug_time_string + "**" + "\nPress \U0000274C to withdraw from the pug."
     pugMessage: discord.Message = await channel.send(announce_message)
     for reactionEmoji in emojis_ids:
         await pugMessage.add_reaction(reactionEmoji)
