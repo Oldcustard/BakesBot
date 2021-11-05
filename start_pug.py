@@ -15,7 +15,7 @@ ANNOUNCE_STRING = config['intro string']
 
 PUG_WDAY = config['pug weekday']
 PUG_HOUR = config['pug hour']
-LIST_PLAYER_NAME_LENGTH = 15
+LIST_PLAYER_NAME_LENGTH = 7
 
 emojis_ids = (
     '<:scout:902551045891309579>',
@@ -76,8 +76,8 @@ async def list_players():
     msg: str = ""
     for signupClass, players in signups.items():
         formatted_players = [f"{name[:-4]:>{LIST_PLAYER_NAME_LENGTH}.{LIST_PLAYER_NAME_LENGTH}}{name[-4:]}" if len(name) <= LIST_PLAYER_NAME_LENGTH + 4
-                             else f"{name[:LIST_PLAYER_NAME_LENGTH - 3]}...{name[-4:]}" for name in players]
-        line = signupClass + ": " + ", ".join(formatted_players)
+                             else f"{name[:LIST_PLAYER_NAME_LENGTH - 1]}-{name[-4:]}" for name in players]
+        line = signupClass + ": " + "| ".join(formatted_players)
         msg = msg + "\n" + line
     return msg
 
