@@ -1,4 +1,6 @@
 # BakesBot.py
+import datetime
+
 from dotenv import load_dotenv
 
 import os
@@ -51,6 +53,7 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.Member):
         if user != client.user and reaction.message == pug_scheduler.pugMessage:
             await start_pug.on_reaction_add(reaction, user)
     except AttributeError:
+        print("Reaction to non-pug message")
         return   # Pug hasn't started yet, ignore
 
 
@@ -70,6 +73,11 @@ async def select_player_error(ctx, error):
         await ctx.channel.send(f"Player not found. Try different capitalisation or mention them directly.")
     else:
         raise error
+
+
+@client.command(name='forcestart')
+async def force_start_pug(ctx: discord.ext.commands.Context):
+    await pug_scheduler.schedule_pug_start(announceChannel, datetime.datetime.now(datetime.timezone.utc).astimezone())
 
 
 def main():
