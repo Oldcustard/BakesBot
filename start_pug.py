@@ -15,6 +15,7 @@ ANNOUNCE_STRING = config['intro string']
 
 PUG_WDAY = config['pug weekday']
 PUG_HOUR = config['pug hour']
+LIST_PLAYER_NAME_LENGTH = 7
 
 emojis_ids = (
     '<:scout:902551045891309579>',
@@ -71,9 +72,14 @@ async def announce_pug(channel: discord.TextChannel):
 async def list_players():
     signupClass: str
     players: list
+    formatted_players: list
     msg: str = ""
     for signupClass, players in signups.items():
-        line = signupClass + ": " + ", ".join(players)
+        formatted_players = [
+            f"{name.replace('`', '')[:-4]:>{LIST_PLAYER_NAME_LENGTH}.{LIST_PLAYER_NAME_LENGTH}}{name[-4:]}" if len(
+                name) <= LIST_PLAYER_NAME_LENGTH + 4
+            else f"{name.replace('`', '')[:LIST_PLAYER_NAME_LENGTH - 1]}-{name[-4:]}" for name in players]
+        line = signupClass + ":`" + "| ".join(formatted_players) +" `"
         msg = msg + "\n" + line
     return msg
 
@@ -85,7 +91,7 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.Member):
         for user_reaction in reaction.message.reactions:
             await user_reaction.remove(user)
         return
-    players = signups.get(str(reaction.emoji))
+    players = signups[str(reaction.emoji)]
     if players is None:  # User added their own reaction
         await reaction.remove(user)
         return
