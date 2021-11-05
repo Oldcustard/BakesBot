@@ -16,3 +16,4 @@ def add_medic(player: discord.User):
         VALUES (?, ?)''', (player_name, 3))
 
     db.commit()
+    db.close()
