@@ -75,8 +75,10 @@ async def list_players():
     formatted_players: list
     msg: str = ""
     for signupClass, players in signups.items():
-        formatted_players = [f"{name[:-4]:>{LIST_PLAYER_NAME_LENGTH}.{LIST_PLAYER_NAME_LENGTH}}{name[-4:]}" if len(name) <= LIST_PLAYER_NAME_LENGTH + 4
-                             else f"{name[:LIST_PLAYER_NAME_LENGTH - 1]}-{name[-4:]}" for name in players]
+        formatted_players = [
+            f"{name.replace('`', '')[:-4]:>{LIST_PLAYER_NAME_LENGTH}.{LIST_PLAYER_NAME_LENGTH}}{name[-4:]}" if len(
+                name) <= LIST_PLAYER_NAME_LENGTH + 4
+            else f"{name.replace('`', '')[:LIST_PLAYER_NAME_LENGTH - 1]}-{name[-4:]}" for name in players]
         line = signupClass + ":`" + "| ".join(formatted_players) +" `"
         msg = msg + "\n" + line
     return msg
