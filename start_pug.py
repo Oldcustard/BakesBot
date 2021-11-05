@@ -6,6 +6,7 @@ import datetime
 import configparser
 
 import messages
+import pug_scheduler
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -65,6 +66,7 @@ async def announce_pug(channel: discord.TextChannel):
     for reactionEmoji in emojis_ids:
         await pugMessage.add_reaction(reactionEmoji)
     await pugMessage.add_reaction('❌')
+    await pug_scheduler.schedule_pug_start(channel, pug_date)
     return pugMessage
 
 

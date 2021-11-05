@@ -7,7 +7,9 @@ from distutils.util import strtobool
 import discord
 
 import messages
+import player_tracking
 import start_pug
+import player_selection
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -48,3 +50,13 @@ async def schedule_announcement(announce_channel: discord.TextChannel):
         pugMessage = await start_pug.announce_pug(announce_channel)
         await messages.send_to_admin(f"{messages.host_role.mention}: **Bakes Pug has been announced.** Signups will be listed below as they come in")
         await asyncio.sleep(60)
+
+
+async def schedule_pug_start(announce_channel: discord.TextChannel, pug_date: datetime.datetime):
+    await messages.send_to_admin(f"{messages.dev.mention}: Pug scheduled for {datetime.datetime.strftime(pug_date, '%A (%d %B) at %X')}")
+    print(f"Pug scheduled for {pug_date}")
+    await asyncio.sleep(seconds_until(pug_date))
+    print("Pug starts now; saving medics")
+    medics = [player_selection.blu_team['Medic'], player_selection.red_team['Medic']]
+    for medic in medics:
+        await player_tracking.add_medic(medic)
