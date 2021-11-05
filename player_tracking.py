@@ -2,7 +2,7 @@ import sqlite3
 import discord
 
 
-def add_medic(player: discord.User):
+async def add_medic(player: discord.User):
     player_name = player.name
     db = sqlite3.connect('players.db')
     c = db.cursor()
