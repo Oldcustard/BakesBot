@@ -47,9 +47,10 @@ async def schedule_announcement(announce_channel: discord.TextChannel):
         await messages.send_to_admin(f"{messages.dev.mention}: Pug announcement scheduled for {datetime.datetime.strftime(announce_date, '%A (%d %B) at %X')}")
         await asyncio.sleep(seconds_until(announce_date))
         global pugMessage
-        pugMessage = await start_pug.announce_pug(announce_channel)
+        pugMessage, pug_date = await start_pug.announce_pug(announce_channel)
         await messages.send_to_admin(f"{messages.host_role.mention}: **Bakes Pug has been announced.** Signups will be listed below as they come in")
         await asyncio.sleep(60)
+        asyncio.ensure_future(schedule_pug_start(announce_channel, pug_date))
 
 
 async def schedule_pug_start(announce_channel: discord.TextChannel, pug_date: datetime.datetime):

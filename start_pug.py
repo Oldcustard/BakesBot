@@ -66,8 +66,7 @@ async def announce_pug(channel: discord.TextChannel):
     for reactionEmoji in emojis_ids:
         await pugMessage.add_reaction(reactionEmoji)
     await pugMessage.add_reaction('❌')
-    await pug_scheduler.schedule_pug_start(channel, pug_date)
-    return pugMessage
+    return pugMessage, pug_date
 
 
 async def list_players():
