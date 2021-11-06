@@ -60,4 +60,4 @@ async def schedule_pug_start(announce_channel: discord.TextChannel, pug_date: da
     print("Pug starts now; saving medics")
     medics = [player_selection.blu_team['Medic'], player_selection.red_team['Medic']]
     for medic in medics:
-        await player_tracking.add_medic(medic)
+        print(await player_tracking.add_medic(medic))
