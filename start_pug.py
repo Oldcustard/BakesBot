@@ -103,14 +103,14 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.Member):
     if players is None:  # User added their own reaction
         await reaction.remove(user)
         return
-    if user.display_name not in player_classes:  # Add player to the player list
-        player_classes[user.display_name] = []
-    if reaction.emoji in player_classes[user.display_name]:  # Player already signed up for this class
+    if user.name not in player_classes:  # Add player to the player list
+        player_classes[user.name] = []
+    if reaction.emoji in player_classes[user.name]:  # Player already signed up for this class
         return
-    player_classes[user.display_name].append(reaction.emoji)  # Add class to that player's list
-    preference = len(player_classes[user.display_name])  # Preference for this class
-    players.append(user.display_name + f' ({preference})')
-    print(f'{user.display_name} has signed up for {reaction.emoji}')
+    player_classes[user.name].append(reaction.emoji)  # Add class to that player's list
+    preference = len(player_classes[user.name])  # Preference for this class
+    players.append(user.name + f' ({preference})')
+    print(f'{user.name} has signed up for {reaction.emoji}')
     if signupsMessage is None:
         signupsMessage = await messages.send_to_admin(await list_players_by_class())
         signupsListMessage = await messages.send_to_admin(await list_players())
@@ -123,14 +123,14 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.Member):
 
 
 async def withdraw_player(user: discord.Member):
-    if user.display_name not in player_classes:  # user pressed withdraw without being signed up
+    if user.name not in player_classes:  # user pressed withdraw without being signed up
         return
-    player_classes.pop(user.display_name)
+    player_classes.pop(user.name)
     for signup_class in signups.values():
-        user_signup = [s for s in signup_class if user.display_name in s]
+        user_signup = [s for s in signup_class if user.name in s]
         if len(user_signup) == 1:
             signup_class.remove(user_signup[0])
-    print(f'{user.display_name} has withdrawn')
+    print(f'{user.name} has withdrawn')
     await signupsMessage.edit(content=await list_players_by_class())
     await signupsListMessage.edit(content=await list_players())
     await messages.send_to_admin(f"{messages.host_role.mention}: {user.display_name} has withdrawn from the pug")
