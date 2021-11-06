@@ -58,6 +58,7 @@ async def schedule_pug_start(announce_channel: discord.TextChannel, pug_date: da
     print(f"Pug scheduled for {pug_date}")
     await asyncio.sleep(seconds_until(pug_date))
     print("Pug starts now; saving medics")
+    print(await player_tracking.decrement_medic_counters())
     medics = [player_selection.blu_team['Medic'], player_selection.red_team['Medic']]
     for medic in medics:
         print(await player_tracking.add_medic(medic))
