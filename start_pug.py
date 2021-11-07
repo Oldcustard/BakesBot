@@ -18,6 +18,7 @@ EARLY_ANNOUNCE_STRING = config['early signups intro string']
 
 PUG_WDAY = config['pug weekday']
 PUG_HOUR = config['pug hour']
+LIST_PLAYER_NAME_LENGTH = 7
 
 emojis_ids = (
     '<:scout:902551045891309579>',
@@ -46,6 +47,7 @@ signups: Dict[str, List] = {
 player_classes: Dict[str, List[discord.Emoji]] = {}
 
 signupsMessage: discord.Message = None
+signupsListMessage: discord.Message = None
 
 
 async def announce_pug(channel: discord.TextChannel):
@@ -83,24 +85,36 @@ async def announce_early(early_signups_channel: discord.TextChannel, signups_cha
     return earlyPugMessage, earlyPugMedicMessage
 
 
-async def list_players():
+async def list_players_by_class():
     signupClass: str
     players: list
+    formatted_players: list
     msg: str = ""
     for signupClass, players in signups.items():
-        line = signupClass + ": " + ", ".join(players)
+        formatted_players = [
+            f"{name.replace('`', '')[:-4]:>{LIST_PLAYER_NAME_LENGTH}.{LIST_PLAYER_NAME_LENGTH}}{name[-4:]}" if len(
+                name) <= LIST_PLAYER_NAME_LENGTH + 4
+            else f"{name.replace('`', '')[:LIST_PLAYER_NAME_LENGTH - 1]}-{name[-4:]}" for name in players]
+        line = signupClass + ":`" + "| ".join(formatted_players) +" `"
         msg = msg + "\n" + line
     return msg
 
 
+async def list_players():
+    msg = ''
+    players = player_classes.keys()
+    msg = "Signups in order: " + ', '.join(players)
+    return msg
+
+
 async def on_reaction_add(reaction: discord.Reaction, user: discord.Member):
-    global signupsMessage
+    global signupsMessage, signupsListMessage
     if reaction.emoji == "\U0000274C":  # Withdraw player
         await withdraw_player(user)
         for user_reaction in reaction.message.reactions:
             await user_reaction.remove(user)
         return
-    players = signups.get(str(reaction.emoji))
+    players = signups[str(reaction.emoji)]
     if players is None:  # User added their own reaction
         await reaction.remove(user)
         return
@@ -113,10 +127,13 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.Member):
     players.append(user.display_name + f' ({preference})')
     print(f'{user.display_name} has signed up for {reaction.emoji}')
     if signupsMessage is None:
-        signupsMessage = await messages.send_to_admin(await list_players())
+        signupsMessage = await messages.send_to_admin(await list_players_by_class())
+        signupsListMessage = await messages.send_to_admin(await list_players())
         await signupsMessage.pin()
+        await signupsListMessage.pin()
     else:
-        await signupsMessage.edit(content=await list_players())
+        await signupsMessage.edit(content=await list_players_by_class())
+        await signupsListMessage.edit(content=await list_players())
     await user.send(f"Successfully signed up for {reaction.emoji} (preference {preference})")
 
 
@@ -129,7 +146,8 @@ async def withdraw_player(user: discord.Member):
         if len(user_signup) == 1:
             signup_class.remove(user_signup[0])
     print(f'{user.display_name} has withdrawn')
-    await signupsMessage.edit(content=await list_players())
+    await signupsMessage.edit(content=await list_players_by_class())
+    await signupsListMessage.edit(content=await list_players())
     await messages.send_to_admin(f"{messages.host_role.mention}: {user.display_name} has withdrawn from the pug")
     await user.send("You have withdrawn from the pug")
 

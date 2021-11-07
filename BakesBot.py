@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 import os
 import configparser
 import discord
-import discord.ext.commands
+from discord.ext import commands
 import logging
 
 import messages
@@ -22,7 +22,7 @@ config.read('config.ini')
 
 intents = discord.Intents().default()
 intents.members = True
-client = discord.ext.commands.Bot('!', intents=intents)
+client = commands.Bot('!', intents=intents)
 
 ANNOUNCE_CHANNEL_ID = int(os.getenv('announce_channel_id'))
 EARLY_ANNOUNCE_CHANNEL_ID = int(os.getenv('early_announce_channel_id'))
@@ -64,8 +64,16 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.Member):
         pass
 
 
+def is_host():
+    def predicate(ctx):
+        return messages.host_role in ctx.message.author.roles
+
+    return commands.check(predicate)
+
+
 @client.command(name='select', aliases=['s'])
-async def select_player(ctx: discord.ext.commands.Context, team, player_class, player: discord.Member):
+@is_host()
+async def select_player(ctx: commands.Context, team, player_class, player: discord.Member):
     if start_pug.signupsMessage is None:
         await ctx.channel.send("Player selection only available after pug is announced")
         return
@@ -74,10 +82,12 @@ async def select_player(ctx: discord.ext.commands.Context, team, player_class, p
 
 @select_player.error
 async def select_player_error(ctx, error):
-    if isinstance(error, discord.ext.commands.MissingRequiredArgument):
+    if isinstance(error, commands.MissingRequiredArgument):
         await ctx.channel.send("Missing all parameters")
-    elif isinstance(error, discord.ext.commands.MemberNotFound):
+    elif isinstance(error, commands.MemberNotFound):
         await ctx.channel.send(f"Player not found. Try different capitalisation or mention them directly.")
+    elif isinstance(error, commands.CheckFailure):
+        await ctx.channel.send(f"Insufficient permissions.")
     else:
         raise error
 
