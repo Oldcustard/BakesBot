@@ -1,6 +1,8 @@
 import sqlite3
 import discord
 
+import messages
+
 
 async def add_medic(player: discord.User):
     player_name = player.name
@@ -43,3 +45,21 @@ async def decrement_medic_counters():
     db.commit()
     db.close()
     return medics
+
+
+async def update_early_signups():
+    db = sqlite3.connect('players.db')
+    c = db.cursor()
+
+    c.execute('''SELECT player FROM medics''')
+    medics = c.fetchall()
+    for medic in medics:
+        print(medic[0])
+        player: discord.Member
+        player = messages.guild.get_member_named(medic[0])
+        print(player)
+        await player.add_roles(messages.medic_role)  # Give medics from table the medic role
+    member: discord.Member
+    for member in messages.medic_role.members:
+        if member not in medics:
+            await member.remove_roles(messages.medic_role)  # Remove medic role from players not in the medic table

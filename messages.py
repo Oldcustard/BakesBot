@@ -7,9 +7,11 @@ config = configparser.ConfigParser()
 config.read('config.ini')
 config = config['Message Settings']
 
+guild: discord.Guild
 adminChannel: discord.TextChannel
 admin: discord.User
 host_role: discord.Role
+medic_role: discord.Role
 dev: discord.User
 
 useDM = bool(strtobool(config['use DMs']))
