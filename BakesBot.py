@@ -54,11 +54,14 @@ async def on_ready():
 @client.event
 async def on_reaction_add(reaction: discord.Reaction, user: discord.Member):
     try:
-        if user != client.user and reaction.message == pug_scheduler.pugMessage:
-            await start_pug.on_reaction_add(reaction, user)
-    except AttributeError:
-        print("Reaction to non-pug message")
-        return   # Pug hasn't started yet, ignore
+        if user != client.user and reaction.message == pug_scheduler.earlyPugMessage:
+            await start_pug.on_reaction_add(reaction, user)  # Early signup
+        elif user != client.user and reaction.message == pug_scheduler.earlyMedicPugMessage:
+            await start_pug.on_reaction_add(reaction, user)  # Early medic signup
+        elif user != client.user and reaction.message == pug_scheduler.pugMessage:
+            await start_pug.on_reaction_add(reaction, user)  # Regular signup
+    except AttributeError:  # Signups not declared yet, ignore
+        pass
 
 
 @client.command(name='select', aliases=['s'])
