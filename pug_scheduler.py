@@ -54,8 +54,8 @@ async def schedule_announcement(announce_channel: discord.TextChannel):
         await asyncio.sleep(seconds_until(announce_date))
         global pugMessage
         pugMessage, pug_date = await start_pug.announce_pug(announce_channel)
-        await messages.send_to_admin(f"{messages.host_role.mention}: **Bakes Pug has been announced.** Signups will be listed below as they come in")
-        asyncio.ensure_future(schedule_pug_start(announce_channel, pug_date))
+        await messages.send_to_admin(f"{messages.host_role.mention}: **Bakes Pug has been announced.**")
+        asyncio.ensure_future(schedule_pug_start(pug_date))
         await asyncio.sleep(60)
 
 
@@ -65,9 +65,10 @@ async def schedule_early_announcement(early_announce_channel: discord.TextChanne
     await asyncio.sleep(seconds_until(early_announce_date))
     global earlyPugMessage, earlyMedicPugMessage
     earlyPugMessage, earlyMedicPugMessage = await start_pug.announce_early(early_announce_channel, regular_announce_channel)
+    await messages.send_to_admin(f"{messages.host_role.mention}: **Early signups are open**")
 
 
-async def schedule_pug_start(announce_channel: discord.TextChannel, pug_date: datetime.datetime):
+async def schedule_pug_start(pug_date: datetime.datetime):
     print(f"Pug scheduled for {pug_date}")
     await asyncio.sleep(seconds_until(pug_date))
     print("Pug starts now; saving medics")
@@ -78,3 +79,4 @@ async def schedule_pug_start(announce_channel: discord.TextChannel, pug_date: da
             continue
         print(await player_tracking.add_medic(medic))
     await player_tracking.update_early_signups()
+    await start_pug.reset_pug()

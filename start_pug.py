@@ -6,6 +6,7 @@ import datetime
 import configparser
 
 import messages
+import player_selection
 import pug_scheduler
 
 config = configparser.ConfigParser()
@@ -131,3 +132,17 @@ async def withdraw_player(user: discord.Member):
     await signupsMessage.edit(content=await list_players())
     await messages.send_to_admin(f"{messages.host_role.mention}: {user.display_name} has withdrawn from the pug")
     await user.send("You have withdrawn from the pug")
+
+
+async def reset_pug():
+    global signupsMessage
+    await signupsMessage.unpin()
+    await player_selection.bluMessage.unpin()
+    await player_selection.redMessage.unpin()
+    signupsMessage = None
+    player_selection.bluMessage = None
+    player_selection.redMessage = None
+    pug_scheduler.pugMessage = None
+    pug_scheduler.earlyMedicPugMessage = None
+    pug_scheduler.earlyPugMessage = None
+    print("Pug status reset")
