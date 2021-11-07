@@ -51,7 +51,7 @@ async def update_early_signups():
     db = sqlite3.connect('players.db')
     c = db.cursor()
 
-    c.execute('''SELECT player FROM medics''')
+    c.execute('''SELECT player, weeks_remaining FROM medics''')
     medics = c.fetchall()
     for medic in medics:
         print(medic[0])
@@ -60,6 +60,7 @@ async def update_early_signups():
         print(player)
         await player.add_roles(messages.medic_role)  # Give medics from table the medic role
     member: discord.Member
+    medics = dict(medics)
     for member in messages.medic_role.members:
-        if member not in medics:
+        if member.name not in medics.keys():
             await member.remove_roles(messages.medic_role)  # Remove medic role from players not in the medic table
