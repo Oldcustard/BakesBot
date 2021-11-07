@@ -47,7 +47,7 @@ async def schedule_announcement(announce_channel: discord.TextChannel):
         announce_date = announce_date.replace(hour=int(ANNOUNCE_HOUR), minute=int(ANNOUNCE_MINUTE), second=0,
                                               microsecond=0)
         early_announce_date = announce_date - datetime.timedelta(hours=EARLY_OFFSET)
-        asyncio.ensure_future(schedule_early_announcement(announce_channel, early_announce_date))
+        asyncio.ensure_future(schedule_early_announcement(messages.earlyAnnounceChannel, early_announce_date))
         print(f"Pug announcement scheduled for {announce_date}")
         print(f"Early announcement scheduled for {early_announce_date}")
         await messages.send_to_admin(f"{messages.dev.mention}: Pug announcement scheduled for {datetime.datetime.strftime(announce_date, '%A (%d %B) at %X')}")
