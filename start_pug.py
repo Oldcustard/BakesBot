@@ -13,6 +13,7 @@ config.read('config.ini')
 config = config['Pug Settings']
 
 ANNOUNCE_STRING = config['intro string']
+EARLY_ANNOUNCE_STRING = config['early signups intro string']
 
 PUG_WDAY = config['pug weekday']
 PUG_HOUR = config['pug hour']
@@ -67,6 +68,15 @@ async def announce_pug(channel: discord.TextChannel):
         await pugMessage.add_reaction(reactionEmoji)
     await pugMessage.add_reaction('❌')
     return pugMessage, pug_date
+
+
+async def announce_early(early_signups_channel: discord.TextChannel):
+    announce_message = f"{EARLY_ANNOUNCE_STRING} \nPress ❌ to withdraw from the pug."
+    earlyPugMessage: discord.Message = await early_signups_channel.send(announce_message)
+    for reactionEmoji in emojis_ids:
+        await earlyPugMessage.add_reaction(reactionEmoji)
+    await earlyPugMessage.add_reaction('❌')
+    return earlyPugMessage
 
 
 async def list_players():

@@ -21,7 +21,10 @@ ANNOUNCE_WDAY = config['announce weekday']
 ANNOUNCE_HOUR = config['announce hour']
 ANNOUNCE_MINUTE = config['announce minute']
 
+EARLY_OFFSET = float(config['medic offset'])
+
 pugMessage: discord.Message
+earlyPugMessage: discord.Message
 
 
 def seconds_until(desired_time: datetime.datetime):
@@ -43,7 +46,10 @@ async def schedule_announcement(announce_channel: discord.TextChannel):
         announce_date = current_date + time_to_announce
         announce_date = announce_date.replace(hour=int(ANNOUNCE_HOUR), minute=int(ANNOUNCE_MINUTE), second=0,
                                               microsecond=0)
+        early_announce_date = announce_date - datetime.timedelta(hours=EARLY_OFFSET)
+        asyncio.ensure_future(schedule_early_announcement(announce_channel, early_announce_date))
         print(f"Pug announcement scheduled for {announce_date}")
+        print(f"Early announcement scheduled for {early_announce_date}")
         await messages.send_to_admin(f"{messages.dev.mention}: Pug announcement scheduled for {datetime.datetime.strftime(announce_date, '%A (%d %B) at %X')}")
         await asyncio.sleep(seconds_until(announce_date))
         global pugMessage
@@ -51,6 +57,13 @@ async def schedule_announcement(announce_channel: discord.TextChannel):
         await messages.send_to_admin(f"{messages.host_role.mention}: **Bakes Pug has been announced.** Signups will be listed below as they come in")
         asyncio.ensure_future(schedule_pug_start(announce_channel, pug_date))
         await asyncio.sleep(60)
+
+
+async def schedule_early_announcement(early_announce_channel: discord.TextChannel, early_announce_date: datetime.datetime):
+    print(f"Early announcement scheduled for {early_announce_date}")
+    await asyncio.sleep(seconds_until(early_announce_date))
+    global earlyPugMessage
+    earlyPugMessage = await start_pug.announce_early(early_announce_channel)
 
 
 async def schedule_pug_start(announce_channel: discord.TextChannel, pug_date: datetime.datetime):
