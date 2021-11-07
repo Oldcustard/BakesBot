@@ -25,6 +25,7 @@ intents.members = True
 client = discord.ext.commands.Bot('!', intents=intents)
 
 ANNOUNCE_CHANNEL_ID = int(os.getenv('announce_channel_id'))
+EARLY_ANNOUNCE_CHANNEL_ID = int(os.getenv('early_announce_channel_id'))
 ADMIN_CHANNEL_ID = int(os.getenv('admin_channel_id'))
 ADMIN_ID = int(os.getenv('admin_id'))
 MEDIC_ROLE_ID = int(os.getenv('medic_role_id'))
@@ -39,6 +40,7 @@ async def on_ready():
     print(f'{client.user} logged in')
     global announceChannel
     announceChannel = client.get_channel(ANNOUNCE_CHANNEL_ID)
+    messages.earlyAnnounceChannel = client.get_channel(EARLY_ANNOUNCE_CHANNEL_ID)
     messages.guild = announceChannel.guild
     messages.medic_role = messages.guild.get_role(MEDIC_ROLE_ID)
     messages.host_role = messages.guild.get_role(HOST_ROLE_ID)
