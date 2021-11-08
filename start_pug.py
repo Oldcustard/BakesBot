@@ -6,6 +6,7 @@ import datetime
 import configparser
 
 import messages
+import player_selection
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -133,5 +134,6 @@ async def withdraw_player(user: discord.Member):
     print(f'{user.display_name} has withdrawn')
     await signupsMessage.edit(content=await list_players_by_class())
     await signupsListMessage.edit(content=await list_players())
-    await messages.send_to_admin(f"{messages.host_role.mention}: {user.display_name} has withdrawn from the pug")
+    if user in player_selection.blu_team.values() or user in player_selection.red_team.values():
+        await messages.send_to_admin(f"{messages.host_role.mention}: {user.display_name} has withdrawn from the pug")
     await user.send("You have withdrawn from the pug")
