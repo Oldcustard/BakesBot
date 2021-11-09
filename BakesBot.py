@@ -1,4 +1,6 @@
 # BakesBot.py
+import datetime
+
 from dotenv import load_dotenv
 
 import os
@@ -23,8 +25,10 @@ intents.members = True
 client = commands.Bot('!', intents=intents)
 
 ANNOUNCE_CHANNEL_ID = int(os.getenv('announce_channel_id'))
+EARLY_ANNOUNCE_CHANNEL_ID = int(os.getenv('early_announce_channel_id'))
 ADMIN_CHANNEL_ID = int(os.getenv('admin_channel_id'))
 ADMIN_ID = int(os.getenv('admin_id'))
+MEDIC_ROLE_ID = int(os.getenv('medic_role_id'))
 HOST_ROLE_ID = int(os.getenv('host_role_id'))
 DEV_ID = int(os.getenv('dev_id'))
 
@@ -36,8 +40,10 @@ async def on_ready():
     print(f'{client.user} logged in')
     global announceChannel
     announceChannel = client.get_channel(ANNOUNCE_CHANNEL_ID)
-    guild: discord.Guild = announceChannel.guild
-    messages.host_role = guild.get_role(HOST_ROLE_ID)
+    messages.earlyAnnounceChannel = client.get_channel(EARLY_ANNOUNCE_CHANNEL_ID)
+    messages.guild = announceChannel.guild
+    messages.medic_role = messages.guild.get_role(MEDIC_ROLE_ID)
+    messages.host_role = messages.guild.get_role(HOST_ROLE_ID)
     messages.adminChannel = client.get_channel(ADMIN_CHANNEL_ID)
     messages.admin = await client.fetch_user(ADMIN_ID)
     messages.dev = await client.fetch_user(DEV_ID)
@@ -48,10 +54,14 @@ async def on_ready():
 @client.event
 async def on_reaction_add(reaction: discord.Reaction, user: discord.Member):
     try:
-        if user != client.user and reaction.message == pug_scheduler.pugMessage:
-            await start_pug.on_reaction_add(reaction, user)
-    except AttributeError:
-        return   # Pug hasn't started yet, ignore
+        if user != client.user and reaction.message == pug_scheduler.earlyPugMessage:
+            await start_pug.on_reaction_add(reaction, user)  # Early signup
+        elif user != client.user and reaction.message == pug_scheduler.earlyMedicPugMessage:
+            await start_pug.on_reaction_add(reaction, user)  # Early medic signup
+        elif user != client.user and reaction.message == pug_scheduler.pugMessage:
+            await start_pug.on_reaction_add(reaction, user)  # Regular signup
+    except AttributeError:  # Signups not declared yet, ignore
+        pass
 
 
 def is_host():
@@ -80,6 +90,12 @@ async def select_player_error(ctx, error):
         await ctx.channel.send(f"Insufficient permissions.")
     else:
         raise error
+
+
+@client.command(name='forcestart')
+@is_host()
+async def force_start_pug(ctx: discord.ext.commands.Context):
+    await pug_scheduler.schedule_pug_start(datetime.datetime.now(datetime.timezone.utc).astimezone())
 
 
 def main():

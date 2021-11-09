@@ -7,12 +7,14 @@ import configparser
 
 import messages
 import player_selection
+import pug_scheduler
 
 config = configparser.ConfigParser()
 config.read('config.ini')
 config = config['Pug Settings']
 
 ANNOUNCE_STRING = config['intro string']
+EARLY_ANNOUNCE_STRING = config['early signups intro string']
 
 PUG_WDAY = config['pug weekday']
 PUG_HOUR = config['pug hour']
@@ -68,7 +70,19 @@ async def announce_pug(channel: discord.TextChannel):
     for reactionEmoji in emojis_ids:
         await pugMessage.add_reaction(reactionEmoji)
     await pugMessage.add_reaction('❌')
-    return pugMessage
+    return pugMessage, pug_date
+
+
+async def announce_early(early_signups_channel: discord.TextChannel, signups_channel: discord.TextChannel):
+    announce_message = f"{EARLY_ANNOUNCE_STRING} \nPress ❌ to withdraw from the pug."
+    medic_announce_message = f"Early signups open!\nIf you want to play **Medic**, press the button below. Medics will gain 3 weeks of early signup!"
+    earlyPugMessage: discord.Message = await early_signups_channel.send(announce_message)
+    for reactionEmoji in emojis_ids:
+        await earlyPugMessage.add_reaction(reactionEmoji)
+    await earlyPugMessage.add_reaction('❌')
+    earlyPugMedicMessage: discord.Message = await signups_channel.send(medic_announce_message)
+    await earlyPugMedicMessage.add_reaction(emojis_ids[6])
+    return earlyPugMessage, earlyPugMedicMessage
 
 
 async def list_players_by_class():
@@ -137,3 +151,17 @@ async def withdraw_player(user: discord.Member):
     if user in player_selection.blu_team.values() or user in player_selection.red_team.values():
         await messages.send_to_admin(f"{messages.host_role.mention}: {user.display_name} has withdrawn from the pug")
     await user.send("You have withdrawn from the pug")
+
+
+async def reset_pug():
+    global signupsMessage
+    await signupsMessage.unpin()
+    await player_selection.bluMessage.unpin()
+    await player_selection.redMessage.unpin()
+    signupsMessage = None
+    player_selection.bluMessage = None
+    player_selection.redMessage = None
+    pug_scheduler.pugMessage = None
+    pug_scheduler.earlyMedicPugMessage = None
+    pug_scheduler.earlyPugMessage = None
+    print("Pug status reset")
