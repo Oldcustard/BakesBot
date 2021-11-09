@@ -3,6 +3,7 @@ from typing import Dict
 import discord.ext.commands
 
 import messages
+import pug_scheduler
 
 blu_team = {
     'Scout': None,
@@ -46,8 +47,8 @@ async def select_player(ctx: discord.ext.commands.Context, team: str, player_cla
         blu_team[player_class.capitalize()] = player_obj
         await ctx.channel.send(f"{player_obj} selected for BLU {player_class}")
         if bluMessage is None:
-            bluMessage = await messages.send_to_admin("BLU Team:\n" + await list_players(blu_team))
-            redMessage = await messages.send_to_admin("RED Team:\n" + await list_players(red_team))
+            bluMessage = await pug_scheduler.pugMessage.channel.send("BLU Team:\n" + await list_players(blu_team))
+            redMessage = await pug_scheduler.pugMessage.channel.send("RED Team:\n" + await list_players(red_team))
             await redMessage.pin()
             await bluMessage.pin()
         else:
@@ -57,8 +58,8 @@ async def select_player(ctx: discord.ext.commands.Context, team: str, player_cla
         red_team[player_class.capitalize()] = player_obj
         await ctx.channel.send(f"{player_obj} selected for RED {player_class}")
         if redMessage is None:
-            bluMessage = await messages.send_to_admin("BLU Team:\n" + await list_players(blu_team))
-            redMessage = await messages.send_to_admin("RED Team:\n" + await list_players(red_team))
+            bluMessage = await pug_scheduler.pugMessage.channel.send("BLU Team:\n" + await list_players(blu_team))
+            redMessage = await pug_scheduler.pugMessage.channel.send("RED Team:\n" + await list_players(red_team))
             await redMessage.pin()
             await bluMessage.pin()
         else:
