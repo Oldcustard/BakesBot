@@ -54,10 +54,8 @@ async def update_early_signups():
     c.execute('''SELECT player, weeks_remaining FROM medics''')
     medics = c.fetchall()
     for medic in medics:
-        print(medic[0])
         player: discord.Member
         player = messages.guild.get_member_named(medic[0])
-        print(player)
         await player.add_roles(messages.medic_role)  # Give medics from table the medic role
     member: discord.Member
     medics = dict(medics)
