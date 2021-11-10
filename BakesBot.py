@@ -99,10 +99,21 @@ async def force_start_pug(ctx: discord.ext.commands.Context):
     await pug_scheduler.schedule_pug_start(datetime.datetime.now(datetime.timezone.utc).astimezone())
 
 
-@client.command(name='warnplayer')
+@client.command(name='warn')
 @is_host()
 async def warn_player(ctx: discord.ext.commands.Context,player: discord.Member):
     await player_tracking.warn_player(ctx, player)
+
+@warn_player.error
+async def warn_player_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.channel.send("Missing all parameters")
+    elif isinstance(error, commands.MemberNotFound):
+        await ctx.channel.send(f"Player not found. Try different capitalisation or mention them directly.")
+    elif isinstance(error, commands.CheckFailure):
+        await ctx.channel.send(f"Insufficient permissions.")
+    else:
+        raise error
 
 def main():
     client.run(os.getenv('TOKEN'))
