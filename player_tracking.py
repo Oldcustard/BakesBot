@@ -78,7 +78,7 @@ async def warn_player(ctx: discord.ext.commands.Context, player: discord.User):
     if row is None:  # Player is not on the warnings table, add them with 1 active warning
         c.execute('''INSERT INTO warnings (player, currently_warned, total_warnings)
          VALUES (?, ?, ?)''', (player_name, 1, 1))
-        await ctx.channel.send(f"{player_name} has been warned. {player_name} has 1 total warnings.")
+        await ctx.channel.send(f"{player_name} has been warned. {player_name} has 1 total warning.")
         print(f"{player_name} has been warned.")
     elif row[1]: # Player is on the warnings table, and has already been warned for this pug
         await ctx.channel.send(f"{player_name} has already been warned for this pug, no warning added. {player_name} has {row[2]} total warnings")
@@ -111,3 +111,6 @@ async def unwarn_player(ctx: discord.ext.commands.Context, player: discord.User)
                  WHERE player = ?''', (player_name,))
         await ctx.channel.send(f"{player_name} has had their warning removed. They now have {row[2]} total warnings.")
         print(f"{player_name} has been unwarned.")
+
+    db.commit()
+    db.close()
