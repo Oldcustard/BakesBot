@@ -79,13 +79,16 @@ async def warn_player(ctx: discord.ext.commands.Context, player: discord.User):
         c.execute('''INSERT INTO warnings (player, currently_warned, total_warnings)
          VALUES (?, ?, ?)''', (player_name, 1, 1))
         await ctx.channel.send(f"{player_name} has been warned. {player_name} has 1 total warnings.")
+        print(f"{player_name} has been warned.")
     elif row[1]: # Player is on the warnings table, and has already been warned for this pug
         await ctx.channel.send(f"{player_name} has already been warned for this pug, no warning added. {player_name} has {row[2]} total warnings")
+        print(f"{player_name} has already been warned for this pug, no warning added.")
     else:  # Player is already on the warnings table, give them a current warning and add 1 to their total
         c.execute('''UPDATE warnings
          SET currently_warned = 1, total_warnings = total_warnings + 1
          WHERE player = ?''', (player_name,))
         await ctx.channel.send(f"{player_name} has been warned. {player_name} has {row[2]} total warnings")
+        print(f"{player_name} has been warned.")
 
     db.commit()
     db.close()
