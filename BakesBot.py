@@ -13,6 +13,7 @@ import messages
 import player_selection
 import pug_scheduler
 import start_pug
+import player_tracking
 
 load_dotenv()
 
@@ -97,6 +98,11 @@ async def select_player_error(ctx, error):
 async def force_start_pug(ctx: discord.ext.commands.Context):
     await pug_scheduler.schedule_pug_start(datetime.datetime.now(datetime.timezone.utc).astimezone())
 
+
+@client.command(name='warnplayer')
+@is_host()
+async def warn_player(ctx: discord.ext.commands.Context,player: discord.Member):
+    await player_tracking.warn_player(ctx, player)
 
 def main():
     client.run(os.getenv('TOKEN'))
