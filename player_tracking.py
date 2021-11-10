@@ -62,3 +62,27 @@ async def update_early_signups():
     for member in messages.medic_role.members:
         if member.name not in medics.keys():
             await member.remove_roles(messages.medic_role)  # Remove medic role from players not in the medic table
+
+
+async def warn_player(player: discord.User):
+    player_name = player.name
+    db = sqlite3.connect('players.db')
+    c = db.cursor()
+
+    c.execute('''CREATE TABLE IF NOT EXISTS warnings
+        (player TEXT PRIMARY KEY, currently_warned BOOLEAN, total_warnings INTEGER)''')
+
+    c.execute('''SELECT player, currently_warned FROM warnings WHERE player = ?''', (player_name,))
+    row = c.fetchone()
+    if row is None:  # Player is not on the warnings table, add them with 1 active warning
+        c.execute('''INSERT INTO warnings (player, currently_warned, total_warnings)
+         VALUES (?, ?, ?)''', (player_name, 1, 1))
+    elif row[1]: # Player is on the warnings table, and has already been warned for this pug
+        pass
+    else:  # Player is already on the warnings table, give them a current warning and add 1 to their total
+        c.execute('''UPDATE warnings
+         SET currently_warned = 1, total_warnings = total_warnings + 1
+         WHERE player = ?''', (player_name,))
+
+    db.commit()
+    db.close()
