@@ -114,3 +114,13 @@ async def unwarn_player(ctx: discord.ext.commands.Context, player: discord.User)
 
     db.commit()
     db.close()
+
+async def clear_active_warnings():
+    db = sqlite3.connect('players.db')
+    c = db.cursor()
+
+    c.execute('''UPDATE warnings
+       SET currently_warned = 0''')  # Clear all active warnings for the week.
+
+    db.commit()
+    db.close()
