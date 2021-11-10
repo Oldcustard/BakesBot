@@ -115,6 +115,22 @@ async def warn_player_error(ctx, error):
     else:
         raise error
 
+@client.command(name='unwarn')
+@is_host()
+async def unwarn_player(ctx: discord.ext.commands.Context,player: discord.Member):
+    await player_tracking.unwarn_player(ctx, player)
+
+@unwarn_player.error
+async def unwarn_player_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.channel.send("Missing all parameters")
+    elif isinstance(error, commands.MemberNotFound):
+        await ctx.channel.send(f"Player not found. Try different capitalisation or mention them directly.")
+    elif isinstance(error, commands.CheckFailure):
+        await ctx.channel.send(f"Insufficient permissions.")
+    else:
+        raise error
+
 def main():
     client.run(os.getenv('TOKEN'))
 

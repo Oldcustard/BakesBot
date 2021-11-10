@@ -72,7 +72,7 @@ async def warn_player(ctx: discord.ext.commands.Context, player: discord.User):
     c.execute('''CREATE TABLE IF NOT EXISTS warnings
         (player TEXT PRIMARY KEY, currently_warned BOOLEAN, total_warnings INTEGER)''')
 
-    c.execute('''SELECT player, currently_warned FROM warnings WHERE player = ?''', (player_name,))
+    c.execute('''SELECT player, currently_warned, total_warnings FROM warnings WHERE player = ?''', (player_name,))
     row = c.fetchone()
 
     if row is None:  # Player is not on the warnings table, add them with 1 active warning
@@ -92,3 +92,22 @@ async def warn_player(ctx: discord.ext.commands.Context, player: discord.User):
 
     db.commit()
     db.close()
+
+async def unwarn_player(ctx: discord.ext.commands.Context, player: discord.User):
+    player_name = player.name
+    db = sqlite3.connect('players.db')
+    c = db.cursor()
+
+    c.execute('''SELECT player, currently_warned, total_warnings FROM warnings WHERE player = ?''', (player_name,))
+    row = c.fetchone()
+
+    if row is None:
+        await ctx.channel.send(f"{player_name} has had no recorded warnings. No action taken.")
+    elif not row[1]:
+        await ctx.channel.send(f"{player_name} is not currently warned. No action taken.")
+    else:
+        c.execute('''UPDATE warnings
+                 SET currently_warned = 0, total_warnings = total_warnings - 1
+                 WHERE player = ?''', (player_name,))
+        await ctx.channel.send(f"{player_name} has had their warning removed. They now have {row[2]} total warnings.")
+        print(f"{player_name} has been unwarned.")
