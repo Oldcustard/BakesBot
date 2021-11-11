@@ -23,6 +23,7 @@ ANNOUNCE_MINUTE = config['announce minute']
 
 EARLY_OFFSET = float(config['medic offset'])
 LATE_SIGNUP_PENALTY = float(config['signup penalty time'])
+PENALTY_TRIGGER_OFFSET = float(config['late penalty offset'])
 
 pugMessage: discord.Message
 earlyPugMessage: discord.Message
@@ -51,12 +52,15 @@ async def schedule_announcement(announce_channel: discord.TextChannel):
         early_announce_date = announce_date - datetime.timedelta(hours=EARLY_OFFSET)
         global penalty_signup_time
         penalty_signup_time = announce_date + datetime.timedelta(hours=LATE_SIGNUP_PENALTY)
+
         asyncio.ensure_future(schedule_early_announcement(messages.earlyAnnounceChannel, announce_channel, early_announce_date))
         print(f"Pug announcement scheduled for {announce_date}")
         await messages.send_to_admin(f"{messages.dev.mention}: Pug announcement scheduled for {datetime.datetime.strftime(announce_date, '%A (%d %B) at %X')}")
         await asyncio.sleep(seconds_until(announce_date))
         global pugMessage
         pugMessage, pug_date = await start_pug.announce_pug(announce_channel)
+        global penalty_trigger_time
+        penalty_trigger_time = pug_date - datetime.timedelta(hours=PENALTY_TRIGGER_OFFSET)
         await messages.send_to_admin(f"{messages.host_role.mention}: **Bakes Pug has been announced.**")
         asyncio.ensure_future(schedule_pug_start(pug_date))
         await asyncio.sleep(60)
@@ -89,3 +93,8 @@ async def penalty_signups_check():
     global penalty_signup_time
     current_date = datetime.datetime.now(datetime.timezone.utc).astimezone()
     return current_date < penalty_signup_time, datetime.datetime.strftime(penalty_signup_time, '%A (%d %B) at %X')
+
+async def after_penalty_trigger_check():
+    global penalty_trigger_time
+    current_date = datetime.datetime.now(datetime.timezone.utc).astimezone()
+    return penalty_trigger_time < current_date, datetime.datetime.strftime(penalty_trigger_time, '%A (%d %B) at %X')
