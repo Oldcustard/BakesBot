@@ -154,39 +154,39 @@ async def player_status(ctx, player: discord.Member):
 
 
     if warnings_row is None:
-        active_warning = "not currently warned"
+        active_warning = "**not currently warned**"
         total_warnings = 0
     elif warnings_row[1] == 0:
-        active_warning = "not currently warned"
+        active_warning = "**not currently warned**"
         total_warnings = warnings_row[2]
     else:
-        active_warning = "currently warned"
+        active_warning = "**currently warned**"
         total_warnings = warnings_row[2]
 
     if medics_row is None:
-        medic_status = "does not have medic priority."
+        medic_status = "**does not have Medic priority**."
     else:
-        medic_status = f"has medic priority for {medics_row[1]} more week{'s' if medics_row[1] != 1 else ''}."
+        medic_status = f"**has Medic priority** for **{medics_row[1]}** more week{'s' if medics_row[1] != 1 else ''}."
 
     if player_name in start_pug.player_classes.keys():
         signed_up_classes = ', '.join([str(emoji) for emoji in start_pug.player_classes[player_name]])
     else:
-        signed_up_classes = "no classes"
+        signed_up_classes = "**no classes**"
 
     if player in player_selection.blu_team.values():
         assigned_classes = []
         for tf2class, player_obj in player_selection.blu_team.items():
             if player_obj == player:
                 assigned_classes.append(tf2class)
-        assigned_message = f"is assigned to {' and '.join(assigned_classes)} on blue team."
+        assigned_message = f"is assigned to **{' and '.join(assigned_classes)}** on **BLU** team."
 
     elif player in player_selection.red_team.values():
         assigned_classes = []
         for tf2class, player_obj in player_selection.red_team.items():
             if player_obj == player:
                 assigned_classes.append(tf2class)
-        assigned_message = f"is assigned to {' and '.join(assigned_classes)} on red team."
+        assigned_message = f"is assigned to **{' and '.join(assigned_classes)}** on **RED** team."
     else:
-        assigned_message = 'is not assigned to any class.'
+        assigned_message = 'is **not assigned to any class.**'
 
     await ctx.channel.send(f"{player_name} {medic_status}\nThey are {active_warning} and have {total_warnings} total warning{'s' if total_warnings != 1 else ''}.\nThey are signed up for {signed_up_classes} and {assigned_message}")
