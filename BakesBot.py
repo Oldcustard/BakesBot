@@ -123,7 +123,7 @@ async def warn_player_error(ctx, error):
     elif isinstance(error, commands.MemberNotFound):
         await ctx.channel.send(f"Player not found. Try different capitalisation or mention them directly.")
     elif isinstance(error, commands.CheckFailure):
-        await ctx.channel.send(f"Insufficient permissions.")
+        return
     else:
         raise error
 
@@ -139,7 +139,7 @@ async def unwarn_player_error(ctx, error):
     elif isinstance(error, commands.MemberNotFound):
         await ctx.channel.send(f"Player not found. Try different capitalisation or mention them directly.")
     elif isinstance(error, commands.CheckFailure):
-        await ctx.channel.send(f"Insufficient permissions.")
+        return
     else:
         raise error
 
