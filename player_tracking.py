@@ -189,4 +189,4 @@ async def player_status(ctx, player: discord.Member):
     else:
         assigned_message = 'is not assigned to any class.'
 
-    ctx.channel.send(f"{player_name} {medic_status}\nThey are {active_warning} and have {total_warnings} total warning{'s' if total_warnings != 1 else ''}.\nThey are signed up for {signed_up_classes} and {assigned_message}")
+    await ctx.channel.send(f"{player_name} {medic_status}\nThey are {active_warning} and have {total_warnings} total warning{'s' if total_warnings != 1 else ''}.\nThey are signed up for {signed_up_classes} and {assigned_message}")
