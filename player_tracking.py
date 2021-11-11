@@ -178,15 +178,15 @@ async def player_status(ctx, player: discord.Member):
         for tf2class, player_obj in player_selection.blu_team.items():
             if player_obj == player:
                 assigned_classes.append(tf2class)
-        assigned_message = f"is assigned to **{' and '.join(assigned_classes)}** on **BLU** team."
+        assigned_message = f"are assigned to **{' and '.join(assigned_classes)}** on **BLU** team."
 
     elif player in player_selection.red_team.values():
         assigned_classes = []
         for tf2class, player_obj in player_selection.red_team.items():
             if player_obj == player:
                 assigned_classes.append(tf2class)
-        assigned_message = f"is assigned to **{' and '.join(assigned_classes)}** on **RED** team."
+        assigned_message = f"are assigned to **{' and '.join(assigned_classes)}** on **RED** team."
     else:
-        assigned_message = 'is **not assigned to any class.**'
+        assigned_message = 'are **not assigned to any class.**'
 
-    await ctx.channel.send(f"{player_name} {medic_status}\nThey are {active_warning} and have {total_warnings} total warning{'s' if total_warnings != 1 else ''}.\nThey are signed up for {signed_up_classes} and {assigned_message}")
+    await ctx.channel.send(f"{player_name} {medic_status}\nThey are {active_warning} and have **{total_warnings}** total warning{'s' if total_warnings != 1 else ''}.\nThey are signed up for {signed_up_classes} and {assigned_message}")
