@@ -87,7 +87,7 @@ async def warn_player(ctx: discord.ext.commands.Context, player: discord.User):
         c.execute('''UPDATE warnings
          SET currently_warned = 1, total_warnings = total_warnings + 1
          WHERE player = ?''', (player_name,))
-        await ctx.channel.send(f"{player_name} has been warned. {player_name} has {row[2]} total warning{'s' if row[2] != 1 else ''}.")
+        await ctx.channel.send(f"{player_name} has been warned. {player_name} has {row[2] + 1} total warning{'s' if row[2] + 1 != 1 else ''}.")
         print(f"{player_name} has been warned.")
 
     db.commit()
@@ -109,7 +109,7 @@ async def unwarn_player(ctx: discord.ext.commands.Context, player: discord.User)
         c.execute('''UPDATE warnings
                  SET currently_warned = 0, total_warnings = total_warnings - 1
                  WHERE player = ?''', (player_name,))
-        await ctx.channel.send(f"{player_name} has had their warning removed. They now have {row[2]} total warning{'s' if row[2] != 1 else ''}.")
+        await ctx.channel.send(f"{player_name} has had their warning removed. They now have {row[2] - 1} total warning{'s' if row[2] - 1 != 1 else ''}.")
         print(f"{player_name} has been unwarned.")
 
     db.commit()
