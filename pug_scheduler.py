@@ -78,9 +78,10 @@ async def schedule_early_announcement(early_announce_channel: discord.TextChanne
 async def schedule_pug_start(pug_date: datetime.datetime):
     print(f"Pug scheduled for {pug_date}")
     await asyncio.sleep(seconds_until(pug_date))
-    print("Pug starts now; saving medics, clearing active warnings.")
+    print("Pug starts now; saving medics, clearing active warnings, warning baiters.")
     print(await player_tracking.decrement_medic_counters())
     await player_tracking.clear_active_warnings()
+    await start_pug.auto_warn_bating_players()
     medics = [player_selection.blu_team['Medic'], player_selection.red_team['Medic']]
     for medic in medics:
         if medic is None:

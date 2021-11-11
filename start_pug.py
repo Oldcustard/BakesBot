@@ -50,6 +50,7 @@ player_classes: Dict[str, List[discord.Emoji]] = {}
 signupsMessage: discord.Message = None
 signupsListMessage: discord.Message = None
 
+players_to_warn = []
 
 async def announce_pug(channel: discord.TextChannel):
     pug_day = time.strptime(PUG_WDAY, "%A")
@@ -160,12 +161,18 @@ async def withdraw_player(user: discord.Member):
         is_past_penalty_time, penalty_trigger_time = await pug_scheduler.after_penalty_trigger_check()
         if is_past_penalty_time:
             await messages.send_to_admin(f"{messages.host_role.mention}: {user.display_name} has withdrawn from the pug. As it is after {penalty_trigger_time}, they will receive a bait warning.")
-            await player_tracking.warn_player(user)
+            players_to_warn.append(user)
             await user.send(f"You have withdrawn from the pug. As you have been assigned a class and it is after {penalty_trigger_time}, you will receive a bait warning.")
             return
         else:
             await messages.send_to_admin(f"{messages.host_role.mention}: {user.display_name} has withdrawn from the pug.")
     await user.send(f"You have withdrawn from the pug.")
+
+
+async def auto_warn_bating_players():
+    for user in players_to_warn:
+        await player_tracking.warn_player(user)
+    players_to_warn.clear()
 
 
 
