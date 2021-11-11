@@ -169,7 +169,7 @@ async def player_status(ctx, player: discord.Member):
         medic_status = f"has medic priority for {medics_row[1]} more week{'s' if medics_row[1] != 1 else ''}."
 
     if player_name in start_pug.player_classes.keys():
-        signed_up_classes = ', '.join(start_pug.player_classes[player_name])
+        signed_up_classes = ', '.join([str(emoji) for emoji in start_pug.player_classes[player_name]])
     else:
         signed_up_classes = "no classes"
 
