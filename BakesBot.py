@@ -113,7 +113,7 @@ async def force_withdraw_player(ctx: commands.Context, player: discord.Member):
 
 @client.command(name='warn')
 @is_host()
-async def warn_player(player: discord.Member):
+async def warn_player(ctx: commands.Context, player: discord.Member):
     await player_tracking.warn_player(player)
 
 @warn_player.error
@@ -129,7 +129,7 @@ async def warn_player_error(ctx, error):
 
 @client.command(name='unwarn')
 @is_host()
-async def unwarn_player(player: discord.Member):
+async def unwarn_player(ctx: commands.Context, player: discord.Member):
     await player_tracking.unwarn_player(player)
 
 @unwarn_player.error
