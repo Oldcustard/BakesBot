@@ -82,20 +82,32 @@ async def select_player(ctx: commands.Context, team, player_class, player: disco
 
 @select_player.error
 async def select_player_error(ctx, error):
-    if isinstance(error, commands.MissingRequiredArgument):
+    if isinstance(error, commands.CheckFailure):
+        return
+    elif isinstance(error, commands.MissingRequiredArgument):
         await ctx.channel.send("Missing all parameters")
     elif isinstance(error, commands.MemberNotFound):
         await ctx.channel.send(f"Player not found. Try different capitalisation or mention them directly.")
-    elif isinstance(error, commands.CheckFailure):
-        await ctx.channel.send(f"Insufficient permissions.")
     else:
         raise error
+
+
+@client.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.CheckFailure):
+        await ctx.channel.send(f"Insufficient permissions.")
 
 
 @client.command(name='forcestart')
 @is_host()
 async def force_start_pug(ctx: discord.ext.commands.Context):
     await pug_scheduler.schedule_pug_start(datetime.datetime.now(datetime.timezone.utc).astimezone())
+
+
+@client.command(name='withdraw')
+@is_host()
+async def force_withdraw_player(ctx: commands.Context, player: discord.Member):
+    await start_pug.withdraw_player(player)
 
 
 def main():
