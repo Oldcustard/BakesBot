@@ -64,7 +64,7 @@ async def update_early_signups():
             await member.remove_roles(messages.medic_role)  # Remove medic role from players not in the medic table
 
 
-async def warn_player(ctx: discord.ext.commands.Context, player: discord.User):
+async def warn_player(player: discord.User):
     player_name = player.name
     db = sqlite3.connect('players.db')
     c = db.cursor()
@@ -78,23 +78,23 @@ async def warn_player(ctx: discord.ext.commands.Context, player: discord.User):
     if row is None:  # Player is not on the warnings table, add them with 1 active warning
         c.execute('''INSERT INTO warnings (player, currently_warned, total_warnings)
          VALUES (?, ?, ?)''', (player_name, 1, 1))
-        await ctx.channel.send(f"{player_name} has been warned. {player_name} has 1 total warning.")
+        await messages.send_to_admin(f"{player_name} has been warned. {player_name} has 1 total warning.")
         print(f"{player_name} has been warned.")
     elif row[1]:  # Player is on the warnings table, and has already been warned for this pug
-        await ctx.channel.send(f"{player_name} has already been warned for this pug, no warning added. {player_name} has {row[2]} total warning{'s' if row[2] != 1 else ''}.")
+        await messages.send_to_admin(f"{player_name} has already been warned for this pug, no warning added. {player_name} has {row[2]} total warning{'s' if row[2] != 1 else ''}.")
         print(f"{player_name} has already been warned for this pug, no warning added.")
     else:  # Player is already on the warnings table, give them a current warning and add 1 to their total
         c.execute('''UPDATE warnings
          SET currently_warned = 1, total_warnings = total_warnings + 1
          WHERE player = ?''', (player_name,))
-        await ctx.channel.send(f"{player_name} has been warned. {player_name} has {row[2] + 1} total warning{'s' if row[2] + 1 != 1 else ''}.")
+        await messages.send_to_admin(f"{player_name} has been warned. {player_name} has {row[2] + 1} total warning{'s' if row[2] + 1 != 1 else ''}.")
         print(f"{player_name} has been warned.")
 
     db.commit()
     db.close()
 
 
-async def unwarn_player(ctx: discord.ext.commands.Context, player: discord.User):
+async def unwarn_player(player: discord.User):
     player_name = player.name
     db = sqlite3.connect('players.db')
     c = db.cursor()
@@ -103,14 +103,14 @@ async def unwarn_player(ctx: discord.ext.commands.Context, player: discord.User)
     row = c.fetchone()
 
     if row is None:
-        await ctx.channel.send(f"{player_name} has had no recorded warnings. No action taken.")
+        await messages.send_to_admin(f"{player_name} has had no recorded warnings. No action taken.")
     elif not row[1]:
-        await ctx.channel.send(f"{player_name} is not currently warned. No action taken.")
+        await messages.send_to_admin(f"{player_name} is not currently warned. No action taken.")
     else:
         c.execute('''UPDATE warnings
                  SET currently_warned = 0, total_warnings = total_warnings - 1
                  WHERE player = ?''', (player_name,))
-        await ctx.channel.send(f"{player_name} has had their warning removed. They now have {row[2] - 1} total warning{'s' if row[2] - 1 != 1 else ''}.")
+        await messages.send_to_admin(f"{player_name} has had their warning removed. They now have {row[2] - 1} total warning{'s' if row[2] - 1 != 1 else ''}.")
         print(f"{player_name} has been unwarned.")
 
     db.commit()
