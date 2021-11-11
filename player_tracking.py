@@ -80,7 +80,7 @@ async def warn_player(ctx: discord.ext.commands.Context, player: discord.User):
          VALUES (?, ?, ?)''', (player_name, 1, 1))
         await ctx.channel.send(f"{player_name} has been warned. {player_name} has 1 total warning.")
         print(f"{player_name} has been warned.")
-    elif row[1]: # Player is on the warnings table, and has already been warned for this pug
+    elif row[1]:  # Player is on the warnings table, and has already been warned for this pug
         await ctx.channel.send(f"{player_name} has already been warned for this pug, no warning added. {player_name} has {row[2]} total warning{'s' if row[2] != 1 else ''}.")
         print(f"{player_name} has already been warned for this pug, no warning added.")
     else:  # Player is already on the warnings table, give them a current warning and add 1 to their total
@@ -92,6 +92,7 @@ async def warn_player(ctx: discord.ext.commands.Context, player: discord.User):
 
     db.commit()
     db.close()
+
 
 async def unwarn_player(ctx: discord.ext.commands.Context, player: discord.User):
     player_name = player.name
@@ -115,6 +116,7 @@ async def unwarn_player(ctx: discord.ext.commands.Context, player: discord.User)
     db.commit()
     db.close()
 
+
 async def clear_active_warnings():
     db = sqlite3.connect('players.db')
     c = db.cursor()
@@ -124,3 +126,16 @@ async def clear_active_warnings():
 
     db.commit()
     db.close()
+
+
+async def check_active_baiter(player: discord.Member):
+    player_name = player.name
+    db = sqlite3.connect('players.db')
+    c = db.cursor()
+
+    c.execute('''SELECT player, currently_warned, total_warnings FROM warnings WHERE player = ?''', (player_name,))
+    row = c.fetchone()
+    if row is None:  # Player not in database
+        return False
+    else:
+        return bool(row[1])  # Return True or False depending on active warning status

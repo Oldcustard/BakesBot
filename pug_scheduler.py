@@ -81,3 +81,6 @@ async def schedule_pug_start(pug_date: datetime.datetime):
         print(await player_tracking.add_medic(medic))
     await player_tracking.update_early_signups()
     await start_pug.reset_pug()
+
+async def penalty_signups_check():
+    pass
