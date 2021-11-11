@@ -159,9 +159,14 @@ async def withdraw_player(user: discord.Member):
     if user in player_selection.blu_team.values() or user in player_selection.red_team.values():
         is_past_penalty_time, penalty_trigger_time = await pug_scheduler.after_penalty_trigger_check()
         if is_past_penalty_time:
-            await messages.send_to_admin(f"{messages.host_role.mention}: {user.display_name} has withdrawn from the pug. As it is after {penalty_trigger_time}, they will receive a bait warning")
-            await player_tracking.war
-    await user.send("You have withdrawn from the pug")
+            await messages.send_to_admin(f"{messages.host_role.mention}: {user.display_name} has withdrawn from the pug. As it is after {penalty_trigger_time}, they will receive a bait warning.")
+            await player_tracking.warn_player(user)
+            await user.send(f"You have withdrawn from the pug. As you have been assigned a class and it is after {penalty_trigger_time}, you will receive a bait warning.")
+            return
+        else:
+            await messages.send_to_admin(f"{messages.host_role.mention}: {user.display_name} has withdrawn from the pug.")
+    await user.send(f"You have withdrawn from the pug.")
+
 
 
 async def reset_pug():
