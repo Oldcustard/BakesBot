@@ -111,10 +111,12 @@ async def list_players():
 async def on_reaction_add(reaction: discord.Reaction, user: discord.Member):
     global signupsMessage, signupsListMessage
 
-    if player_tracking.check_active_baiter(user) and pug_scheduler.penalty_signups_check():
-        user.send(f"You have a current active warning for pug bating, and are subject to a late signup penalty. You will be able to signup from ")
-        await reaction.remove(user)
-        return
+    if player_tracking.check_active_baiter(user):
+        before_late_signup_time, late_signup_time = pug_scheduler.penalty_signups_check()
+        if before_late_signup_time:
+            user.send(f"You have a current active warning, and are subject to a late signup penalty. You will be able to signup from {late_signup_time}")
+            await reaction.remove(user)
+            return
     if reaction.emoji == "\U0000274C":  # Withdraw player
         await withdraw_player(user)
         for user_reaction in reaction.message.reactions:
