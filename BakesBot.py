@@ -73,7 +73,7 @@ def is_host():
 
 @client.command(name='select', aliases=['s'])
 @is_host()
-async def select_player(ctx: commands.Context, team, player_class, player: discord.Member):
+async def select_player(ctx: commands.Context, team, player_class, *, player: discord.Member):
     if start_pug.signupsMessage is None:
         await ctx.channel.send("Player selection only available after pug is announced")
         return
