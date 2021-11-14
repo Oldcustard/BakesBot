@@ -13,6 +13,7 @@ adminChannel: discord.TextChannel
 admin: discord.User
 host_role: discord.Role
 medic_role: discord.Role
+banned_role: discord.Role
 dev: discord.User
 
 useDM = bool(strtobool(config['use DMs']))

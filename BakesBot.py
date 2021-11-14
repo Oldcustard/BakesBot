@@ -31,6 +31,7 @@ ADMIN_CHANNEL_ID = int(os.getenv('admin_channel_id'))
 ADMIN_ID = int(os.getenv('admin_id'))
 MEDIC_ROLE_ID = int(os.getenv('medic_role_id'))
 HOST_ROLE_ID = int(os.getenv('host_role_id'))
+PUG_BANNED_ROLE_ID = int(os.getenv('pug_banned_role_id'))
 DEV_ID = int(os.getenv('dev_id'))
 
 announceChannel: discord.TextChannel
@@ -45,6 +46,7 @@ async def on_ready():
     messages.guild = announceChannel.guild
     messages.medic_role = messages.guild.get_role(MEDIC_ROLE_ID)
     messages.host_role = messages.guild.get_role(HOST_ROLE_ID)
+    messages.banned_role = messages.guild.get_role(PUG_BANNED_ROLE_ID)
     messages.adminChannel = client.get_channel(ADMIN_CHANNEL_ID)
     messages.admin = await client.fetch_user(ADMIN_ID)
     messages.dev = await client.fetch_user(DEV_ID)
