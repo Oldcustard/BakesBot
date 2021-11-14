@@ -155,15 +155,19 @@ async def pug_ban(player: discord.Member, reason : str):
         c.execute('''INSERT INTO warnings (player, currently_warned, total_warnings, pug_banned)
          VALUES (?, ?, ?, ?)''', (player_name, 0, 0, 1))
         await player.add_roles(messages.banned_role)
-        await player.send(f"You have been banned from playing in Bakes Pugs.\nReason:{reason}")
+        await player.send(f"You have been banned from playing in Bakes Pugs.\nReason: {reason}")
         await messages.send_to_admin(f"{player_name} has been Pug Banned.")
         print(f"{player_name} has been pug banned.")
     elif not row[1]:
         c.execute('''UPDATE warnings
                  SET pug_banned = 1 
                  WHERE player = ?''', (player_name,))
+        c.execute('''DELETE FROM medics
+        WHERE player = ?''', (player_name,))  # Remove player from medic table
+        db.commit()
+        await update_early_signups()
         await player.add_roles(messages.banned_role)
-        await player.send(f"You have been banned from playing in Bakes Pugs.\nReason:{reason}")
+        await player.send(f"You have been banned from playing in Bakes Pugs.\nReason: {reason}")
         await messages.send_to_admin(f"{player_name} has been Pug Banned.")
         print(f"{player_name} has been pug banned.")
     elif row[1]:
