@@ -155,17 +155,19 @@ async def pug_ban(player: discord.Member, reason : str):
         c.execute('''INSERT INTO warnings (player, currently_warned, total_warnings, pug_banned)
          VALUES (?, ?, ?, ?)''', (player_name, 0, 0, 1))
         await player.add_roles(messages.banned_role)
-        await user.send(f"You have been banned from playing in BakesPugs.\nReason:\n{reason}")
+        await player.send(f"You have been banned from playing in BakesPugs.\nReason:\n{reason}")
         await messages.send_to_admin(f"{player_name} has been pug_banned.")
         print(f"{player_name} has been pug banned.")
     elif not row[1]:
         await player.add_roles(messages.banned_role)
-        await user.send(f"You have been banned from playing in BakesPugs.\nReason:\n{reason}")
+        await player.send(f"You have been banned from playing in BakesPugs.\nReason:\n{reason}")
         await messages.send_to_admin(f"{player_name} has been pug_banned.")
         print(f"{player_name} has been pug banned.")
     elif row[1]:
         await messages.send_to_admin(f"{player_name} is already pug banned. No action taken.")
 
+    db.commit()
+    db.close()
 
 async def pug_unban(player: discord.Member):
     player_name = player.name
@@ -184,10 +186,12 @@ async def pug_unban(player: discord.Member):
                  SET pug_banned = 0 
                  WHERE player = ?''', (player_name,))
         await player.remove_roles(messages.banned_role)
-        await messages.send_to_admin(f"{player_name} has been unbanned."}
+        await messages.send_to_admin(f"{player_name} has been unbanned.")
         await user.send(f"You have been unbanned from playing in BakesPugs.")
         print(f"{player_name} has been unbanned.")
 
+    db.commit()
+    db.close()
 
 async def player_status(ctx, player: discord.Member):
     player_name = player.name
