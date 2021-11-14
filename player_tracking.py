@@ -159,6 +159,9 @@ async def pug_ban(player: discord.Member, reason : str):
         await messages.send_to_admin(f"{player_name} has been Pug Banned.")
         print(f"{player_name} has been pug banned.")
     elif not row[1]:
+        c.execute('''UPDATE warnings
+                 SET pug_banned = 1 
+                 WHERE player = ?''', (player_name,))
         await player.add_roles(messages.banned_role)
         await player.send(f"You have been banned from playing in BakesPugs.\nReason:\n{reason}")
         await messages.send_to_admin(f"{player_name} has been Pug Banned.")
@@ -187,7 +190,7 @@ async def pug_unban(player: discord.Member):
                  WHERE player = ?''', (player_name,))
         await player.remove_roles(messages.banned_role)
         await messages.send_to_admin(f"{player_name} has been unbanned.")
-        await user.send(f"You have been unbanned from playing in BakesPugs.")
+        await player.send(f"You have been unbanned from playing in BakesPugs.")
         print(f"{player_name} has been unbanned.")
 
     db.commit()
