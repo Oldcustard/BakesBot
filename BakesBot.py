@@ -149,6 +149,24 @@ async def unwarn_player_error(ctx, error):
         raise error
 
 
+@client.command(name='ban')
+@is_host()
+async def ban_player(ctx: commands.Context, player: discord.Member, reason, *):
+    await player_tracking.pug_ban(player, reason)
+
+
+@ban_player.error
+async def get_player_status_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.channel.send("Missing all parameters. Required Parameters: player reason")
+    elif isinstance(error, commands.MemberNotFound):
+        await ctx.channel.send(f"Player not found. Try different capitalisation, mention them directly, or put their name in quotation marks.")
+    elif isinstance(error, commands.CheckFailure):
+        return
+    else:
+        raise error
+
+
 @client.command(name='status')
 @is_host()
 async def get_player_status(ctx: commands.Context, player: discord.Member):
