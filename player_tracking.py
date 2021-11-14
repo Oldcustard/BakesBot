@@ -142,6 +142,7 @@ async def check_active_baiter(player: discord.Member):
     else:
         return bool(row[1])  # Return True or False depending on active warning status
 
+
 async def player_status(ctx, player: discord.Member):
     player_name = player.name
     db = sqlite3.connect('players.db')
@@ -151,7 +152,6 @@ async def player_status(ctx, player: discord.Member):
     warnings_row = c.fetchone()
     c.execute('''SELECT player, weeks_remaining FROM medics WHERE player = ?''', (player_name,))
     medics_row = c.fetchone()
-
 
     if warnings_row is None:
         active_warning = "**not currently warned**"

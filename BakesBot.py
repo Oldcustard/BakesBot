@@ -116,6 +116,7 @@ async def force_withdraw_player(ctx: commands.Context, player: discord.Member):
 async def warn_player(ctx: commands.Context, player: discord.Member):
     await player_tracking.warn_player(player)
 
+
 @warn_player.error
 async def warn_player_error(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument):
@@ -127,10 +128,12 @@ async def warn_player_error(ctx, error):
     else:
         raise error
 
+
 @client.command(name='unwarn')
 @is_host()
 async def unwarn_player(ctx: commands.Context, player: discord.Member):
     await player_tracking.unwarn_player(player)
+
 
 @unwarn_player.error
 async def unwarn_player_error(ctx, error):
@@ -143,10 +146,12 @@ async def unwarn_player_error(ctx, error):
     else:
         raise error
 
+
 @client.command(name='status')
 @is_host()
 async def get_player_status(ctx: commands.Context, player: discord.Member):
     await player_tracking.player_status(ctx, player)
+
 
 @get_player_status.error
 async def get_player_status_error(ctx, error):
@@ -158,6 +163,7 @@ async def get_player_status_error(ctx, error):
         return
     else:
         raise error
+
 
 def main():
     client.run(os.getenv('TOKEN'))
