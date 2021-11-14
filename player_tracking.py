@@ -70,9 +70,9 @@ async def warn_player(player: discord.User):
     player_name = player.name
     db = sqlite3.connect('players.db')
     c = db.cursor()
-
     c.execute('''CREATE TABLE IF NOT EXISTS warnings
-        (player TEXT PRIMARY KEY, currently_warned BOOLEAN, total_warnings INTEGER)''')
+        (player TEXT PRIMARY KEY, currently_warned BOOLEAN, total_warnings INTEGER, pug_banned BOOLEAN)''')
+
 
     c.execute('''SELECT player, currently_warned, total_warnings FROM warnings WHERE player = ?''', (player_name,))
     row = c.fetchone()
@@ -141,6 +141,31 @@ async def check_active_baiter(player: discord.Member):
         return False
     else:
         return bool(row[1])  # Return True or False depending on active warning status
+
+
+async def pug_ban(player: discord.Member, reason : str):
+    player_name = player.name
+    db = sqlite3.connect('players.db')
+    c = db.cursor()
+
+    c.execute('''SELECT player, pug_banned FROM warnings WHERE player = ?''', (player_name,))
+    row = c.fetchone()
+
+    if row is None:  # Player is not on the warnings table, add them and give them a pug ban
+        c.execute('''INSERT INTO warnings (player, currently_warned, total_warnings, pug_banned)
+         VALUES (?, ?, ?, ?)''', (player_name, 0, 0, 1))
+        await player.add_roles()
+        await user.send()
+        await messages.send_to_admin(f"{player_name} has been pug_banned.")
+        print(f"{player_name} has been pug banned.")
+    elif not row[1]:
+        await player.add_roles()
+        await user.send()
+        await messages.send_to_admin(f"{player_name} has been pug_banned.")
+        print(f"{player_name} has been pug banned.")
+    elif row[1]:
+        await messages.send_to_admin(f"{player_name} is already pug banned. No action taken.")
+
 
 
 async def player_status(ctx, player: discord.Member):
