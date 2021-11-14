@@ -156,15 +156,15 @@ async def pug_ban(player: discord.Member, reason : str):
          VALUES (?, ?, ?, ?)''', (player_name, 0, 0, 1))
         await player.add_roles(messages.banned_role)
         await player.send(f"You have been banned from playing in BakesPugs.\nReason:\n{reason}")
-        await messages.send_to_admin(f"{player_name} has been pug_banned.")
+        await messages.send_to_admin(f"{player_name} has been Pug Banned.")
         print(f"{player_name} has been pug banned.")
     elif not row[1]:
         await player.add_roles(messages.banned_role)
         await player.send(f"You have been banned from playing in BakesPugs.\nReason:\n{reason}")
-        await messages.send_to_admin(f"{player_name} has been pug_banned.")
+        await messages.send_to_admin(f"{player_name} has been Pug Banned.")
         print(f"{player_name} has been pug banned.")
     elif row[1]:
-        await messages.send_to_admin(f"{player_name} is already pug banned. No action taken.")
+        await messages.send_to_admin(f"{player_name} is already Pug Banned. No action taken.")
 
     db.commit()
     db.close()
