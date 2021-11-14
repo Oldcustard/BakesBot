@@ -151,7 +151,7 @@ async def unwarn_player_error(ctx, error):
 
 @client.command(name='ban')
 @is_host()
-async def ban_player(ctx: commands.Context, player: discord.Member, reason, *):
+async def ban_player(ctx: commands.Context, player: discord.Member, *, reason):
     await player_tracking.pug_ban(player, reason)
 
 
@@ -169,7 +169,7 @@ async def get_player_status_error(ctx, error):
 
 @client.command(name='unban')
 @is_host()
-async def unban_player(ctx: commands.Context, player: discord.Member, *):
+async def unban_player(ctx: commands.Context, *, player: discord.Member):
     await player_tracking.pug_unban(player)
 
 
