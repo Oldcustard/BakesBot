@@ -167,6 +167,27 @@ async def pug_ban(player: discord.Member, reason : str):
         await messages.send_to_admin(f"{player_name} is already pug banned. No action taken.")
 
 
+async def pug_unban(player: discord.Member):
+    player_name = player.name
+    db = sqlite3.connect('players.db')
+    c = db.cursor()
+
+    c.execute('''SELECT player, pug_banned FROM warnings WHERE player = ?''', (player_name,))
+    row = c.fetchone()
+
+    if row is None or not row[1]:  # Player is not banned, but if they have role remove it anyway
+        await player.remove_roles(messages.banned_role)
+        await messages.send_to_admin(f"{player_name} had no ban recorded. If they had the Pug Banned role it has been removed.")
+        print(f"{player_name} has been unbanned.")
+    elif row[1]:
+        c.execute('''UPDATE warnings
+                 SET pug_banned = 0 
+                 WHERE player = ?''', (player_name,))
+        await player.remove_roles(messages.banned_role)
+        await messages.send_to_admin(f"{player_name} has been unbanned."}
+        await user.send(f"You have been unbanned from playing in BakesPugs.")
+        print(f"{player_name} has been unbanned.")
+
 
 async def player_status(ctx, player: discord.Member):
     player_name = player.name

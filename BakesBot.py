@@ -167,6 +167,24 @@ async def get_player_status_error(ctx, error):
         raise error
 
 
+@client.command(name='unban')
+@is_host()
+async def unban_player(ctx: commands.Context, player: discord.Member, *):
+    await player_tracking.pug_unban(player)
+
+
+@unban_player.error
+async def get_player_status_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.channel.send("Missing all parameters.")
+    elif isinstance(error, commands.MemberNotFound):
+        await ctx.channel.send(f"Player not found. Try different capitalisation or mention them directly")
+    elif isinstance(error, commands.CheckFailure):
+        return
+    else:
+        raise error
+
+
 @client.command(name='status')
 @is_host()
 async def get_player_status(ctx: commands.Context, player: discord.Member):
