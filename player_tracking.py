@@ -112,7 +112,7 @@ async def unwarn_player(player: discord.User):
         c.execute('''UPDATE warnings
                  SET currently_warned = 0, total_warnings = total_warnings - 1
                  WHERE player = ?''', (player_name,))
-        await player.send(f"Your active bait warning has been removed by an admin.")
+        await player.send(f"Your active warning for baiting has been removed by an admin.")
         await messages.send_to_admin(f"{player_name} has had their warning removed. They now have {row[2] - 1} total warning{'s' if row[2] - 1 != 1 else ''}.")
         print(f"{player_name} has been unwarned.")
 
