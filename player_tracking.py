@@ -201,7 +201,7 @@ async def player_status(ctx, player: discord.Member):
     db = sqlite3.connect('players.db')
     c = db.cursor()
 
-    c.execute('''SELECT player, currently_warned, total_warnings FROM warnings WHERE player = ?''', (player_name,))
+    c.execute('''SELECT player, currently_warned, total_warnings, pug_banned FROM warnings WHERE player = ?''', (player_name,))
     warnings_row = c.fetchone()
     c.execute('''SELECT player, weeks_remaining FROM medics WHERE player = ?''', (player_name,))
     medics_row = c.fetchone()
@@ -215,6 +215,11 @@ async def player_status(ctx, player: discord.Member):
     else:
         active_warning = "**currently warned**"
         total_warnings = warnings_row[2]
+
+    if warnings_row[3]:
+        banned_status = "**currently banned**"
+    else:
+        banned_status = "**not currently banned**"
 
     if medics_row is None:
         medic_status = "**does not have Medic priority**."
@@ -242,4 +247,4 @@ async def player_status(ctx, player: discord.Member):
     else:
         assigned_message = 'are **not assigned to any class.**'
 
-    await ctx.channel.send(f"{player_name} {medic_status}\nThey are {active_warning} and have **{total_warnings}** total warning{'s' if total_warnings != 1 else ''}.\nThey are signed up for {signed_up_classes} and {assigned_message}")
+    await ctx.channel.send(f"{player_name} {medic_status}\nThey are {active_warning} and have **{total_warnings}** total warning{'s' if total_warnings != 1 else ''}. They are {banned_status} from playing in pugs.\nThey are signed up for {signed_up_classes} and {assigned_message}")
