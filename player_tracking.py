@@ -73,7 +73,6 @@ async def warn_player(player: discord.User):
     c.execute('''CREATE TABLE IF NOT EXISTS warnings
         (player TEXT PRIMARY KEY, currently_warned BOOLEAN, total_warnings INTEGER, pug_banned BOOLEAN)''')
 
-
     c.execute('''SELECT player, currently_warned, total_warnings FROM warnings WHERE player = ?''', (player_name,))
     row = c.fetchone()
 
@@ -143,7 +142,7 @@ async def check_active_baiter(player: discord.Member):
         return bool(row[1])  # Return True or False depending on active warning status
 
 
-async def pug_ban(player: discord.Member, reason : str):
+async def pug_ban(player: discord.Member, reason: str):
     player_name = player.name
     db = sqlite3.connect('players.db')
     c = db.cursor()
@@ -178,6 +177,7 @@ async def pug_ban(player: discord.Member, reason : str):
     db.commit()
     db.close()
 
+
 async def pug_unban(player: discord.Member):
     player_name = player.name
     db = sqlite3.connect('players.db')
@@ -203,6 +203,7 @@ async def pug_unban(player: discord.Member):
 
     db.commit()
     db.close()
+
 
 async def player_status(ctx, player: discord.Member):
     player_name = player.name
