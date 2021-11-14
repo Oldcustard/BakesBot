@@ -32,6 +32,7 @@ ADMIN_ID = int(os.getenv('admin_id'))
 MEDIC_ROLE_ID = int(os.getenv('medic_role_id'))
 HOST_ROLE_ID = int(os.getenv('host_role_id'))
 PUG_BANNED_ROLE_ID = int(os.getenv('pug_banned_role_id'))
+GAMER_ROLE_ID = int(os.getenv('gamer_role_id'))
 DEV_ID = int(os.getenv('dev_id'))
 
 announceChannel: discord.TextChannel
