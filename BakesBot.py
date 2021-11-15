@@ -211,6 +211,12 @@ async def get_player_status_error(ctx, error):
         raise error
 
 
+@client.command(name='string')
+@is_host()
+async def announce_string(ctx: commands.Context, *, connect_string):
+    await player_selection.announce_string(connect_string)
+
+
 def main():
     client.run(os.getenv('TOKEN'))
 
