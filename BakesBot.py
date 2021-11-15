@@ -109,6 +109,12 @@ async def force_start_pug(ctx: discord.ext.commands.Context):
     await pug_scheduler.schedule_pug_start(datetime.datetime.now(datetime.timezone.utc).astimezone())
 
 
+@client.command(name='forcereset')
+@is_host()
+async def force_reset(ctx: discord.ext.commands.Context):
+    await start_pug.reset_pug()
+
+
 @client.command(name='withdraw')
 @is_host()
 async def force_withdraw_player(ctx: commands.Context, player: discord.Member):
