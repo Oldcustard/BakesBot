@@ -28,6 +28,8 @@ PENALTY_TRIGGER_OFFSET = float(config['late penalty offset'])
 pugMessage: discord.Message
 earlyPugMessage: discord.Message
 earlyMedicPugMessage: discord.Message
+penalty_signup_time: datetime.datetime
+penalty_trigger_time: datetime.datetime
 
 
 def seconds_until(desired_time: datetime.datetime):
@@ -84,16 +86,17 @@ async def schedule_pug_start(pug_date: datetime.datetime):
     await start_pug.auto_warn_bating_players()
     medics = [player_selection.blu_team['Medic'], player_selection.red_team['Medic']]
     for medic in medics:
-        if medic is None:
-            continue
-        print(await player_tracking.add_medic(medic))
+        if medic is not None:
+            print(await player_tracking.add_medic(medic))
     await player_tracking.update_early_signups()
     await start_pug.reset_pug()
+
 
 async def penalty_signups_check():
     global penalty_signup_time
     current_date = datetime.datetime.now(datetime.timezone.utc).astimezone()
     return current_date < penalty_signup_time, datetime.datetime.strftime(penalty_signup_time, '%A (%d %B) at %X')
+
 
 async def after_penalty_trigger_check():
     global penalty_trigger_time

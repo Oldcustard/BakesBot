@@ -52,6 +52,7 @@ signupsListMessage: discord.Message = None
 
 players_to_warn = []
 
+
 async def announce_pug(channel: discord.TextChannel):
     pug_day = time.strptime(PUG_WDAY, "%A")
     current_date = datetime.datetime.now(datetime.timezone.utc).astimezone()
@@ -173,7 +174,6 @@ async def auto_warn_bating_players():
     for user in players_to_warn:
         await player_tracking.warn_player(user)
     players_to_warn.clear()
-
 
 
 async def reset_pug():
