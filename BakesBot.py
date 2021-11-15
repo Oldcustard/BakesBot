@@ -48,6 +48,7 @@ async def on_ready():
     messages.medic_role = messages.guild.get_role(MEDIC_ROLE_ID)
     messages.host_role = messages.guild.get_role(HOST_ROLE_ID)
     messages.banned_role = messages.guild.get_role(PUG_BANNED_ROLE_ID)
+    messages.gamer_role = messages.guild.get_role(GAMER_ROLE_ID)
     messages.adminChannel = client.get_channel(ADMIN_CHANNEL_ID)
     messages.admin = await client.fetch_user(ADMIN_ID)
     messages.dev = await client.fetch_user(DEV_ID)
