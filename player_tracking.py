@@ -77,8 +77,8 @@ async def warn_player(player: discord.User):
     row = c.fetchone()
 
     if row is None:  # Player is not on the warnings table, add them with 1 active warning
-        c.execute('''INSERT INTO warnings (player, currently_warned, total_warnings)
-         VALUES (?, ?, ?)''', (player_name, 1, 1))
+        c.execute('''INSERT INTO warnings (player, currently_warned, total_warnings, pug_banned)
+         VALUES (?, ?, ?, ?)''', (player_name, 1, 1, 0))
         await messages.send_to_admin(f"{player_name} has been warned. {player_name} has 1 total warning.")
         print(f"{player_name} has been warned.")
     elif row[1]:  # Player is on the warnings table, and has already been warned for this pug
@@ -227,7 +227,9 @@ async def player_status(ctx, player: discord.Member):
         active_warning = "**currently warned**"
         total_warnings = warnings_row[2]
 
-    if warnings_row[3]:
+    if warnings_row is None:
+        banned_status = "**not currently banned**"
+    elif warnings_row[3]:
         banned_status = "**currently banned**"
     else:
         banned_status = "**not currently banned**"
