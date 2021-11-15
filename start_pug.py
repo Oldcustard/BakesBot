@@ -177,14 +177,16 @@ async def auto_warn_bating_players():
 
 
 async def reset_pug():
-    global signupsMessage
-    await signupsMessage.delete()
+    global signupsMessage, signupsListMessage
+    await signupsMessage.unpin()
+    await signupsListMessage.unpin()
     await player_selection.bluMessage.delete()
     await player_selection.redMessage.delete()
     await pug_scheduler.pugMessage.delete()
     await pug_scheduler.earlyMedicPugMessage.delete()
     await pug_scheduler.earlyPugMessage.delete()
     signupsMessage = None
+    signupsListMessage = None
     player_selection.bluMessage = None
     player_selection.redMessage = None
     pug_scheduler.pugMessage = None
