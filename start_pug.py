@@ -190,4 +190,4 @@ async def reset_pug():
     pug_scheduler.pugMessage = None
     pug_scheduler.earlyMedicPugMessage = None
     pug_scheduler.earlyPugMessage = None
-    print("Pug status reset")
+    print("Pug status reset; messages deleted")
