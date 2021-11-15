@@ -79,6 +79,7 @@ async def warn_player(player: discord.User):
     if row is None:  # Player is not on the warnings table, add them with 1 active warning
         c.execute('''INSERT INTO warnings (player, currently_warned, total_warnings)
          VALUES (?, ?, ?)''', (player_name, 1, 1))
+        await player.send(f"You have been warned for baiting. This may be due to a late withdrawal, or not showing up to a pug. This warning will last until after the next pug.")
         await messages.send_to_admin(f"{player_name} has been warned. {player_name} has 1 total warning.")
         print(f"{player_name} has been warned.")
     elif row[1]:  # Player is on the warnings table, and has already been warned for this pug
