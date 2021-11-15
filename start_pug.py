@@ -8,6 +8,7 @@ import configparser
 import messages
 import player_selection
 import pug_scheduler
+import player_tracking
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -49,6 +50,8 @@ player_classes: Dict[str, List[discord.Emoji]] = {}
 signupsMessage: discord.Message = None
 signupsListMessage: discord.Message = None
 
+players_to_warn = []
+
 
 async def announce_pug(channel: discord.TextChannel):
     pug_day = time.strptime(PUG_WDAY, "%A")
@@ -65,7 +68,7 @@ async def announce_pug(channel: discord.TextChannel):
     pug_date = pug_date.replace(hour=int(PUG_HOUR), minute=0, second=0, microsecond=0)
     print(f"Pug announced. Pug is on {pug_date}")
     pug_time_string = pug_date.strftime(f"%A (%d %B) at %I %p {timezone_string}")
-    announce_message = f"@everyone\n{ANNOUNCE_STRING} \nPug will be **{pug_time_string}** \nPress ❌ to withdraw from the pug."
+    announce_message = f"{ANNOUNCE_STRING} \nPug will be **{pug_time_string}** \nPress ❌ to withdraw from the pug."
     pugMessage: discord.Message = await channel.send(announce_message)
     for reactionEmoji in emojis_ids:
         await pugMessage.add_reaction(reactionEmoji)
@@ -75,7 +78,7 @@ async def announce_pug(channel: discord.TextChannel):
 
 async def announce_early(early_signups_channel: discord.TextChannel, signups_channel: discord.TextChannel):
     announce_message = f"{messages.medic_role.mention}\n{EARLY_ANNOUNCE_STRING} \nPress ❌ to withdraw from the pug."
-    medic_announce_message = f"@everyone\nEarly signups open!\nIf you want to play **Medic**, press the button below. Medics will gain 3 weeks of early signup!"
+    medic_announce_message = f"Early signups open!\nIf you want to play **Medic**, press the button below. Medics will gain 3 weeks of early signup!"
     earlyPugMessage: discord.Message = await early_signups_channel.send(announce_message)
     for reactionEmoji in emojis_ids:
         await earlyPugMessage.add_reaction(reactionEmoji)
@@ -109,6 +112,13 @@ async def list_players():
 
 async def on_reaction_add(reaction: discord.Reaction, user: discord.Member):
     global signupsMessage, signupsListMessage
+
+    if await player_tracking.check_active_baiter(user):
+        before_late_signup_time, late_signup_time = await pug_scheduler.penalty_signups_check()
+        if before_late_signup_time:
+            await user.send(f"You have a current active warning, and are subject to a late signup penalty. You will be able to signup from {late_signup_time}")
+            await reaction.remove(user)
+            return
     if reaction.emoji == "\U0000274C":  # Withdraw player
         await withdraw_player(user)
         for user_reaction in reaction.message.reactions:
@@ -149,19 +159,37 @@ async def withdraw_player(user: discord.Member):
     await signupsMessage.edit(content=await list_players_by_class())
     await signupsListMessage.edit(content=await list_players())
     if user in player_selection.blu_team.values() or user in player_selection.red_team.values():
-        await messages.send_to_admin(f"{messages.host_role.mention}: {user.display_name} has withdrawn from the pug")
-    await user.send("You have withdrawn from the pug")
+        is_past_penalty_time, penalty_trigger_time = await pug_scheduler.after_penalty_trigger_check()
+        if is_past_penalty_time:
+            await messages.send_to_admin(f"{messages.host_role.mention}: {user.display_name} has withdrawn from the pug. As it is after {penalty_trigger_time}, they will receive a bait warning.")
+            players_to_warn.append(user)
+            await user.send(f"You have withdrawn from the pug. As you have been assigned a class and it is after {penalty_trigger_time}, you will receive a bait warning.")
+            return
+        else:
+            await messages.send_to_admin(f"{messages.host_role.mention}: {user.display_name} has withdrawn from the pug.")
+    await user.send(f"You have withdrawn from the pug.")
+
+
+async def auto_warn_bating_players():
+    for user in players_to_warn:
+        await player_tracking.warn_player(user)
+    players_to_warn.clear()
 
 
 async def reset_pug():
-    global signupsMessage
+    global signupsMessage, signupsListMessage
     await signupsMessage.unpin()
-    await player_selection.bluMessage.unpin()
-    await player_selection.redMessage.unpin()
+    await signupsListMessage.unpin()
+    await player_selection.bluMessage.delete()
+    await player_selection.redMessage.delete()
+    await pug_scheduler.pugMessage.delete()
+    await pug_scheduler.earlyMedicPugMessage.delete()
+    await pug_scheduler.earlyPugMessage.delete()
     signupsMessage = None
+    signupsListMessage = None
     player_selection.bluMessage = None
     player_selection.redMessage = None
     pug_scheduler.pugMessage = None
     pug_scheduler.earlyMedicPugMessage = None
     pug_scheduler.earlyPugMessage = None
-    print("Pug status reset")
+    print("Pug status reset; messages deleted")
