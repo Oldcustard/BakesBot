@@ -106,7 +106,7 @@ async def on_command_error(ctx, error):
 @client.command(name='forcestart')
 @is_host()
 async def force_start_pug(ctx: discord.ext.commands.Context):
-    await pug_scheduler.schedule_pug_start(datetime.datetime.now(datetime.timezone.utc).astimezone())
+    await pug_scheduler.schedule_pug_start(datetime.datetime.now(datetime.timezone.utc).astimezone(), True)
 
 
 @client.command(name='forcereset')

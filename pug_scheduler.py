@@ -77,11 +77,12 @@ async def schedule_early_announcement(early_announce_channel: discord.TextChanne
     await messages.send_to_admin(f"{messages.host_role.mention}: **Early signups are open**")
 
 
-async def schedule_pug_start(pug_date: datetime.datetime):
+async def schedule_pug_start(pug_date: datetime.datetime, immediate=False):
     print(f"Pug scheduled for {pug_date}")
     await asyncio.sleep(seconds_until(pug_date))
-    print("Pug starts now; processing will occur in one hour")
-    await asyncio.sleep(60*60)
+    if immediate is False:
+        print("Pug starts now; processing will occur in one hour")
+        await asyncio.sleep(60*60)
     print("Saving medics, clearing active warnings, warning baiters")
     print(await player_tracking.decrement_medic_counters())
     await player_tracking.clear_active_warnings()
