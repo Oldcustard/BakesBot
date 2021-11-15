@@ -13,6 +13,7 @@ import messages
 import player_selection
 import pug_scheduler
 import start_pug
+import player_tracking
 
 load_dotenv()
 
@@ -30,6 +31,8 @@ ADMIN_CHANNEL_ID = int(os.getenv('admin_channel_id'))
 ADMIN_ID = int(os.getenv('admin_id'))
 MEDIC_ROLE_ID = int(os.getenv('medic_role_id'))
 HOST_ROLE_ID = int(os.getenv('host_role_id'))
+PUG_BANNED_ROLE_ID = int(os.getenv('pug_banned_role_id'))
+GAMER_ROLE_ID = int(os.getenv('gamer_role_id'))
 DEV_ID = int(os.getenv('dev_id'))
 
 announceChannel: discord.TextChannel
@@ -44,6 +47,7 @@ async def on_ready():
     messages.guild = announceChannel.guild
     messages.medic_role = messages.guild.get_role(MEDIC_ROLE_ID)
     messages.host_role = messages.guild.get_role(HOST_ROLE_ID)
+    messages.banned_role = messages.guild.get_role(PUG_BANNED_ROLE_ID)
     messages.adminChannel = client.get_channel(ADMIN_CHANNEL_ID)
     messages.admin = await client.fetch_user(ADMIN_ID)
     messages.dev = await client.fetch_user(DEV_ID)
@@ -108,6 +112,96 @@ async def force_start_pug(ctx: discord.ext.commands.Context):
 @is_host()
 async def force_withdraw_player(ctx: commands.Context, player: discord.Member):
     await start_pug.withdraw_player(player)
+
+
+@client.command(name='warn')
+@is_host()
+async def warn_player(ctx: commands.Context, player: discord.Member):
+    await player_tracking.warn_player(player)
+
+
+@warn_player.error
+async def warn_player_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.channel.send("Missing all parameters")
+    elif isinstance(error, commands.MemberNotFound):
+        await ctx.channel.send(f"Player not found. Try different capitalisation or mention them directly.")
+    elif isinstance(error, commands.CheckFailure):
+        return
+    else:
+        raise error
+
+
+@client.command(name='unwarn')
+@is_host()
+async def unwarn_player(ctx: commands.Context, player: discord.Member):
+    await player_tracking.unwarn_player(player)
+
+
+@unwarn_player.error
+async def unwarn_player_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.channel.send("Missing all parameters")
+    elif isinstance(error, commands.MemberNotFound):
+        await ctx.channel.send(f"Player not found. Try different capitalisation or mention them directly.")
+    elif isinstance(error, commands.CheckFailure):
+        return
+    else:
+        raise error
+
+
+@client.command(name='ban')
+@is_host()
+async def ban_player(ctx: commands.Context, player: discord.Member, *, reason):
+    await player_tracking.pug_ban(player, reason)
+
+
+@ban_player.error
+async def get_player_status_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.channel.send("Missing all parameters. Required Parameters: player reason")
+    elif isinstance(error, commands.MemberNotFound):
+        await ctx.channel.send(f"Player not found. Try different capitalisation, mention them directly, or put their name in quotation marks.")
+    elif isinstance(error, commands.CheckFailure):
+        return
+    else:
+        raise error
+
+
+@client.command(name='unban')
+@is_host()
+async def unban_player(ctx: commands.Context, *, player: discord.Member):
+    await player_tracking.pug_unban(player)
+
+
+@unban_player.error
+async def get_player_status_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.channel.send("Missing all parameters.")
+    elif isinstance(error, commands.MemberNotFound):
+        await ctx.channel.send(f"Player not found. Try different capitalisation or mention them directly")
+    elif isinstance(error, commands.CheckFailure):
+        return
+    else:
+        raise error
+
+
+@client.command(name='status')
+@is_host()
+async def get_player_status(ctx: commands.Context, player: discord.Member):
+    await player_tracking.player_status(ctx, player)
+
+
+@get_player_status.error
+async def get_player_status_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.channel.send("Missing all parameters")
+    elif isinstance(error, commands.MemberNotFound):
+        await ctx.channel.send(f"Player not found. Try different capitalisation or mention them directly.")
+    elif isinstance(error, commands.CheckFailure):
+        return
+    else:
+        raise error
 
 
 def main():

@@ -8,6 +8,7 @@ import configparser
 import messages
 import player_selection
 import pug_scheduler
+import player_tracking
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -49,6 +50,7 @@ player_classes: Dict[str, List[discord.Emoji]] = {}
 signupsMessage: discord.Message = None
 signupsListMessage: discord.Message = None
 
+players_to_warn = []
 
 async def announce_pug(channel: discord.TextChannel):
     pug_day = time.strptime(PUG_WDAY, "%A")
@@ -109,6 +111,13 @@ async def list_players():
 
 async def on_reaction_add(reaction: discord.Reaction, user: discord.Member):
     global signupsMessage, signupsListMessage
+
+    if await player_tracking.check_active_baiter(user):
+        before_late_signup_time, late_signup_time = await pug_scheduler.penalty_signups_check()
+        if before_late_signup_time:
+            await user.send(f"You have a current active warning, and are subject to a late signup penalty. You will be able to signup from {late_signup_time}")
+            await reaction.remove(user)
+            return
     if reaction.emoji == "\U0000274C":  # Withdraw player
         await withdraw_player(user)
         for user_reaction in reaction.message.reactions:
@@ -149,8 +158,22 @@ async def withdraw_player(user: discord.Member):
     await signupsMessage.edit(content=await list_players_by_class())
     await signupsListMessage.edit(content=await list_players())
     if user in player_selection.blu_team.values() or user in player_selection.red_team.values():
-        await messages.send_to_admin(f"{messages.host_role.mention}: {user.display_name} has withdrawn from the pug")
-    await user.send("You have withdrawn from the pug")
+        is_past_penalty_time, penalty_trigger_time = await pug_scheduler.after_penalty_trigger_check()
+        if is_past_penalty_time:
+            await messages.send_to_admin(f"{messages.host_role.mention}: {user.display_name} has withdrawn from the pug. As it is after {penalty_trigger_time}, they will receive a bait warning.")
+            players_to_warn.append(user)
+            await user.send(f"You have withdrawn from the pug. As you have been assigned a class and it is after {penalty_trigger_time}, you will receive a bait warning.")
+            return
+        else:
+            await messages.send_to_admin(f"{messages.host_role.mention}: {user.display_name} has withdrawn from the pug.")
+    await user.send(f"You have withdrawn from the pug.")
+
+
+async def auto_warn_bating_players():
+    for user in players_to_warn:
+        await player_tracking.warn_player(user)
+    players_to_warn.clear()
+
 
 
 async def reset_pug():
