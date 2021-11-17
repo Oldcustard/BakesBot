@@ -117,6 +117,7 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.Member):
         before_late_signup_time, late_signup_time = await pug_scheduler.penalty_signups_check()
         if before_late_signup_time:
             await user.send(f"You have a current active warning, and are subject to a late signup penalty. You will be able to signup from {late_signup_time}")
+            print(f"{user.display_name} attempted to sign up, but was denied due to warning. Signup available at {late_signup_time}")
             await reaction.remove(user)
             return
     if reaction.emoji == "\U0000274C":  # Withdraw player
