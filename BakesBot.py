@@ -117,13 +117,13 @@ async def force_reset(ctx: discord.ext.commands.Context):
 
 @client.command(name='withdraw')
 @is_host()
-async def force_withdraw_player(ctx: commands.Context, player: discord.Member):
+async def force_withdraw_player(ctx: commands.Context, *, player: discord.Member):
     await start_pug.withdraw_player(player)
 
 
 @client.command(name='warn')
 @is_host()
-async def warn_player(ctx: commands.Context, player: discord.Member):
+async def warn_player(ctx: commands.Context, *, player: discord.Member):
     await player_tracking.warn_player(player)
 
 
@@ -141,7 +141,7 @@ async def warn_player_error(ctx, error):
 
 @client.command(name='unwarn')
 @is_host()
-async def unwarn_player(ctx: commands.Context, player: discord.Member):
+async def unwarn_player(ctx: commands.Context, *, player: discord.Member):
     await player_tracking.unwarn_player(player)
 
 
@@ -195,7 +195,7 @@ async def get_player_status_error(ctx, error):
 
 @client.command(name='status')
 @is_host()
-async def get_player_status(ctx: commands.Context, player: discord.Member):
+async def get_player_status(ctx: commands.Context, *, player: discord.Member):
     await player_tracking.player_status(ctx, player)
 
 
