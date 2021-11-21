@@ -23,7 +23,7 @@ config.read('config.ini')
 
 intents = discord.Intents().default()
 intents.members = True
-client = commands.Bot('!', intents=intents)
+client = commands.Bot('$', intents=intents)
 
 ANNOUNCE_CHANNEL_ID = int(os.getenv('announce_channel_id'))
 EARLY_ANNOUNCE_CHANNEL_ID = int(os.getenv('early_announce_channel_id'))
@@ -215,6 +215,22 @@ async def get_player_status_error(ctx, error):
 @is_host()
 async def announce_string(ctx: commands.Context, *, connect_string):
     await player_selection.announce_string(connect_string)
+
+
+@client.command(name='switch')
+@is_host()
+async def switch_players(ctx: commands.Context, player_class: str):
+    await player_selection.swap_class_across_teams(ctx, player_class)
+
+
+@switch_players.error
+async def switch_players_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.channel.send("Missing all parameters")
+    elif isinstance(error, commands.CheckFailure):
+        return
+    else:
+        raise error
 
 
 def main():
