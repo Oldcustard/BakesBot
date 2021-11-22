@@ -35,16 +35,13 @@ PUG_BANNED_ROLE_ID = int(os.getenv('pug_banned_role_id'))
 GAMER_ROLE_ID = int(os.getenv('gamer_role_id'))
 DEV_ID = int(os.getenv('dev_id'))
 
-announceChannel: discord.TextChannel
-
 
 @client.event
 async def on_ready():
     print(f'{client.user} logged in')
-    global announceChannel
-    announceChannel = client.get_channel(ANNOUNCE_CHANNEL_ID)
+    messages.announceChannel = client.get_channel(ANNOUNCE_CHANNEL_ID)
     messages.earlyAnnounceChannel = client.get_channel(EARLY_ANNOUNCE_CHANNEL_ID)
-    messages.guild = announceChannel.guild
+    messages.guild = messages.announceChannel.guild
     messages.medic_role = messages.guild.get_role(MEDIC_ROLE_ID)
     messages.host_role = messages.guild.get_role(HOST_ROLE_ID)
     messages.banned_role = messages.guild.get_role(PUG_BANNED_ROLE_ID)
@@ -53,7 +50,8 @@ async def on_ready():
     messages.admin = await client.fetch_user(ADMIN_ID)
     messages.dev = await client.fetch_user(DEV_ID)
     print('')
-    await pug_scheduler.schedule_announcement(announceChannel)
+    if not pug_scheduler.announcement_scheduled:
+        await pug_scheduler.schedule_announcement(messages.announceChannel)
 
 
 @client.event

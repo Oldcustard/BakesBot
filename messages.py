@@ -7,6 +7,7 @@ config = configparser.ConfigParser()
 config.read('config.ini')
 config = config['Message Settings']
 
+announceChannel: discord.TextChannel
 earlyAnnounceChannel: discord.TextChannel
 guild: discord.Guild
 adminChannel: discord.TextChannel
