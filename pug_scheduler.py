@@ -30,8 +30,9 @@ earlyPugMessage: discord.Message
 earlyMedicPugMessage: discord.Message
 penalty_signup_time: datetime.datetime
 penalty_trigger_time: datetime.datetime
+pug_date: datetime.datetime
 
-announcement_scheduled = False
+pug_announced = False
 
 
 def seconds_until(desired_time: datetime.datetime):
@@ -61,12 +62,14 @@ async def schedule_announcement(announce_channel: discord.TextChannel):
         print(f"Pug announcement scheduled for {announce_date}")
         await messages.send_to_admin(f"{messages.dev.mention}: Pug announcement scheduled for {datetime.datetime.strftime(announce_date, '%A (%d %B) at %X')}")
         await asyncio.sleep(seconds_until(announce_date))
-        global pugMessage
+        global pugMessage, pug_date
         pugMessage, pug_date = await start_pug.announce_pug(announce_channel)
         global penalty_trigger_time
         penalty_trigger_time = pug_date - datetime.timedelta(hours=PENALTY_TRIGGER_OFFSET)
         await messages.send_to_admin(f"{messages.host_role.mention}: **Bakes Pug has been announced.**")
         asyncio.ensure_future(schedule_pug_start(pug_date))
+        global pug_announced
+        pug_announced = True
 
 
 async def schedule_early_announcement(early_announce_channel: discord.TextChannel, regular_announce_channel: discord.TextChannel, early_announce_date: datetime.datetime):
@@ -78,9 +81,9 @@ async def schedule_early_announcement(early_announce_channel: discord.TextChanne
     await messages.send_to_admin(f"{messages.host_role.mention}: **Early signups are open**")
 
 
-async def schedule_pug_start(pug_date: datetime.datetime, immediate=False):
-    print(f"Pug scheduled for {pug_date}")
-    await asyncio.sleep(seconds_until(pug_date))
+async def schedule_pug_start(date: datetime.datetime, immediate=False):
+    print(f"Pug scheduled for {date}")
+    await asyncio.sleep(seconds_until(date))
     if immediate is False:
         print("Pug starts now; processing will occur in one hour")
         await asyncio.sleep(60*60)
@@ -95,6 +98,8 @@ async def schedule_pug_start(pug_date: datetime.datetime, immediate=False):
     await player_tracking.update_early_signups()
     await start_pug.reset_pug()
     asyncio.ensure_future(schedule_announcement(messages.announceChannel))
+    global pug_announced
+    pug_announced = False
 
 
 async def penalty_signups_check():
