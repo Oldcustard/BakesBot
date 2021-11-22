@@ -98,3 +98,19 @@ async def announce_string(connect_string=None):
         reminderMessage = await bluMessage.channel.send(msg)
     else:  # Updated string
         await stringMessage.edit(content=connect_string)
+
+async def swap_class_across_teams(ctx: discord.ext.commands.Context, player_class: str):
+    global bluMessage, redMessage
+    player_class = player_class.capitalize()
+    if player_class not in blu_team:
+        await ctx.channel.send(f"Class not recognised.")
+        return
+    if bluMessage is None or redMessage is None:
+        await ctx.channel.send(f"No players are assigned to classes yet.")
+        return
+    else:
+        blu_team[player_class], red_team[player_class] = red_team[player_class], blu_team[player_class]
+        await bluMessage.edit(content="BLU Team:\n" + await list_players(blu_team))
+        await redMessage.edit(content="RED Team:\n" + await list_players(red_team))
+        await announce_string()
+        await ctx.channel.send(f"{blu_team[player_class]} is now BLU {player_class} & {red_team[player_class]} is now RED {player_class}.")
