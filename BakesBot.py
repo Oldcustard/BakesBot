@@ -55,7 +55,10 @@ async def on_ready():
 
 
 @client.event
-async def on_reaction_add(reaction: discord.Reaction, user: discord.Member):
+async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
+    message = await client.get_channel(payload.channel_id).fetch_message(payload.message_id)
+    reaction = discord.utils.get(message.reactions, emoji=payload.emoji)
+    user = payload.member
     try:
         if user != client.user and reaction.message == pug_scheduler.earlyPugMessage:
             await start_pug.on_reaction_add(reaction, user)  # Early signup
