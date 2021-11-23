@@ -4,6 +4,7 @@ import discord.ext.commands
 
 import messages
 import pug_scheduler
+import start_pug
 
 blu_team = {
     'Scout': None,
@@ -115,3 +116,12 @@ async def swap_class_across_teams(ctx: discord.ext.commands.Context, player_clas
         await redMessage.edit(content="RED Team:\n" + await list_players(red_team))
         await announce_string()
         await ctx.channel.send(f"{blu_team[player_class]} is now BLU {player_class} & {red_team[player_class]} is now RED {player_class}.")
+
+
+async def list_unassigned_players(ctx: discord.ext.commands.Context):
+    unassigned = []
+    for player in start_pug.player_classes.keys():
+        player_obj = messages.guild.get_member_named(player)
+        if player_obj not in blu_team.values() and player_obj not in red_team.values():
+            unassigned.append(player_obj.display_name)
+    await ctx.channel.send("Players yet to be assigned a class: " + ", ".join(unassigned))

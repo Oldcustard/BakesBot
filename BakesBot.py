@@ -236,6 +236,12 @@ async def switch_players_error(ctx, error):
         raise error
 
 
+@client.command(name='unassigned', aliases=['ua'])
+@is_host()
+async def list_unassigned_players(ctx: commands.Context):
+    await player_selection.list_unassigned_players(ctx)
+
+
 def main():
     client.run(os.getenv('TOKEN'))
 
