@@ -9,9 +9,9 @@ blu_team = {
     'Scout': None,
     'Soldier': None,
     'Pyro': None,
-    'Demoman': None,
+    'Demo': None,
     'Heavy': None,
-    'Engineer': None,
+    'Engi': None,
     'Medic': None,
     'Sniper': None,
     'Spy': None
@@ -21,9 +21,9 @@ red_team = {
     'Scout': None,
     'Soldier': None,
     'Pyro': None,
-    'Demoman': None,
+    'Demo': None,
     'Heavy': None,
-    'Engineer': None,
+    'Engi': None,
     'Medic': None,
     'Sniper': None,
     'Spy': None
