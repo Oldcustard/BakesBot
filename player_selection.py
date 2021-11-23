@@ -99,6 +99,7 @@ async def announce_string(connect_string=None):
     else:  # Updated string
         await stringMessage.edit(content=connect_string)
 
+
 async def swap_class_across_teams(ctx: discord.ext.commands.Context, player_class: str):
     global bluMessage, redMessage
     player_class = player_class.capitalize()
