@@ -23,7 +23,7 @@ config.read('config.ini')
 
 intents = discord.Intents().default()
 intents.members = True
-client = commands.Bot('!', intents=intents)
+client = commands.Bot('$', intents=intents)
 
 ANNOUNCE_CHANNEL_ID = int(os.getenv('announce_channel_id'))
 EARLY_ANNOUNCE_CHANNEL_ID = int(os.getenv('early_announce_channel_id'))
@@ -35,16 +35,13 @@ PUG_BANNED_ROLE_ID = int(os.getenv('pug_banned_role_id'))
 GAMER_ROLE_ID = int(os.getenv('gamer_role_id'))
 DEV_ID = int(os.getenv('dev_id'))
 
-announceChannel: discord.TextChannel
-
 
 @client.event
 async def on_ready():
     print(f'{client.user} logged in')
-    global announceChannel
-    announceChannel = client.get_channel(ANNOUNCE_CHANNEL_ID)
+    messages.announceChannel = client.get_channel(ANNOUNCE_CHANNEL_ID)
     messages.earlyAnnounceChannel = client.get_channel(EARLY_ANNOUNCE_CHANNEL_ID)
-    messages.guild = announceChannel.guild
+    messages.guild = messages.announceChannel.guild
     messages.medic_role = messages.guild.get_role(MEDIC_ROLE_ID)
     messages.host_role = messages.guild.get_role(HOST_ROLE_ID)
     messages.banned_role = messages.guild.get_role(PUG_BANNED_ROLE_ID)
@@ -53,11 +50,19 @@ async def on_ready():
     messages.admin = await client.fetch_user(ADMIN_ID)
     messages.dev = await client.fetch_user(DEV_ID)
     print('')
-    await pug_scheduler.schedule_announcement(announceChannel)
+    if pug_scheduler.pug_announced:
+        await pug_scheduler.schedule_pug_start(pug_scheduler.pug_date)
+    else:
+        await pug_scheduler.schedule_announcement(messages.announceChannel)
 
 
 @client.event
-async def on_reaction_add(reaction: discord.Reaction, user: discord.Member):
+async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
+    message = await client.get_channel(payload.channel_id).fetch_message(payload.message_id)
+    reaction = discord.utils.get(message.reactions, emoji=payload.emoji)
+    if reaction is None:
+        reaction = discord.utils.get(message.reactions, emoji=str(payload.emoji))
+    user = payload.member
     try:
         if user != client.user and reaction.message == pug_scheduler.earlyPugMessage:
             await start_pug.on_reaction_add(reaction, user)  # Early signup
@@ -117,13 +122,13 @@ async def force_reset(ctx: discord.ext.commands.Context):
 
 @client.command(name='withdraw')
 @is_host()
-async def force_withdraw_player(ctx: commands.Context, player: discord.Member):
+async def force_withdraw_player(ctx: commands.Context, *, player: discord.Member):
     await start_pug.withdraw_player(player)
 
 
 @client.command(name='warn')
 @is_host()
-async def warn_player(ctx: commands.Context, player: discord.Member):
+async def warn_player(ctx: commands.Context, *, player: discord.Member):
     await player_tracking.warn_player(player)
 
 
@@ -141,7 +146,7 @@ async def warn_player_error(ctx, error):
 
 @client.command(name='unwarn')
 @is_host()
-async def unwarn_player(ctx: commands.Context, player: discord.Member):
+async def unwarn_player(ctx: commands.Context, *, player: discord.Member):
     await player_tracking.unwarn_player(player)
 
 
@@ -195,7 +200,7 @@ async def get_player_status_error(ctx, error):
 
 @client.command(name='status')
 @is_host()
-async def get_player_status(ctx: commands.Context, player: discord.Member):
+async def get_player_status(ctx: commands.Context, *, player: discord.Member):
     await player_tracking.player_status(ctx, player)
 
 
@@ -215,6 +220,28 @@ async def get_player_status_error(ctx, error):
 @is_host()
 async def announce_string(ctx: commands.Context, *, connect_string):
     await player_selection.announce_string(connect_string)
+
+
+@client.command(name='switch')
+@is_host()
+async def switch_players(ctx: commands.Context, player_class: str):
+    await player_selection.swap_class_across_teams(ctx, player_class)
+
+
+@switch_players.error
+async def switch_players_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.channel.send("Missing all parameters")
+    elif isinstance(error, commands.CheckFailure):
+        return
+    else:
+        raise error
+
+
+@client.command(name='unassigned', aliases=['ua'])
+@is_host()
+async def list_unassigned_players(ctx: commands.Context):
+    await player_selection.list_unassigned_players(ctx)
 
 
 def main():
