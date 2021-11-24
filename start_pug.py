@@ -34,7 +34,7 @@ emojis_ids = (
     '<:spy:902551045853560842>'
 )
 
-signups: Dict[str, List] = {
+signups: Dict[str, List[discord.Member]] = {
     emojis_ids[0]: [],
     emojis_ids[1]: [],
     emojis_ids[2]: [],
@@ -46,7 +46,7 @@ signups: Dict[str, List] = {
     emojis_ids[8]: []
 }
 
-player_classes: Dict[str, List[discord.Emoji]] = {}
+player_classes: Dict[discord.Member, List[discord.Emoji]] = {}
 
 signupsMessage: discord.Message = None
 signupsListMessage: discord.Message = None
@@ -104,7 +104,10 @@ async def list_players_by_class():
 async def list_players():
     msg = ''
     players = player_classes.keys()
-    msg = "Signups in order: " + ', '.join(players)
+    player_names = []
+    for player in players:
+        player_names.append(player.display_name)
+    msg = "Signups in order: " + ', '.join(player_names)
     return msg
 
 
@@ -128,14 +131,14 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.Member):
     except KeyError:  # User added their own reaction
         await reaction.remove(user)
         return
-    if user.name not in player_classes:  # Add player to the player list
-        player_classes[user.name] = []
-    if reaction.emoji in player_classes[user.name]:  # Player already signed up for this class
+    if user not in player_classes:  # Add player to the player list
+        player_classes[user] = []
+    if reaction.emoji in player_classes[user]:  # Player already signed up for this class
         return
-    player_classes[user.name].append(reaction.emoji)  # Add class to that player's list
-    preference = len(player_classes[user.name])  # Preference for this class
+    player_classes[user].append(reaction.emoji)  # Add class to that player's list
+    preference = len(player_classes[user])  # Preference for this class
     players.append(user.name + f' ({preference})')
-    print(f'{user.name} has signed up for {reaction.emoji}')
+    print(f'{user.display_name} has signed up for {reaction.emoji}')
     if signupsMessage is None:
         signupsMessage = await messages.send_to_admin(await list_players_by_class())
         signupsListMessage = await messages.send_to_admin(await list_players())
@@ -148,14 +151,14 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.Member):
 
 
 async def withdraw_player(user: discord.Member):
-    if user.name not in player_classes:  # user pressed withdraw without being signed up
+    if user not in player_classes:  # user pressed withdraw without being signed up
         return
-    player_classes.pop(user.name)
+    player_classes.pop(user)
     for signup_class in signups.values():
         user_signup = [s for s in signup_class if user.name in s]
         if len(user_signup) == 1:
             signup_class.remove(user_signup[0])
-    print(f'{user.name} has withdrawn')
+    print(f'{user.display_name} has withdrawn')
     await signupsMessage.edit(content=await list_players_by_class())
     await signupsListMessage.edit(content=await list_players())
     if user in player_selection.blu_team.values() or user in player_selection.red_team.values():
