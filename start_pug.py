@@ -120,7 +120,7 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.Member):
             print(f"{user.display_name} attempted to sign up, but was denied due to warning. Signup available at {late_signup_time}")
             await reaction.remove(user)
             return
-    if reaction.emoji == "\U0000274C":  # Withdraw player
+    if reaction.emoji == "❌":  # Withdraw player
         await withdraw_player(user)
         for user_reaction in reaction.message.reactions:
             await user_reaction.remove(user)

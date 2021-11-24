@@ -60,6 +60,8 @@ async def on_ready():
 async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
     message = await client.get_channel(payload.channel_id).fetch_message(payload.message_id)
     reaction = discord.utils.get(message.reactions, emoji=payload.emoji)
+    if reaction is None:
+        reaction = discord.utils.get(message.reactions, emoji=str(payload.emoji))
     user = payload.member
     try:
         if user != client.user and reaction.message == pug_scheduler.earlyPugMessage:
