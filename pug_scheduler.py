@@ -60,7 +60,8 @@ async def schedule_announcement(announce_channel: discord.TextChannel):
 
         asyncio.ensure_future(schedule_early_announcement(messages.earlyAnnounceChannel, announce_channel, early_announce_date))
         print(f"Pug announcement scheduled for {announce_date}")
-        await messages.send_to_admin(f"{messages.dev.mention}: Pug announcement scheduled for {datetime.datetime.strftime(announce_date, '%A (%d %B) at %X')}")
+        announce_timestamp = round(datetime.datetime.timestamp(announce_date))
+        await messages.send_to_admin(f"{messages.dev.mention}: Pug announcement scheduled for <t:{announce_timestamp}:F>")
         await asyncio.sleep(seconds_until(announce_date))
         global pugMessage, pug_date
         pugMessage, pug_date = await start_pug.announce_pug(announce_channel)
@@ -74,7 +75,8 @@ async def schedule_announcement(announce_channel: discord.TextChannel):
 
 async def schedule_early_announcement(early_announce_channel: discord.TextChannel, regular_announce_channel: discord.TextChannel, early_announce_date: datetime.datetime):
     print(f"Early announcement scheduled for {early_announce_date}")
-    await messages.send_to_admin(f"{messages.dev.mention}: Early announcement scheduled for {datetime.datetime.strftime(early_announce_date, '%A (%d %B) at %X')}")
+    early_announce_timestamp = round(datetime.datetime.timestamp(early_announce_date))
+    await messages.send_to_admin(f"{messages.dev.mention}: Early announcement scheduled for <t:{early_announce_timestamp}:F>")
     await asyncio.sleep(seconds_until(early_announce_date))
     global earlyPugMessage, earlyMedicPugMessage
     earlyPugMessage, earlyMedicPugMessage = await start_pug.announce_early(early_announce_channel, regular_announce_channel)
@@ -105,10 +107,12 @@ async def schedule_pug_start(date: datetime.datetime, immediate=False):
 async def penalty_signups_check():
     global penalty_signup_time
     current_date = datetime.datetime.now(datetime.timezone.utc).astimezone()
-    return current_date < penalty_signup_time, datetime.datetime.strftime(penalty_signup_time, '%A (%d %B) at %X')
+    penalty_signup_timestamp = round(datetime.datetime.timestamp(penalty_signup_time))
+    return current_date < penalty_signup_time, f"<t:{penalty_signup_timestamp}:F> (<t:{penalty_signup_timestamp}:R>)"
 
 
 async def after_penalty_trigger_check():
     global penalty_trigger_time
     current_date = datetime.datetime.now(datetime.timezone.utc).astimezone()
-    return penalty_trigger_time < current_date, datetime.datetime.strftime(penalty_trigger_time, '%A (%d %B) at %X')
+    penalty_trigger_timestamp = round(datetime.datetime.timestamp(penalty_trigger_time))
+    return penalty_trigger_time < current_date, f"<t:{penalty_trigger_timestamp}:F> (<t:{penalty_trigger_timestamp}:R>)"

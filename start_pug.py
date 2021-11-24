@@ -56,10 +56,6 @@ players_to_warn = []
 async def announce_pug(channel: discord.TextChannel):
     pug_day = time.strptime(PUG_WDAY, "%A")
     current_date = datetime.datetime.now(datetime.timezone.utc).astimezone()
-    if current_date.utcoffset().seconds == datetime.timedelta(hours=11).seconds:  # Daylight savings currently active
-        timezone_string = "AEDT"
-    else:
-        timezone_string = "AEST"
     current_day = current_date.weekday()
     time_to_pug = datetime.timedelta(days=pug_day.tm_wday - current_day)
     if time_to_pug.days < 0:
@@ -67,7 +63,8 @@ async def announce_pug(channel: discord.TextChannel):
     pug_date = current_date + time_to_pug
     pug_date = pug_date.replace(hour=int(PUG_HOUR), minute=0, second=0, microsecond=0)
     print(f"Pug announced. Pug is on {pug_date}")
-    pug_time_string = pug_date.strftime(f"%A (%d %B) at %I %p {timezone_string}")
+    pug_timestamp = round(datetime.datetime.timestamp(pug_date))
+    pug_time_string = f"<t:{pug_timestamp}:F>"
     announce_message = f"{ANNOUNCE_STRING} \nPug will be **{pug_time_string}** \nPress ❌ to withdraw from the pug."
     pugMessage: discord.Message = await channel.send(announce_message)
     for reactionEmoji in emojis_ids:
