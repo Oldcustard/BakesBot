@@ -122,8 +122,9 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.Member):
         for user_reaction in reaction.message.reactions:
             await user_reaction.remove(user)
         return
-    players = signups[str(reaction.emoji)]
-    if players is None:  # User added their own reaction
+    try:
+        players = signups[str(reaction.emoji)]
+    except KeyError:  # User added their own reaction
         await reaction.remove(user)
         return
     if user.name not in player_classes:  # Add player to the player list
