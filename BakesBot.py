@@ -9,6 +9,7 @@ import discord
 from discord.ext import commands
 import logging
 
+import elo_tracking
 import messages
 import player_selection
 import pug_scheduler
@@ -194,6 +195,22 @@ async def drag_into_team_vc(ctx: commands.Context):
 @is_host()
 async def drag_into_same_vc(ctx: commands.Context):
     await player_selection.drag_into_same_vc(ctx)
+
+
+@client.command(name='log')
+@is_host()
+async def fetch_logs(ctx: commands.Context, log_url: str):
+    await elo_tracking.fetch_logs(ctx, log_url)
+
+
+@fetch_logs.error
+async def fetch_logs_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.channel.send("Missing all parameters")
+    elif isinstance(error, commands.CheckFailure):
+        return
+    else:
+        raise error
 
 
 def main():
