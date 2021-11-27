@@ -1,5 +1,6 @@
 # BakesBot.py
 import datetime
+import json
 
 from dotenv import load_dotenv
 
@@ -207,9 +208,14 @@ async def fetch_logs(ctx: commands.Context, log_url: str):
 async def fetch_logs_error(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument):
         await ctx.channel.send("Missing all parameters")
+    elif isinstance(error, IndexError):
+        await ctx.channel.send("Log not found")
+    elif isinstance(error, json.JSONDecodeError):
+        await ctx.channel.send("Log not found")
     elif isinstance(error, commands.CheckFailure):
         return
     else:
+        ctx.channel.send(f"An unhandled error occurred ({messages.dev.mention})")
         raise error
 
 
