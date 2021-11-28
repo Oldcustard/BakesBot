@@ -9,6 +9,7 @@ import discord
 from discord.ext import commands
 import logging
 
+import map_voting
 import messages
 import player_selection
 import pug_scheduler
@@ -190,6 +191,23 @@ async def switch_players(ctx: commands.Context, player_class: str):
 @is_host()
 async def list_unassigned_players(ctx: commands.Context):
     await player_selection.list_unassigned_players(ctx)
+
+
+@client.command(name='vote')
+@is_host()
+async def start_map_vote(ctx: commands.Context, *maps):
+    await map_voting.start_map_vote(ctx, *maps)
+
+
+@start_map_vote.error
+async def map_vote_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.channel.send("Missing all parameters")
+    elif isinstance(error, commands.CheckFailure):
+        return
+    else:
+        await ctx.channel.send(f"An unhandled error ({type(error)}) occurred ({messages.dev.mention})")
+        raise error
 
 
 @client.command(name='teamvc')
