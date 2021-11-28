@@ -130,9 +130,9 @@ async def list_unassigned_players(ctx: discord.ext.commands.Context):
 async def drag_into_team_vc(ctx: discord.ext.commands.Context):
     member: discord.Member
     for member in ctx.author.voice.channel.members:
-        if member in blu_team:
+        if member in blu_team.values():
             await member.move_to(messages.bluChannel)
-        elif member in red_team:
+        elif member in red_team.values():
             await member.move_to(messages.redChannel)
 
 
