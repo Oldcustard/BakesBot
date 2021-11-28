@@ -27,9 +27,9 @@ async def update_elo(blu_score, red_score):
     red_elo = []
 
     c.execute('''CREATE TABLE IF NOT EXISTS elo
-    (player_id TEXT PRIMARY KEY, player_name TEXT, Scout INTEGER DEFAULT 1000, Soldier INTEGER DEFAULT 1000, 
-    Pyro INTEGER DEFAULT 1000, Demo INTEGER DEFAULT 1000, Heavy INTEGER DEFAULT 1000, Engi INTEGER DEFAULT 1000, 
-    Medic INTEGER DEFAULT 1000, Sniper INTEGER DEFAULT 1000, Spy INTEGER DEFAULT 1000)''')
+    (player_id TEXT PRIMARY KEY, player_name TEXT, Scout INTEGER DEFAULT 1500, Soldier INTEGER DEFAULT 1500, 
+    Pyro INTEGER DEFAULT 1500, Demo INTEGER DEFAULT 1500, Heavy INTEGER DEFAULT 1500, Engi INTEGER DEFAULT 1500, 
+    Medic INTEGER DEFAULT 1500, Sniper INTEGER DEFAULT 1500, Spy INTEGER DEFAULT 1500)''')
 
     for player_class, player in player_selection.blu_team.items():
         if player is None:
