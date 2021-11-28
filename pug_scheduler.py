@@ -32,7 +32,7 @@ penalty_signup_time: datetime.datetime
 penalty_trigger_time: datetime.datetime
 pug_date: datetime.datetime
 
-pug_announced = False
+startup = True
 
 
 def seconds_until(desired_time: datetime.datetime):
@@ -69,8 +69,8 @@ async def schedule_announcement(announce_channel: discord.TextChannel):
         penalty_trigger_time = pug_date - datetime.timedelta(hours=PENALTY_TRIGGER_OFFSET)
         await messages.send_to_admin(f"{messages.host_role.mention}: **Bakes Pug has been announced.**")
         asyncio.ensure_future(schedule_pug_start(pug_date))
-        global pug_announced
-        pug_announced = True
+        global startup
+        startup = False
 
 
 async def schedule_early_announcement(early_announce_channel: discord.TextChannel, regular_announce_channel: discord.TextChannel, early_announce_date: datetime.datetime):
@@ -100,8 +100,6 @@ async def schedule_pug_start(date: datetime.datetime, immediate=False):
     await player_tracking.update_early_signups()
     await start_pug.reset_pug()
     asyncio.ensure_future(schedule_announcement(messages.announceChannel))
-    global pug_announced
-    pug_announced = False
 
 
 async def penalty_signups_check():

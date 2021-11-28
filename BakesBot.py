@@ -50,9 +50,7 @@ async def on_ready():
     messages.admin = await client.fetch_user(ADMIN_ID)
     messages.dev = await client.fetch_user(DEV_ID)
     print('')
-    if pug_scheduler.pug_announced:
-        await pug_scheduler.schedule_pug_start(pug_scheduler.pug_date)
-    else:
+    if pug_scheduler.startup:
         await pug_scheduler.schedule_announcement(messages.announceChannel)
 
 
