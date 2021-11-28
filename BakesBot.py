@@ -258,6 +258,24 @@ async def drag_into_same_vc(ctx: commands.Context):
     await player_selection.drag_into_same_vc(ctx)
 
 
+@drag_into_team_vc.error
+async def drag_team_error(ctx: commands.Context, error):
+    if isinstance(error, commands.CheckFailure):
+        return
+    else:
+        await ctx.channel.send(f"An unhandled error, {type(error)}, occurred ({messages.dev.mention})")
+        raise error
+
+
+@drag_into_same_vc.error
+async def summon_error(ctx: commands.Context, error):
+    if isinstance(error, commands.CheckFailure):
+        return
+    else:
+        await ctx.channel.send(f"An unhandled error, {type(error)}, occurred ({messages.dev.mention})")
+        raise error
+
+
 def main():
     client.run(os.getenv('TOKEN'))
 
