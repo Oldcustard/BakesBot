@@ -125,3 +125,20 @@ async def list_unassigned_players(ctx: discord.ext.commands.Context):
         if player_obj not in blu_team.values() and player_obj not in red_team.values():
             unassigned.append(player_obj.display_name)
     await ctx.channel.send("Players yet to be assigned a class: " + ", ".join(unassigned))
+
+
+async def drag_into_team_vc(ctx: discord.ext.commands.Context):
+    member: discord.Member
+    for member in ctx.author.voice.channel.members:
+        if member in blu_team:
+            await member.move_to(messages.bluChannel)
+        elif member in red_team:
+            await member.move_to(messages.redChannel)
+
+
+async def drag_into_same_vc(ctx: discord.ext.commands.Context):
+    member: discord.Member
+    for member in messages.bluChannel.members:
+        await member.move_to(ctx.author.voice.channel)
+    for member in messages.redChannel.members:
+        await member.move_to(ctx.author.voice.channel)

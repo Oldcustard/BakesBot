@@ -34,6 +34,8 @@ HOST_ROLE_ID = int(os.getenv('host_role_id'))
 PUG_BANNED_ROLE_ID = int(os.getenv('pug_banned_role_id'))
 GAMER_ROLE_ID = int(os.getenv('gamer_role_id'))
 DEV_ID = int(os.getenv('dev_id'))
+BLU_CHANNEL_ID = int(os.getenv('blu_channel_id'))
+RED_CHANNEL_ID = int(os.getenv('red_channel_id'))
 
 
 @client.event
@@ -49,6 +51,8 @@ async def on_ready():
     messages.adminChannel = client.get_channel(ADMIN_CHANNEL_ID)
     messages.admin = await client.fetch_user(ADMIN_ID)
     messages.dev = await client.fetch_user(DEV_ID)
+    messages.bluChannel = client.get_channel(BLU_CHANNEL_ID)
+    messages.redChannel = client.get_channel(RED_CHANNEL_ID)
     print('')
     if pug_scheduler.startup:
         await pug_scheduler.schedule_announcement(messages.announceChannel)
@@ -240,6 +244,18 @@ async def switch_players_error(ctx, error):
 @is_host()
 async def list_unassigned_players(ctx: commands.Context):
     await player_selection.list_unassigned_players(ctx)
+
+
+@client.command(name='teamvc')
+@is_host()
+async def drag_into_team_vc(ctx: commands.Context):
+    await player_selection.drag_into_team_vc(ctx)
+
+
+@client.command(name='summon', aliases=['here'])
+@is_host()
+async def drag_into_same_vc(ctx: commands.Context):
+    await player_selection.drag_into_same_vc(ctx)
 
 
 def main():
