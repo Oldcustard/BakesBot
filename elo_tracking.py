@@ -16,6 +16,7 @@ async def fetch_logs(ctx: discord.ext.commands.Context, log_url):
     winning_team = 'BLU' if score[0] > score[1] else 'RED'
     await ctx.channel.send(f"Winning team: {winning_team}. Score {score[0]}-{score[1]}")
     await update_elo(score[0], score[1])
+    ctx.channel.send("elo scores updated")
 
 
 async def update_elo(blu_score, red_score):
