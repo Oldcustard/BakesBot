@@ -92,8 +92,8 @@ async def schedule_pug_start(date: datetime.datetime, immediate=False):
     await player_selection.announce_string(timestamp=pug_timestamp)
     await asyncio.sleep(seconds_until(date))
     if not immediate:
-        print("Pug starts now; processing will occur in one hour")
-        await asyncio.sleep(60*60)
+        print("Pug starts now; processing will occur in 75 minutes")
+        await asyncio.sleep(75*60)
     print("Saving medics, clearing active warnings, warning baiters")
     print(await player_tracking.decrement_medic_counters())
     await player_tracking.clear_active_warnings()
