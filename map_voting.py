@@ -23,7 +23,7 @@ async def start_map_vote(ctx: discord.ext.commands.Context, *maps):
 
 
 async def vote_for_map(reaction: discord.Reaction, user: discord.Member):
-    if user not in player_selection.blu_team.values() or user not in player_selection.red_team.values():
+    if user not in player_selection.blu_team.values() and user not in player_selection.red_team.values():
         await reaction.remove(user)
         await user.send("You may only vote once you have been assigned to a class.")
         return
