@@ -5,6 +5,7 @@ import time
 import datetime
 import configparser
 
+import map_voting
 import messages
 import player_selection
 import pug_scheduler
@@ -186,6 +187,9 @@ async def reset_pug():
     await pug_scheduler.pugMessage.delete()
     await pug_scheduler.earlyMedicPugMessage.delete()
     await pug_scheduler.earlyPugMessage.delete()
+    for vote in map_voting.active_votes:
+        await vote.delete()
+        map_voting.active_votes.remove(vote)
     signupsMessage = None
     signupsListMessage = None
     player_selection.bluMessage = None
