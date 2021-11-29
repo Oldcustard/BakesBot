@@ -183,6 +183,7 @@ async def reset_pug():
     await player_selection.redMessage.delete()
     await player_selection.stringMessage.delete()
     await player_selection.reminderMessage.delete()
+    await player_selection.timeMessage.delete()
     await pug_scheduler.pugMessage.delete()
     await pug_scheduler.earlyMedicPugMessage.delete()
     await pug_scheduler.earlyPugMessage.delete()

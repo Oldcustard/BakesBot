@@ -36,6 +36,7 @@ bluMessage: discord.Message = None
 redMessage: discord.Message = None
 stringMessage: discord.Message = None
 reminderMessage: discord.Message = None
+timeMessage: discord.Message = None
 
 
 async def select_player(ctx: discord.ext.commands.Context, team: str, player_class: str, player_obj: discord.Member):
@@ -87,15 +88,21 @@ async def list_players(team: Dict):
     return msg
 
 
-async def announce_string(connect_string=None):
-    global stringMessage, reminderMessage
+async def announce_string(connect_string=None, timestamp=None):
+    global stringMessage, reminderMessage, timeMessage
     msg = f"{bluMessage.content}\n\n{redMessage.content}"
-    if connect_string is None:  # Function was called to update players
+    if connect_string is None:  # Function was called to update players/post early reminder
         if reminderMessage is not None:  # Check if reminder message already exists
             await reminderMessage.edit(content=msg)
+        else:
+            if timestamp is None:  # Function was called to update players, but no reminder exists, so exit
+                return
+            timeMessage = await bluMessage.channel.send(f"**Reminder:** pug is <t:{timestamp}:R>. Please withdraw if you are not able to make it")
+            reminderMessage = await bluMessage.channel.send(msg)
         return
     if stringMessage is None:  # First string
         stringMessage = await bluMessage.channel.send(connect_string)
+        await reminderMessage.delete()
         reminderMessage = await bluMessage.channel.send(msg)
     else:  # Updated string
         await stringMessage.edit(content=connect_string)

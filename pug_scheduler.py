@@ -85,8 +85,13 @@ async def schedule_early_announcement(early_announce_channel: discord.TextChanne
 
 async def schedule_pug_start(date: datetime.datetime, immediate=False):
     print(f"Pug scheduled for {date}")
+    if not immediate:
+        await asyncio.sleep(seconds_until(penalty_trigger_time))
+    print("Penalty withdrawals begin now, posting reminder")
+    pug_timestamp = round(datetime.datetime.timestamp(date))
+    await player_selection.announce_string(timestamp=pug_timestamp)
     await asyncio.sleep(seconds_until(date))
-    if immediate is False:
+    if not immediate:
         print("Pug starts now; processing will occur in one hour")
         await asyncio.sleep(60*60)
     print("Saving medics, clearing active warnings, warning baiters")
@@ -98,6 +103,8 @@ async def schedule_pug_start(date: datetime.datetime, immediate=False):
         if medic is not None:
             print(await player_tracking.add_medic(medic))
     await player_tracking.update_early_signups()
+    if immediate:
+        return
     await start_pug.reset_pug()
     asyncio.ensure_future(schedule_announcement(messages.announceChannel))
 
