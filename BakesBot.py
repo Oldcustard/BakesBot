@@ -73,6 +73,8 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
             await start_pug.on_reaction_add(reaction, user)  # Early medic signup
         elif user != client.user and reaction.message == pug_scheduler.pugMessage:
             await start_pug.on_reaction_add(reaction, user)  # Regular signup
+        elif user != client.user and reaction.message in map_voting.active_votes:
+            await map_voting.vote_for_map(reaction, user)
     except AttributeError:  # Signups not declared yet, ignore
         pass
 
