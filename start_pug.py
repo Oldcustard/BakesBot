@@ -181,6 +181,8 @@ async def reset_pug():
     await signupsListMessage.unpin()
     await player_selection.bluMessage.delete()
     await player_selection.redMessage.delete()
+    await player_selection.stringMessage.delete()
+    await player_selection.reminderMessage.delete()
     await pug_scheduler.pugMessage.delete()
     await pug_scheduler.earlyMedicPugMessage.delete()
     await pug_scheduler.earlyPugMessage.delete()
@@ -188,6 +190,8 @@ async def reset_pug():
     signupsListMessage = None
     player_selection.bluMessage = None
     player_selection.redMessage = None
+    player_selection.stringMessage = None
+    player_selection.reminderMessage = None
     pug_scheduler.pugMessage = None
     pug_scheduler.earlyMedicPugMessage = None
     pug_scheduler.earlyPugMessage = None
