@@ -92,20 +92,10 @@ async def select_player(ctx: commands.Context, team, player_class, *, player: di
     await player_selection.select_player(ctx, team, player_class, player)
 
 
-@select_player.error
-async def select_player_error(ctx, error):
-    if isinstance(error, commands.CheckFailure):
-        return
-    elif isinstance(error, commands.MissingRequiredArgument):
-        await ctx.channel.send("Missing all parameters")
-    elif isinstance(error, commands.MemberNotFound):
-        await ctx.channel.send(f"Player not found. Try different capitalisation or mention them directly.")
-    else:
-        raise error
-
-
 @client.event
-async def on_command_error(ctx, error):
+async def on_command_error(ctx: commands.Context, error):
+    if ctx.command.has_error_handler():  # Command has a specific handler, ignore
+        return
     if isinstance(error, commands.CheckFailure):
         await ctx.channel.send(f"Insufficient permissions.")
     elif isinstance(error, commands.MemberNotFound):
@@ -157,7 +147,9 @@ async def ban_player(ctx: commands.Context, player: discord.Member, *, reason):
 
 
 @ban_player.error
-async def get_player_status_error(ctx, error):
+async def ban_player_error(ctx, error):
+    if isinstance(error, commands.CheckFailure):
+        await ctx.channel.send("Insufficient permissions.")
     if isinstance(error, commands.MissingRequiredArgument):
         await ctx.channel.send("Required Parameters: <player> <reason>")
 
