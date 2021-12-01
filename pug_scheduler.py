@@ -95,8 +95,8 @@ async def schedule_pug_start(date: datetime.datetime, immediate=False):
     await player_tracking.clear_active_warnings()
     await start_pug.auto_warn_bating_players()
     if not immediate:
-        print("Medic processing will occur in one hour")
-        await asyncio.sleep(60*60)
+        print("Medic processing will occur in 75 hour")
+        await asyncio.sleep(75*60)
     print("Saving medics")
     print(await player_tracking.decrement_medic_counters())
     medics = [player_selection.blu_team['Medic'], player_selection.red_team['Medic']]

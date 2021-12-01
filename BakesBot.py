@@ -1,5 +1,6 @@
 # BakesBot.py
 import datetime
+import json
 
 from dotenv import load_dotenv
 
@@ -9,6 +10,7 @@ import discord
 from discord.ext import commands
 import logging
 
+import elo_tracking
 import map_voting
 import messages
 import player_selection
@@ -214,6 +216,27 @@ async def drag_into_team_vc(ctx: commands.Context):
 @is_host()
 async def drag_into_same_vc(ctx: commands.Context):
     await player_selection.drag_into_same_vc(ctx)
+
+
+@client.command(name='log')
+@is_host()
+async def fetch_logs(ctx: commands.Context, log_url: str):
+    await elo_tracking.fetch_logs(ctx, log_url)
+
+
+@fetch_logs.error
+async def fetch_logs_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.channel.send("Missing all parameters")
+    elif isinstance(error, IndexError):
+        await ctx.channel.send("Log not found")
+    elif isinstance(error, json.JSONDecodeError):
+        await ctx.channel.send("Log not found")
+    elif isinstance(error, commands.CheckFailure):
+        return
+    else:
+        ctx.channel.send(f"An unhandled error occurred ({messages.dev.mention})")
+        raise error
 
 
 def main():
