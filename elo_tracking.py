@@ -12,14 +12,20 @@ async def fetch_logs(ctx: discord.ext.commands.Context, log_url):
     log_id = log_url.split('.tf/')[1]
     log_json = urllib.request.urlopen("http://logs.tf/json/" + log_id)
     log_json = json.load(log_json)
+    round_wins = []
+    for game_round in log_json['rounds']:
+        round_wins.append(game_round['winner'])
     score = (log_json['teams']['Blue']['score'], log_json['teams']['Red']['score'])
     winning_team = 'BLU' if score[0] > score[1] else 'RED'
+    game_type = 'AD' if log_json['info']['AD_scoring'] is True else 'KOTH'
+    await ctx.channel.send(f"Game type: {game_type}. Round wins: {round_wins}")
     await ctx.channel.send(f"Winning team: {winning_team}. Score {score[0]}-{score[1]}")
-    await update_elo(score[0], score[1])
-    ctx.channel.send("elo scores updated")
+    await update_elo(winning_team, round_wins, game_type)
+    await ctx.channel.send("elo scores updated")
 
 
-async def update_elo(blu_score, red_score):
+async def update_elo(winning_team, round_wins, game_type):
+
     db = sqlite3.connect('players.db')
     c = db.cursor()
 
@@ -42,7 +48,6 @@ async def update_elo(blu_score, red_score):
                      VALUES (?, ?)''', (player.id, player.name))
         c.execute(f'''SELECT player_id, {player_class} FROM elo WHERE player_id = ?''', (player.id,))  # String substitution not an issue here
         row = c.fetchone()
-        elo.add_player(row[0], row[1])
         blu_elo.append(row[1])
 
     for player_class, player in player_selection.red_team.items():
@@ -55,29 +60,83 @@ async def update_elo(blu_score, red_score):
                              VALUES (?, ?)''', (player.id, player.name))
         c.execute(f'''SELECT player_id, {player_class} FROM elo WHERE player_id = ?''', (player.id,))
         row = c.fetchone()
-        elo.add_player(row[0], row[1])
         red_elo.append(row[1])
 
-    blu_avg = sum(blu_elo)/len(blu_elo)
-    red_avg = sum(red_elo)/len(red_elo)
+    blu_avg = round(sum(blu_elo) / len(blu_elo))
+    red_avg = round(sum(red_elo) / len(red_elo))
+    print(f"Average elo: {blu_avg}, {red_avg}")
     elo.add_player("BluAVG", blu_avg)
     elo.add_player("RedAVG", red_avg)
 
-    for player_class, player in player_selection.blu_team.items():
-        if player is None:
-            continue
-        for i in range(blu_score):
-            elo.game_over(str(player.id), "RedAVG", 'N')
-        c.execute(f'''UPDATE elo 
-        SET {player_class} = ? WHERE player_id = ?''', (elo.ratingDict[str(player.id)], player.id))
-
-    for player_class, player in player_selection.red_team.items():
-        if player is None:
-            continue
-        for i in range(red_score):
-            elo.game_over(str(player.id), "BluAVG", 'N')
-        c.execute(f'''UPDATE elo 
-        SET {player_class} = ? WHERE player_id = ?''', (elo.ratingDict[str(player.id)], player.id))
+    if game_type == 'KOTH':
+        for winner in round_wins:
+            if winner == 'Blue':
+                exp_result = elo.expected_result("BluAVG", "RedAVG", names=True)
+                elo_change = round(elo.k * (1-exp_result))
+                blu_elo = [player_elo + elo_change for player_elo in blu_elo]
+                red_elo = [player_elo - elo_change for player_elo in red_elo]
+                blu_avg = round(sum(blu_elo) / len(blu_elo))
+                red_avg = round(sum(red_elo) / len(red_elo))
+                print(f"Average elo: {blu_avg}, {red_avg}")
+                elo.add_player("BluAVG", blu_avg)
+                elo.add_player("RedAVG", red_avg)
+                for player_class, player in player_selection.blu_team.items():
+                    if player is None:
+                        continue
+                    c.execute(f'''UPDATE elo 
+                    SET {player_class} = {player_class} + ? WHERE player_id = ?''', (elo_change, player.id))
+                for player_class, player in player_selection.red_team.items():
+                    if player is None:
+                        continue
+                    c.execute(f'''UPDATE elo 
+                    SET {player_class} = {player_class} - ? WHERE player_id = ?''', (elo_change, player.id))
+            elif winner == 'Red':
+                exp_result = elo.expected_result("RedAVG", "BluAVG", names=True)
+                elo_change = round(elo.k * (1 - exp_result))
+                blu_elo = [player_elo - elo_change for player_elo in blu_elo]
+                red_elo = [player_elo + elo_change for player_elo in red_elo]
+                blu_avg = round(sum(blu_elo) / len(blu_elo))
+                red_avg = round(sum(red_elo) / len(red_elo))
+                print(f"Average elo: {blu_avg}, {red_avg}")
+                elo.add_player("BluAVG", blu_avg)
+                elo.add_player("RedAVG", red_avg)
+                for player_class, player in player_selection.blu_team.items():
+                    if player is None:
+                        continue
+                    c.execute(f'''UPDATE elo 
+                    SET {player_class} = {player_class} - ? WHERE player_id = ?''', (elo_change, player.id))
+                for player_class, player in player_selection.red_team.items():
+                    if player is None:
+                        continue
+                    c.execute(f'''UPDATE elo 
+                    SET {player_class} = {player_class} + ? WHERE player_id = ?''', (elo_change, player.id))
+    elif game_type == 'AD':
+        if winning_team == 'BLUE':
+            exp_result = elo.expected_result("BluAVG", "RedAVG", names=True)
+            elo_change = round(elo.k * (1 - exp_result))
+            for player_class, player in player_selection.blu_team.items():
+                if player is None:
+                    continue
+                c.execute(f'''UPDATE elo 
+                SET {player_class} = {player_class} + ? WHERE player_id = ?''', (elo_change, player.id))
+            for player_class, player in player_selection.red_team.items():
+                if player is None:
+                    continue
+                c.execute(f'''UPDATE elo 
+                SET {player_class} = {player_class} - ? WHERE player_id = ?''', (elo_change, player.id))
+        elif winning_team == 'RED':
+            exp_result = elo.expected_result("BluAVG", "RedAVG", names=True)
+            elo_change = round(elo.k * (1 - exp_result))
+            for player_class, player in player_selection.blu_team.items():
+                if player is None:
+                    continue
+                c.execute(f'''UPDATE elo 
+                            SET {player_class} = {player_class} - ? WHERE player_id = ?''', (elo_change, player.id))
+            for player_class, player in player_selection.red_team.items():
+                if player is None:
+                    continue
+                c.execute(f'''UPDATE elo 
+                            SET {player_class} = {player_class} + ? WHERE player_id = ?''', (elo_change, player.id))
 
     db.commit()
     db.close()
