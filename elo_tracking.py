@@ -125,7 +125,7 @@ async def update_elo(winning_team, round_wins, game_type):
                 c.execute(f'''UPDATE elo 
                 SET {player_class} = {player_class} - ? WHERE player_id = ?''', (elo_change, player.id))
         elif winning_team == 'RED':
-            exp_result = elo.expected_result("BluAVG", "RedAVG", names=True)
+            exp_result = elo.expected_result("RedAVG", "BluAVG", names=True)
             elo_change = round(elo.k * (1 - exp_result))
             for player_class, player in player_selection.blu_team.items():
                 if player is None:
