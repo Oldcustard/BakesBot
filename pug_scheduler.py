@@ -32,7 +32,7 @@ penalty_signup_time: datetime.datetime
 penalty_trigger_time: datetime.datetime
 pug_date: datetime.datetime
 
-pug_announced = False
+startup = True
 
 
 def seconds_until(desired_time: datetime.datetime):
@@ -69,8 +69,8 @@ async def schedule_announcement(announce_channel: discord.TextChannel):
         penalty_trigger_time = pug_date - datetime.timedelta(hours=PENALTY_TRIGGER_OFFSET)
         await messages.send_to_admin(f"{messages.host_role.mention}: **Bakes Pug has been announced.**")
         asyncio.ensure_future(schedule_pug_start(pug_date))
-        global pug_announced
-        pug_announced = True
+        global startup
+        startup = False
 
 
 async def schedule_early_announcement(early_announce_channel: discord.TextChannel, regular_announce_channel: discord.TextChannel, early_announce_date: datetime.datetime):
@@ -85,23 +85,29 @@ async def schedule_early_announcement(early_announce_channel: discord.TextChanne
 
 async def schedule_pug_start(date: datetime.datetime, immediate=False):
     print(f"Pug scheduled for {date}")
+    if not immediate:
+        await asyncio.sleep(seconds_until(penalty_trigger_time))
+    print("Penalty withdrawals begin now, posting reminder")
+    pug_timestamp = round(datetime.datetime.timestamp(date))
+    await player_selection.announce_string(timestamp=pug_timestamp)
     await asyncio.sleep(seconds_until(date))
-    if immediate is False:
-        print("Pug starts now; processing will occur in one hour")
-        await asyncio.sleep(60*60)
-    print("Saving medics, clearing active warnings, warning baiters")
-    print(await player_tracking.decrement_medic_counters())
+    print("Pug starts now: clearing active warnings, warning baiters")
     await player_tracking.clear_active_warnings()
     await start_pug.auto_warn_bating_players()
+    if not immediate:
+        print("Medic processing will occur in 75 hour")
+        await asyncio.sleep(75*60)
+    print("Saving medics")
+    print(await player_tracking.decrement_medic_counters())
     medics = [player_selection.blu_team['Medic'], player_selection.red_team['Medic']]
     for medic in medics:
         if medic is not None:
             print(await player_tracking.add_medic(medic))
     await player_tracking.update_early_signups()
+    if immediate:
+        return
     await start_pug.reset_pug()
     asyncio.ensure_future(schedule_announcement(messages.announceChannel))
-    global pug_announced
-    pug_announced = False
 
 
 async def penalty_signups_check():

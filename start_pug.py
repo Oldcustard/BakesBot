@@ -5,6 +5,7 @@ import time
 import datetime
 import configparser
 
+import map_voting
 import messages
 import player_selection
 import pug_scheduler
@@ -122,8 +123,9 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.Member):
         for user_reaction in reaction.message.reactions:
             await user_reaction.remove(user)
         return
-    players = signups[str(reaction.emoji)]
-    if players is None:  # User added their own reaction
+    try:
+        players = signups[str(reaction.emoji)]
+    except KeyError:  # User added their own reaction
         await reaction.remove(user)
         return
     if user.name not in player_classes:  # Add player to the player list
@@ -180,13 +182,21 @@ async def reset_pug():
     await signupsListMessage.unpin()
     await player_selection.bluMessage.delete()
     await player_selection.redMessage.delete()
+    await player_selection.stringMessage.delete()
+    await player_selection.reminderMessage.delete()
+    await player_selection.timeMessage.delete()
     await pug_scheduler.pugMessage.delete()
     await pug_scheduler.earlyMedicPugMessage.delete()
     await pug_scheduler.earlyPugMessage.delete()
+    for vote in map_voting.active_votes:
+        await vote.delete()
+        map_voting.active_votes.remove(vote)
     signupsMessage = None
     signupsListMessage = None
     player_selection.bluMessage = None
     player_selection.redMessage = None
+    player_selection.stringMessage = None
+    player_selection.reminderMessage = None
     pug_scheduler.pugMessage = None
     pug_scheduler.earlyMedicPugMessage = None
     pug_scheduler.earlyPugMessage = None

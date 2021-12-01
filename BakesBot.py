@@ -1,5 +1,6 @@
 # BakesBot.py
 import datetime
+import json
 
 from dotenv import load_dotenv
 
@@ -9,6 +10,8 @@ import discord
 from discord.ext import commands
 import logging
 
+import elo_tracking
+import map_voting
 import messages
 import player_selection
 import pug_scheduler
@@ -34,6 +37,8 @@ HOST_ROLE_ID = int(os.getenv('host_role_id'))
 PUG_BANNED_ROLE_ID = int(os.getenv('pug_banned_role_id'))
 GAMER_ROLE_ID = int(os.getenv('gamer_role_id'))
 DEV_ID = int(os.getenv('dev_id'))
+BLU_CHANNEL_ID = int(os.getenv('blu_channel_id'))
+RED_CHANNEL_ID = int(os.getenv('red_channel_id'))
 
 
 @client.event
@@ -49,10 +54,10 @@ async def on_ready():
     messages.adminChannel = client.get_channel(ADMIN_CHANNEL_ID)
     messages.admin = await client.fetch_user(ADMIN_ID)
     messages.dev = await client.fetch_user(DEV_ID)
+    messages.bluChannel = client.get_channel(BLU_CHANNEL_ID)
+    messages.redChannel = client.get_channel(RED_CHANNEL_ID)
     print('')
-    if pug_scheduler.pug_announced:
-        await pug_scheduler.schedule_pug_start(pug_scheduler.pug_date)
-    else:
+    if pug_scheduler.startup:
         await pug_scheduler.schedule_announcement(messages.announceChannel)
 
 
@@ -63,6 +68,8 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
     if reaction is None:
         reaction = discord.utils.get(message.reactions, emoji=str(payload.emoji))
     user = payload.member
+    if user != client.user and reaction.message in map_voting.active_votes:
+        await map_voting.vote_for_map(reaction, user)
     try:
         if user != client.user and reaction.message == pug_scheduler.earlyPugMessage:
             await start_pug.on_reaction_add(reaction, user)  # Early signup
@@ -90,22 +97,22 @@ async def select_player(ctx: commands.Context, team, player_class, *, player: di
     await player_selection.select_player(ctx, team, player_class, player)
 
 
-@select_player.error
-async def select_player_error(ctx, error):
-    if isinstance(error, commands.CheckFailure):
-        return
-    elif isinstance(error, commands.MissingRequiredArgument):
-        await ctx.channel.send("Missing all parameters")
-    elif isinstance(error, commands.MemberNotFound):
-        await ctx.channel.send(f"Player not found. Try different capitalisation or mention them directly.")
-    else:
-        raise error
-
-
 @client.event
-async def on_command_error(ctx, error):
+async def on_command_error(ctx: commands.Context, error):
+    if ctx.command.has_error_handler():  # Command has a specific handler, ignore
+        return
     if isinstance(error, commands.CheckFailure):
         await ctx.channel.send(f"Insufficient permissions.")
+    elif isinstance(error, commands.MemberNotFound):
+        await ctx.channel.send(f"Player not found. Try different capitalisation or mention them directly.")
+    elif isinstance(error, commands.MissingRequiredArgument):
+        await ctx.channel.send("Missing all required parameters")
+    elif isinstance(error, commands.CommandInvokeError):
+        await ctx.channel.send(f"An error occurred: {error.original} {type(error.original)} ({messages.dev.mention})")
+        raise error
+    else:
+        await ctx.channel.send(f"An error occurred: {error} {type(error)} ({messages.dev.mention})")
+        raise error
 
 
 @client.command(name='forcestart')
@@ -132,34 +139,10 @@ async def warn_player(ctx: commands.Context, *, player: discord.Member):
     await player_tracking.warn_player(player)
 
 
-@warn_player.error
-async def warn_player_error(ctx, error):
-    if isinstance(error, commands.MissingRequiredArgument):
-        await ctx.channel.send("Missing all parameters")
-    elif isinstance(error, commands.MemberNotFound):
-        await ctx.channel.send(f"Player not found. Try different capitalisation or mention them directly.")
-    elif isinstance(error, commands.CheckFailure):
-        return
-    else:
-        raise error
-
-
 @client.command(name='unwarn')
 @is_host()
 async def unwarn_player(ctx: commands.Context, *, player: discord.Member):
     await player_tracking.unwarn_player(player)
-
-
-@unwarn_player.error
-async def unwarn_player_error(ctx, error):
-    if isinstance(error, commands.MissingRequiredArgument):
-        await ctx.channel.send("Missing all parameters")
-    elif isinstance(error, commands.MemberNotFound):
-        await ctx.channel.send(f"Player not found. Try different capitalisation or mention them directly.")
-    elif isinstance(error, commands.CheckFailure):
-        return
-    else:
-        raise error
 
 
 @client.command(name='ban')
@@ -169,15 +152,11 @@ async def ban_player(ctx: commands.Context, player: discord.Member, *, reason):
 
 
 @ban_player.error
-async def get_player_status_error(ctx, error):
+async def ban_player_error(ctx, error):
+    if isinstance(error, commands.CheckFailure):
+        await ctx.channel.send("Insufficient permissions.")
     if isinstance(error, commands.MissingRequiredArgument):
-        await ctx.channel.send("Missing all parameters. Required Parameters: player reason")
-    elif isinstance(error, commands.MemberNotFound):
-        await ctx.channel.send(f"Player not found. Try different capitalisation, mention them directly, or put their name in quotation marks.")
-    elif isinstance(error, commands.CheckFailure):
-        return
-    else:
-        raise error
+        await ctx.channel.send("Required Parameters: <player> <reason>")
 
 
 @client.command(name='unban')
@@ -186,34 +165,10 @@ async def unban_player(ctx: commands.Context, *, player: discord.Member):
     await player_tracking.pug_unban(player)
 
 
-@unban_player.error
-async def get_player_status_error(ctx, error):
-    if isinstance(error, commands.MissingRequiredArgument):
-        await ctx.channel.send("Missing all parameters.")
-    elif isinstance(error, commands.MemberNotFound):
-        await ctx.channel.send(f"Player not found. Try different capitalisation or mention them directly")
-    elif isinstance(error, commands.CheckFailure):
-        return
-    else:
-        raise error
-
-
 @client.command(name='status')
 @is_host()
 async def get_player_status(ctx: commands.Context, *, player: discord.Member):
     await player_tracking.player_status(ctx, player)
-
-
-@get_player_status.error
-async def get_player_status_error(ctx, error):
-    if isinstance(error, commands.MissingRequiredArgument):
-        await ctx.channel.send("Missing all parameters")
-    elif isinstance(error, commands.MemberNotFound):
-        await ctx.channel.send(f"Player not found. Try different capitalisation or mention them directly.")
-    elif isinstance(error, commands.CheckFailure):
-        return
-    else:
-        raise error
 
 
 @client.command(name='string')
@@ -228,20 +183,60 @@ async def switch_players(ctx: commands.Context, player_class: str):
     await player_selection.swap_class_across_teams(ctx, player_class)
 
 
-@switch_players.error
-async def switch_players_error(ctx, error):
+@client.command(name='unassigned', aliases=['ua'])
+@is_host()
+async def list_unassigned_players(ctx: commands.Context):
+    await player_selection.list_unassigned_players(ctx)
+
+
+@client.command(name='vote')
+@is_host()
+async def start_map_vote(ctx: commands.Context, *maps):
+    await map_voting.start_map_vote(ctx, *maps)
+
+
+@start_map_vote.error
+async def map_vote_error(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument):
         await ctx.channel.send("Missing all parameters")
     elif isinstance(error, commands.CheckFailure):
         return
     else:
+        await ctx.channel.send(f"An unhandled error ({type(error)}) occurred ({messages.dev.mention})")
         raise error
 
 
-@client.command(name='unassigned', aliases=['ua'])
+@client.command(name='teamvc')
 @is_host()
-async def list_unassigned_players(ctx: commands.Context):
-    await player_selection.list_unassigned_players(ctx)
+async def drag_into_team_vc(ctx: commands.Context):
+    await player_selection.drag_into_team_vc(ctx)
+
+
+@client.command(name='summon', aliases=['here'])
+@is_host()
+async def drag_into_same_vc(ctx: commands.Context):
+    await player_selection.drag_into_same_vc(ctx)
+
+
+@client.command(name='log')
+@is_host()
+async def fetch_logs(ctx: commands.Context, log_url: str):
+    await elo_tracking.fetch_logs(ctx, log_url)
+
+
+@fetch_logs.error
+async def fetch_logs_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.channel.send("Missing all parameters")
+    elif isinstance(error, IndexError):
+        await ctx.channel.send("Log not found")
+    elif isinstance(error, json.JSONDecodeError):
+        await ctx.channel.send("Log not found")
+    elif isinstance(error, commands.CheckFailure):
+        return
+    else:
+        ctx.channel.send(f"An unhandled error occurred ({messages.dev.mention})")
+        raise error
 
 
 def main():
