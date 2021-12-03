@@ -66,7 +66,7 @@ async def announce_pug(channel: discord.TextChannel):
     print(f"Pug announced. Pug is on {pug_date}")
     pug_timestamp = round(datetime.datetime.timestamp(pug_date))
     pug_time_string = f"<t:{pug_timestamp}:F>"
-    announce_message = f"@everyone\n{ANNOUNCE_STRING} \nPug will be **{pug_time_string}** \nPress ❌ to withdraw from the pug."
+    announce_message = f"@everyone\n{ANNOUNCE_STRING} \nPug will be **{pug_time_string}** (this is displayed in your **local time**)\nPress ❌ to withdraw from the pug."
     pugMessage: discord.Message = await channel.send(announce_message)
     for reactionEmoji in emojis_ids:
         await pugMessage.add_reaction(reactionEmoji)
