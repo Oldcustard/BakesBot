@@ -66,7 +66,7 @@ async def announce_pug(channel: discord.TextChannel):
     print(f"Pug announced. Pug is on {pug_date}")
     pug_timestamp = round(datetime.datetime.timestamp(pug_date))
     pug_time_string = f"<t:{pug_timestamp}:F>"
-    announce_message = f"@everyone\n{ANNOUNCE_STRING} \nPug will be **{pug_time_string}** \nPress ❌ to withdraw from the pug."
+    announce_message = f"{ANNOUNCE_STRING} \nPug will be **{pug_time_string}** \nPress ❌ to withdraw from the pug."
     pugMessage: discord.Message = await channel.send(announce_message)
     for reactionEmoji in emojis_ids:
         await pugMessage.add_reaction(reactionEmoji)
@@ -76,7 +76,7 @@ async def announce_pug(channel: discord.TextChannel):
 
 async def announce_early(early_signups_channel: discord.TextChannel, signups_channel: discord.TextChannel):
     announce_message = f"{messages.medic_role.mention}\n{EARLY_ANNOUNCE_STRING} \nPress ❌ to withdraw from the pug."
-    medic_announce_message = f"@everyone\nEarly signups open!\nIf you want to play **Medic**, press the button below. Medics will gain 3 weeks of early signup!"
+    medic_announce_message = f"Early signups open!\nIf you want to play **Medic**, press the button below. Medics will gain 3 weeks of early signup!"
     earlyPugMessage: discord.Message = await early_signups_channel.send(announce_message)
     for reactionEmoji in emojis_ids:
         await earlyPugMessage.add_reaction(reactionEmoji)
