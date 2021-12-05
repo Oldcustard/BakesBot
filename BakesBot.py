@@ -99,6 +99,9 @@ async def select_player(ctx: commands.Context, team, player_class, *, player: di
 
 @client.event
 async def on_command_error(ctx: commands.Context, error):
+    if ctx.command is None:  # Command not recognised
+        await ctx.channel.send(f"Command not recognised.")
+        return
     if ctx.command.has_error_handler():  # Command has a specific handler, ignore
         return
     if isinstance(error, commands.CheckFailure):
