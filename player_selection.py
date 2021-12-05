@@ -49,7 +49,7 @@ async def select_player(ctx: discord.ext.commands.Context, team: str, player_cla
         return
     if team.lower() in blu_name:
         blu_team[player_class.capitalize()] = player_obj
-        await ctx.channel.send(f"{player_obj} selected for BLU {player_class}")
+        await ctx.channel.send(f"{player_obj.display_name} selected for BLU {player_class}")
         if bluMessage is None:
             bluMessage = await pug_scheduler.earlyMedicPugMessage.channel.send("BLU Team:\n" + await list_players(blu_team))
             redMessage = await pug_scheduler.earlyMedicPugMessage.channel.send("RED Team:\n" + await list_players(red_team))
@@ -61,7 +61,7 @@ async def select_player(ctx: discord.ext.commands.Context, team: str, player_cla
 
     elif team.lower() == 'red':
         red_team[player_class.capitalize()] = player_obj
-        await ctx.channel.send(f"{player_obj} selected for RED {player_class}")
+        await ctx.channel.send(f"{player_obj.display_name} selected for RED {player_class}")
         if redMessage is None:
             bluMessage = await pug_scheduler.earlyMedicPugMessage.channel.send("BLU Team:\n" + await list_players(blu_team))
             redMessage = await pug_scheduler.earlyMedicPugMessage.channel.send("RED Team:\n" + await list_players(red_team))
@@ -122,7 +122,7 @@ async def swap_class_across_teams(ctx: discord.ext.commands.Context, player_clas
         await bluMessage.edit(content="BLU Team:\n" + await list_players(blu_team))
         await redMessage.edit(content="RED Team:\n" + await list_players(red_team))
         await announce_string()
-        await ctx.channel.send(f"{blu_team[player_class]} is now BLU {player_class} & {red_team[player_class]} is now RED {player_class}.")
+        await ctx.channel.send(f"{blu_team[player_class].display_name} is now BLU {player_class} & {red_team[player_class].display_name} is now RED {player_class}.")
 
 
 async def list_unassigned_players(ctx: discord.ext.commands.Context):
