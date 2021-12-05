@@ -138,14 +138,26 @@ async def drag_into_team_vc(ctx: discord.ext.commands.Context):
     member: discord.Member
     for member in ctx.author.voice.channel.members:
         if member in blu_team.values():
-            await member.move_to(messages.bluChannel)
+            try:
+                await member.move_to(messages.bluChannel)
+            except discord.HTTPException:
+                continue
         elif member in red_team.values():
-            await member.move_to(messages.redChannel)
+            try:
+                await member.move_to(messages.redChannel)
+            except discord.HTTPException:
+                continue
 
 
 async def drag_into_same_vc(ctx: discord.ext.commands.Context):
     member: discord.Member
     for member in messages.bluChannel.members:
-        await member.move_to(ctx.author.voice.channel)
+        try:
+            await member.move_to(ctx.author.voice.channel)
+        except discord.HTTPException:
+            continue
     for member in messages.redChannel.members:
-        await member.move_to(ctx.author.voice.channel)
+        try:
+            await member.move_to(ctx.author.voice.channel)
+        except discord.HTTPException:
+            continue
