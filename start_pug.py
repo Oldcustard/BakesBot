@@ -189,7 +189,10 @@ async def reset_pug():
     await pug_scheduler.earlyMedicPugMessage.delete()
     await pug_scheduler.earlyPugMessage.delete()
     for vote in map_voting.active_votes:
-        await vote.delete()
+        try:
+            await vote.delete()
+        except discord.NotFound:
+            pass
         map_voting.active_votes.remove(vote)
     signupsMessage = None
     signupsListMessage = None
