@@ -137,7 +137,7 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.Member):
         return
     player_classes[user].append(reaction.emoji)  # Add class to that player's list
     preference = len(player_classes[user])  # Preference for this class
-    players.append(user.name + f' ({preference})')
+    players.append((user, preference))
     print(f'{user.display_name} has signed up for {reaction.emoji}')
     if signupsMessage is None:
         signupsMessage = await messages.send_to_admin(await list_players_by_class())
@@ -155,9 +155,9 @@ async def withdraw_player(user: discord.Member):
         return
     player_classes.pop(user)
     for signup_class in signups.values():
-        user_signup = [s for s in signup_class if user.name in s]
-        if len(user_signup) == 1:
-            signup_class.remove(user_signup[0])
+        for signup in signup_class:
+            if user in signup:
+                signup_class.remove(signup)
     print(f'{user.display_name} has withdrawn')
     await signupsMessage.edit(content=await list_players_by_class())
     await signupsListMessage.edit(content=await list_players())
