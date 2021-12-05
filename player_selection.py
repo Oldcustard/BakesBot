@@ -128,9 +128,8 @@ async def swap_class_across_teams(ctx: discord.ext.commands.Context, player_clas
 async def list_unassigned_players(ctx: discord.ext.commands.Context):
     unassigned = []
     for player in start_pug.player_classes.keys():
-        player_obj = messages.guild.get_member_named(player)
-        if player_obj not in blu_team.values() and player_obj not in red_team.values():
-            unassigned.append(player_obj.display_name)
+        if player not in blu_team.values() and player not in red_team.values():
+            unassigned.append(player.display_name)
     await ctx.channel.send("Players yet to be assigned a class: " + ", ".join(unassigned))
 
 
