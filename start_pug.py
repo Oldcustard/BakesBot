@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 import discord
 import time
@@ -34,7 +34,7 @@ emojis_ids = (
     '<:spy:902551045853560842>'
 )
 
-signups: Dict[str, List[discord.Member]] = {
+signups: Dict[str, List[Tuple[discord.Member, int]]] = {
     emojis_ids[0]: [],
     emojis_ids[1]: [],
     emojis_ids[2]: [],
@@ -88,7 +88,7 @@ async def announce_early(early_signups_channel: discord.TextChannel, signups_cha
 
 async def list_players_by_class():
     signupClass: str
-    players: list
+    players: Tuple[discord.Member, int]
     formatted_players: list
     msg: str = ""
     for signupClass, players in signups.items():
