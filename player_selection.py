@@ -161,3 +161,5 @@ async def drag_into_same_vc(ctx: discord.ext.commands.Context):
             await member.move_to(ctx.author.voice.channel)
         except discord.HTTPException:
             continue
+
+async def ping_not_present(ctx: discord.ext.commands.Context):

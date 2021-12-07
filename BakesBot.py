@@ -39,6 +39,7 @@ GAMER_ROLE_ID = int(os.getenv('gamer_role_id'))
 DEV_ID = int(os.getenv('dev_id'))
 BLU_CHANNEL_ID = int(os.getenv('blu_channel_id'))
 RED_CHANNEL_ID = int(os.getenv('red_channel_id'))
+WAITING_CHANNEL_ID = int(os.getenv('waiting_channel_id'))
 
 
 @client.event
@@ -56,6 +57,7 @@ async def on_ready():
     messages.dev = await client.fetch_user(DEV_ID)
     messages.bluChannel = client.get_channel(BLU_CHANNEL_ID)
     messages.redChannel = client.get_channel(RED_CHANNEL_ID)
+    messages.waitingChannel = client.get_channel(WAITING_CHANNEL_ID)
     print('')
     if pug_scheduler.startup:
         await pug_scheduler.schedule_announcement(messages.announceChannel)
