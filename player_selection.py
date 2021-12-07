@@ -38,6 +38,7 @@ stringMessage: discord.Message = None
 reminderMessage: discord.Message = None
 timeMessage: discord.Message = None
 
+ping_messages: List[discord.Message] = []
 
 async def select_player(ctx: discord.ext.commands.Context, team: str, player_class: str, player_obj: discord.Member):
     global bluMessage, redMessage
@@ -162,11 +163,12 @@ async def drag_into_same_vc(ctx: discord.ext.commands.Context):
         except discord.HTTPException:
             continue
 
-async def ping_not_present(ctx: discord.ext.commands.Context):
+async def ping_not_present():
     player: discord.Member
     signed_up_players = list(blu_team.values()) + list(red_team.values())
     present_players = list(messages.bluChannel.members) + list(messages.redChannel.members) + list(messages.waitingChannel.members)
     absent_players = [player.mention for player in signed_up_players if player not in present_players]
-    await messages.announceChannel.send(f"Join up! {', '.join(absent_players)}")
+    message = await messages.announceChannel.send(f"Join up! {', '.join(absent_players)}")
+    ping_messages.append(message)
     await messages.send_to_admin("Absent players have been pinged!")
 
