@@ -26,7 +26,7 @@ config.read('config.ini')
 
 intents = discord.Intents().default()
 intents.members = True
-client = commands.Bot('$', intents=intents)
+client = commands.Bot('!', intents=intents)
 
 ANNOUNCE_CHANNEL_ID = int(os.getenv('announce_channel_id'))
 EARLY_ANNOUNCE_CHANNEL_ID = int(os.getenv('early_announce_channel_id'))
