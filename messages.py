@@ -15,6 +15,7 @@ adminChannel: discord.TextChannel
 
 bluChannel: discord.VoiceChannel
 redChannel: discord.VoiceChannel
+waitingChannel: discord.VoiceChannel
 
 host_role: discord.Role
 medic_role: discord.Role

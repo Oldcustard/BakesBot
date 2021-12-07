@@ -26,7 +26,7 @@ config.read('config.ini')
 
 intents = discord.Intents().default()
 intents.members = True
-client = commands.Bot('!', intents=intents)
+client = commands.Bot('$', intents=intents)
 
 ANNOUNCE_CHANNEL_ID = int(os.getenv('announce_channel_id'))
 EARLY_ANNOUNCE_CHANNEL_ID = int(os.getenv('early_announce_channel_id'))
@@ -39,6 +39,7 @@ GAMER_ROLE_ID = int(os.getenv('gamer_role_id'))
 DEV_ID = int(os.getenv('dev_id'))
 BLU_CHANNEL_ID = int(os.getenv('blu_channel_id'))
 RED_CHANNEL_ID = int(os.getenv('red_channel_id'))
+WAITING_CHANNEL_ID = int(os.getenv('waiting_channel_id'))
 
 
 @client.event
@@ -56,6 +57,7 @@ async def on_ready():
     messages.dev = await client.fetch_user(DEV_ID)
     messages.bluChannel = client.get_channel(BLU_CHANNEL_ID)
     messages.redChannel = client.get_channel(RED_CHANNEL_ID)
+    messages.waitingChannel = client.get_channel(WAITING_CHANNEL_ID)
     print('')
     if pug_scheduler.startup:
         await pug_scheduler.schedule_announcement(messages.announceChannel)
@@ -99,6 +101,9 @@ async def select_player(ctx: commands.Context, team, player_class, *, player: di
 
 @client.event
 async def on_command_error(ctx: commands.Context, error):
+    if ctx.command is None:  # Command not recognised
+        await ctx.channel.send(f"Command not recognised.")
+        return
     if ctx.command.has_error_handler():  # Command has a specific handler, ignore
         return
     if isinstance(error, commands.CheckFailure):
@@ -157,6 +162,9 @@ async def ban_player_error(ctx, error):
         await ctx.channel.send("Insufficient permissions.")
     if isinstance(error, commands.MissingRequiredArgument):
         await ctx.channel.send("Required Parameters: <player> <reason>")
+    else:
+        await ctx.channel.send(f"An error occurred: {error} {type(error)} ({messages.dev.mention})")
+        raise error
 
 
 @client.command(name='unban')
@@ -195,17 +203,6 @@ async def start_map_vote(ctx: commands.Context, *maps):
     await map_voting.start_map_vote(ctx, *maps)
 
 
-@start_map_vote.error
-async def map_vote_error(ctx, error):
-    if isinstance(error, commands.MissingRequiredArgument):
-        await ctx.channel.send("Missing all parameters")
-    elif isinstance(error, commands.CheckFailure):
-        return
-    else:
-        await ctx.channel.send(f"An unhandled error ({type(error)}) occurred ({messages.dev.mention})")
-        raise error
-
-
 @client.command(name='teamvc')
 @is_host()
 async def drag_into_team_vc(ctx: commands.Context):
@@ -237,6 +234,12 @@ async def fetch_logs_error(ctx, error):
     else:
         ctx.channel.send(f"An unhandled error occurred ({messages.dev.mention})")
         raise error
+
+
+@client.command(name='ping')
+@is_host()
+async def ping_players(ctx: commands.Context):
+    await player_selection.ping_not_present()
 
 
 def main():

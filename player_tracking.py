@@ -7,18 +7,18 @@ import start_pug
 
 
 async def add_medic(player: discord.User):
-    player_name = player.name
+    player_id = player.id
     db = sqlite3.connect('players.db')
     c = db.cursor()
 
-    c.execute('''SELECT player, weeks_remaining FROM medics WHERE player = ?''', (player_name,))
+    c.execute('''SELECT player, weeks_remaining FROM medics WHERE player = ?''', (player_id,))
     if c.fetchone() is None:  # Player is not on the medics table, add them with 3 weeks remaining
         c.execute('''INSERT INTO medics (player, weeks_remaining)
-        VALUES (?, ?)''', (player_name, 3))
+        VALUES (?, ?)''', (player_id, 3))
     else:  # Player is already on the medics table, reset their weeks remaining to 3
         c.execute('''UPDATE medics
         SET weeks_remaining = 3
-        WHERE player = ?''', (player_name,))
+        WHERE player = ?''', (player_id,))
 
     c.execute('''SELECT player, weeks_remaining FROM medics''')
     medics = c.fetchall()
@@ -57,28 +57,29 @@ async def update_early_signups():
     medics = c.fetchall()
     for medic in medics:
         player: discord.Member
-        player = messages.guild.get_member_named(medic[0])
+        player = messages.guild.get_member(int(medic[0]))
         await player.add_roles(messages.medic_role)  # Give medics from table the medic role
     member: discord.Member
     medics = dict(medics)
     for member in messages.medic_role.members:
-        if member.name not in medics.keys():
+        if str(member.id) not in medics.keys():
             await member.remove_roles(messages.medic_role)  # Remove medic role from players not in the medic table
 
 
 async def warn_player(player: discord.User):
-    player_name = player.name
+    player_name = player.display_name
+    player_id = player.id
     db = sqlite3.connect('players.db')
     c = db.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS warnings
         (player TEXT PRIMARY KEY, currently_warned BOOLEAN, total_warnings INTEGER, pug_banned BOOLEAN)''')
 
-    c.execute('''SELECT player, currently_warned, total_warnings FROM warnings WHERE player = ?''', (player_name,))
+    c.execute('''SELECT player, currently_warned, total_warnings FROM warnings WHERE player = ?''', (player_id,))
     row = c.fetchone()
 
     if row is None:  # Player is not on the warnings table, add them with 1 active warning
         c.execute('''INSERT INTO warnings (player, currently_warned, total_warnings, pug_banned)
-         VALUES (?, ?, ?, ?)''', (player_name, 1, 1, 0))
+         VALUES (?, ?, ?, ?)''', (player_id, 1, 1, 0))
         await player.send(f"You have been warned for baiting. This may be due to a late withdrawal, or not showing up to a pug. This warning will last until after the next pug.")
         await messages.send_to_admin(f"{player_name} has been warned. {player_name} has 1 total warning.")
         print(f"{player_name} has been warned.")
@@ -88,7 +89,7 @@ async def warn_player(player: discord.User):
     else:  # Player is already on the warnings table, give them a current warning and add 1 to their total
         c.execute('''UPDATE warnings
          SET currently_warned = 1, total_warnings = total_warnings + 1
-         WHERE player = ?''', (player_name,))
+         WHERE player = ?''', (player_id,))
         await player.send(f"You have been warned for baiting. This may be due to a late withdrawal, or not showing up to a pug. This warning will last until after the next pug.")
         await messages.send_to_admin(f"{player_name} has been warned. {player_name} has {row[2] + 1} total warning{'s' if row[2] + 1 != 1 else ''}.")
         print(f"{player_name} has been warned.")
@@ -98,11 +99,12 @@ async def warn_player(player: discord.User):
 
 
 async def unwarn_player(player: discord.User):
-    player_name = player.name
+    player_name = player.display_name
+    player_id = player.id
     db = sqlite3.connect('players.db')
     c = db.cursor()
 
-    c.execute('''SELECT player, currently_warned, total_warnings FROM warnings WHERE player = ?''', (player_name,))
+    c.execute('''SELECT player, currently_warned, total_warnings FROM warnings WHERE player = ?''', (player_id,))
     row = c.fetchone()
 
     if row is None:
@@ -112,7 +114,7 @@ async def unwarn_player(player: discord.User):
     else:
         c.execute('''UPDATE warnings
                  SET currently_warned = 0, total_warnings = total_warnings - 1
-                 WHERE player = ?''', (player_name,))
+                 WHERE player = ?''', (player_id,))
         await player.send(f"Your active warning for baiting has been removed by an admin.")
         await messages.send_to_admin(f"{player_name} has had their warning removed. They now have {row[2] - 1} total warning{'s' if row[2] - 1 != 1 else ''}.")
         print(f"{player_name} has been unwarned.")
@@ -133,11 +135,12 @@ async def clear_active_warnings():
 
 
 async def check_active_baiter(player: discord.Member):
-    player_name = player.name
+    player_name = player.display_name
+    player_id = player.id
     db = sqlite3.connect('players.db')
     c = db.cursor()
 
-    c.execute('''SELECT player, currently_warned, total_warnings FROM warnings WHERE player = ?''', (player_name,))
+    c.execute('''SELECT player, currently_warned, total_warnings FROM warnings WHERE player = ?''', (player_id,))
     row = c.fetchone()
     if row is None:  # Player not in database
         return False
@@ -147,15 +150,16 @@ async def check_active_baiter(player: discord.Member):
 
 async def pug_ban(player: discord.Member, reason: str):
     player_name = player.name
+    player_id = player.id
     db = sqlite3.connect('players.db')
     c = db.cursor()
 
-    c.execute('''SELECT player, pug_banned FROM warnings WHERE player = ?''', (player_name,))
+    c.execute('''SELECT player, pug_banned FROM warnings WHERE player = ?''', (player_id,))
     row = c.fetchone()
 
     if row is None:  # Player is not on the warnings table, add them and give them a pug ban
         c.execute('''INSERT INTO warnings (player, currently_warned, total_warnings, pug_banned)
-         VALUES (?, ?, ?, ?)''', (player_name, 0, 0, 1))
+         VALUES (?, ?, ?, ?)''', (player_id, 0, 0, 1))
         await player.add_roles(messages.banned_role)
         await player.remove_roles(messages.gamer_role)
         await player.send(f"You have been banned from playing in Bakes Pugs.\nReason: {reason}")
@@ -164,9 +168,9 @@ async def pug_ban(player: discord.Member, reason: str):
     elif not row[1]:
         c.execute('''UPDATE warnings
                  SET pug_banned = 1 
-                 WHERE player = ?''', (player_name,))
+                 WHERE player = ?''', (player_id,))
         c.execute('''DELETE FROM medics
-        WHERE player = ?''', (player_name,))  # Remove player from medic table
+        WHERE player = ?''', (player_id,))  # Remove player from medic table
         db.commit()
         await update_early_signups()
         await player.add_roles(messages.banned_role)
@@ -183,10 +187,11 @@ async def pug_ban(player: discord.Member, reason: str):
 
 async def pug_unban(player: discord.Member):
     player_name = player.name
+    player_id = player.id
     db = sqlite3.connect('players.db')
     c = db.cursor()
 
-    c.execute('''SELECT player, pug_banned FROM warnings WHERE player = ?''', (player_name,))
+    c.execute('''SELECT player, pug_banned FROM warnings WHERE player = ?''', (player_id,))
     row = c.fetchone()
 
     if row is None or not row[1]:  # No player ban recorded, but if they have the banned role, remove it anyway
@@ -197,7 +202,7 @@ async def pug_unban(player: discord.Member):
     elif row[1]:
         c.execute('''UPDATE warnings
                  SET pug_banned = 0 
-                 WHERE player = ?''', (player_name,))
+                 WHERE player = ?''', (player_id,))
         await player.remove_roles(messages.banned_role)
         await player.add_roles(messages.gamer_role)
         await messages.send_to_admin(f"{player_name} has been unbanned.")
@@ -209,13 +214,14 @@ async def pug_unban(player: discord.Member):
 
 
 async def player_status(ctx, player: discord.Member):
-    player_name = player.name
+    player_name = player.display_name
+    player_id = player.id
     db = sqlite3.connect('players.db')
     c = db.cursor()
 
-    c.execute('''SELECT player, currently_warned, total_warnings, pug_banned FROM warnings WHERE player = ?''', (player_name,))
+    c.execute('''SELECT player, currently_warned, total_warnings, pug_banned FROM warnings WHERE player = ?''', (player_id,))
     warnings_row = c.fetchone()
-    c.execute('''SELECT player, weeks_remaining FROM medics WHERE player = ?''', (player_name,))
+    c.execute('''SELECT player, weeks_remaining FROM medics WHERE player = ?''', (player_id,))
     medics_row = c.fetchone()
 
     if warnings_row is None:
@@ -240,8 +246,8 @@ async def player_status(ctx, player: discord.Member):
     else:
         medic_status = f"**has Medic priority** for **{medics_row[1]}** more week{'s' if medics_row[1] != 1 else ''}."
 
-    if player_name in start_pug.player_classes.keys():
-        signed_up_classes = ', '.join([str(emoji) for emoji in start_pug.player_classes[player_name]])
+    if player in start_pug.player_classes.keys():
+        signed_up_classes = ', '.join([str(emoji) for emoji in start_pug.player_classes[player]])
     else:
         signed_up_classes = "**no classes**"
 
