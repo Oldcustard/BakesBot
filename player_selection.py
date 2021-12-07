@@ -168,7 +168,7 @@ async def ping_not_present():
     player: discord.Member
     signed_up_players = list(blu_team.values()) + list(red_team.values())
     present_players = list(messages.bluChannel.members) + list(messages.redChannel.members) + list(messages.waitingChannel.members)
-    absent_players = [player.mention for player in signed_up_players if player not in present_players]
+    absent_players = [player.mention for player in signed_up_players if player not in present_players and player is not None]
     message = await messages.announceChannel.send(f"Join up! {', '.join(absent_players)}")
     ping_messages.append(message)
     await messages.send_to_admin("Absent players have been pinged!")
