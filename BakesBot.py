@@ -160,6 +160,9 @@ async def ban_player_error(ctx, error):
         await ctx.channel.send("Insufficient permissions.")
     if isinstance(error, commands.MissingRequiredArgument):
         await ctx.channel.send("Required Parameters: <player> <reason>")
+    else:
+        await ctx.channel.send(f"An error occurred: {error} {type(error)} ({messages.dev.mention})")
+        raise error
 
 
 @client.command(name='unban')
@@ -196,17 +199,6 @@ async def list_unassigned_players(ctx: commands.Context):
 @is_host()
 async def start_map_vote(ctx: commands.Context, *maps):
     await map_voting.start_map_vote(ctx, *maps)
-
-
-@start_map_vote.error
-async def map_vote_error(ctx, error):
-    if isinstance(error, commands.MissingRequiredArgument):
-        await ctx.channel.send("Missing all parameters")
-    elif isinstance(error, commands.CheckFailure):
-        return
-    else:
-        await ctx.channel.send(f"An unhandled error ({type(error)}) occurred ({messages.dev.mention})")
-        raise error
 
 
 @client.command(name='teamvc')
