@@ -89,13 +89,16 @@ async def announce_early(early_signups_channel: discord.TextChannel, signups_cha
 async def list_players_by_class():
     signupClass: str
     players: Tuple[discord.Member, int]
-    formatted_players: list
     msg: str = ""
     for signupClass, players in signups.items():
-        formatted_players = [
-            f"{name.replace('`', '')[:-4]:>{LIST_PLAYER_NAME_LENGTH}.{LIST_PLAYER_NAME_LENGTH}}{name[-4:]}" if len(
-                name) <= LIST_PLAYER_NAME_LENGTH + 4
-            else f"{name.replace('`', '')[:LIST_PLAYER_NAME_LENGTH - 1]}-{name[-4:]}" for name in players]
+        formatted_players: List[str] = []
+        for member, pref in players:
+            name = member.display_name.replace('`', '')
+            if len(name) <= LIST_PLAYER_NAME_LENGTH:
+                formatted_name = f"{name:>{LIST_PLAYER_NAME_LENGTH}.{LIST_PLAYER_NAME_LENGTH}} ({pref})"
+            else:
+                formatted_name = f"{name[:LIST_PLAYER_NAME_LENGTH - 1]}- ({pref})"
+            formatted_players.append(formatted_name)
         line = signupClass + ":`" + "| ".join(formatted_players) +" `"
         msg = msg + "\n" + line
     return msg
