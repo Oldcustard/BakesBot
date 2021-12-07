@@ -209,13 +209,14 @@ async def pug_unban(player: discord.Member):
 
 
 async def player_status(ctx, player: discord.Member):
-    player_name = player.name
+    player_name = player.display_name
+    player_id = player.id
     db = sqlite3.connect('players.db')
     c = db.cursor()
 
-    c.execute('''SELECT player, currently_warned, total_warnings, pug_banned FROM warnings WHERE player = ?''', (player_name,))
+    c.execute('''SELECT player, currently_warned, total_warnings, pug_banned FROM warnings WHERE player = ?''', (player_id,))
     warnings_row = c.fetchone()
-    c.execute('''SELECT player, weeks_remaining FROM medics WHERE player = ?''', (player_name,))
+    c.execute('''SELECT player, weeks_remaining FROM medics WHERE player = ?''', (player_id,))
     medics_row = c.fetchone()
 
     if warnings_row is None:
@@ -240,8 +241,8 @@ async def player_status(ctx, player: discord.Member):
     else:
         medic_status = f"**has Medic priority** for **{medics_row[1]}** more week{'s' if medics_row[1] != 1 else ''}."
 
-    if player_name in start_pug.player_classes.keys():
-        signed_up_classes = ', '.join([str(emoji) for emoji in start_pug.player_classes[player_name]])
+    if player in start_pug.player_classes.keys():
+        signed_up_classes = ', '.join([str(emoji) for emoji in start_pug.player_classes[player]])
     else:
         signed_up_classes = "**no classes**"
 
