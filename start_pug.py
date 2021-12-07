@@ -200,6 +200,12 @@ async def reset_pug():
         except discord.NotFound:
             pass
         map_voting.active_votes.remove(vote)
+    for ping in player_selection.ping_messages:
+        try:
+            await ping.delete()
+        except discord.NotFound:
+            pass
+        player_selection.ping_messages.remove(ping)
     signupsMessage = None
     signupsListMessage = None
     player_selection.bluMessage = None
