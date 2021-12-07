@@ -235,6 +235,7 @@ async def fetch_logs_error(ctx, error):
         ctx.channel.send(f"An unhandled error occurred ({messages.dev.mention})")
         raise error
 
+
 @client.command(name='ping')
 @is_host()
 async def ping_players(ctx: commands.Context):
