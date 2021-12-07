@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List
 
 import discord.ext.commands
 
@@ -39,6 +39,7 @@ reminderMessage: discord.Message = None
 timeMessage: discord.Message = None
 
 ping_messages: List[discord.Message] = []
+
 
 async def select_player(ctx: discord.ext.commands.Context, team: str, player_class: str, player_obj: discord.Member):
     global bluMessage, redMessage
@@ -161,6 +162,7 @@ async def drag_into_same_vc(ctx: discord.ext.commands.Context):
             await member.move_to(ctx.author.voice.channel)
         except discord.HTTPException:
             continue
+
 
 async def ping_not_present():
     player: discord.Member
