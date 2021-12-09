@@ -3,8 +3,7 @@ from typing import Dict, List
 import discord.ext.commands
 
 import messages
-import pug_scheduler
-import start_pug
+from main import pug_scheduler
 
 blu_team = {
     'Scout': None,

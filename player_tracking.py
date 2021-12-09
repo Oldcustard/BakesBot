@@ -2,8 +2,8 @@ import sqlite3
 import discord
 
 import messages
+from main import start_pug
 import player_selection
-import start_pug
 
 
 async def add_medic(player: discord.User):
