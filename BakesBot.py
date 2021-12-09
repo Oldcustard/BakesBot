@@ -14,9 +14,7 @@ import active_pug
 import elo_tracking
 import map_voting
 import messages
-import main.start_pug
 import main.pug_scheduler
-import second.start_pug
 import second.pug_scheduler
 import player_selection
 import player_tracking
