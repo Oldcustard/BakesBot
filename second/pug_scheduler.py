@@ -6,6 +6,7 @@ from distutils.util import strtobool
 
 import discord
 
+import active_pug
 import messages
 import player_tracking
 import start_pug
@@ -71,6 +72,7 @@ async def schedule_announcement(announce_channel: discord.TextChannel):
         asyncio.ensure_future(schedule_pug_start(pug_date))
         global startup
         startup = False
+        await active_pug.change_active_pug('second')
 
 
 async def schedule_early_announcement(early_announce_channel: discord.TextChannel, regular_announce_channel: discord.TextChannel, early_announce_date: datetime.datetime):
