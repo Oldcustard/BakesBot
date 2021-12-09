@@ -44,7 +44,6 @@ WAITING_CHANNEL_ID = int(os.getenv('waiting_channel_id'))
 
 @client.event
 async def on_ready():
-    print(f'{client.user} logged in')
     messages.announceChannel = client.get_channel(ANNOUNCE_CHANNEL_ID)
     messages.earlyAnnounceChannel = client.get_channel(EARLY_ANNOUNCE_CHANNEL_ID)
     messages.guild = messages.announceChannel.guild
@@ -58,9 +57,12 @@ async def on_ready():
     messages.bluChannel = client.get_channel(BLU_CHANNEL_ID)
     messages.redChannel = client.get_channel(RED_CHANNEL_ID)
     messages.waitingChannel = client.get_channel(WAITING_CHANNEL_ID)
-    print('')
     if pug_scheduler.startup:
+        print(f'{client.user} logged in, scheduling announcement')
         await pug_scheduler.schedule_announcement(messages.announceChannel)
+    else:
+        print(f'{client.user} reconnected.')
+        await messages.send_to_admin(f"{messages.dev.mention}: Bot reconnected.")
 
 
 @client.event
