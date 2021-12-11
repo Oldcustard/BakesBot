@@ -1,6 +1,7 @@
 # BakesBot.py
 import datetime
 import json
+import asyncio
 
 from dotenv import load_dotenv
 
@@ -61,9 +62,9 @@ async def on_ready():
     messages.waitingChannel = client.get_channel(WAITING_CHANNEL_ID)
     print('')
     if main.pug_scheduler.startup:
-        await main.pug_scheduler.schedule_announcement(messages.announceChannel)
-    elif second.pug_scheduler.startup:
-        await second.pug_scheduler.schedule_announcement(messages.announceChannel)
+        asyncio.ensure_future(main.pug_scheduler.schedule_announcement(messages.announceChannel))
+    if second.pug_scheduler.startup:
+        asyncio.ensure_future(second.pug_scheduler.schedule_announcement(messages.announceChannel))
 
 
 @client.event
