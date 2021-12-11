@@ -3,8 +3,7 @@ from typing import Dict, List
 import discord.ext.commands
 
 import messages
-import pug_scheduler
-import start_pug
+import active_pug
 
 blu_team = {
     'Scout': None,
@@ -53,8 +52,8 @@ async def select_player(ctx: discord.ext.commands.Context, team: str, player_cla
         blu_team[player_class.capitalize()] = player_obj
         await ctx.channel.send(f"{player_obj.display_name} selected for BLU {player_class}")
         if bluMessage is None:
-            bluMessage = await pug_scheduler.earlyMedicPugMessage.channel.send("BLU Team:\n" + await list_players(blu_team))
-            redMessage = await pug_scheduler.earlyMedicPugMessage.channel.send("RED Team:\n" + await list_players(red_team))
+            bluMessage = await messages.announceChannel.send("BLU Team:\n" + await list_players(blu_team))
+            redMessage = await messages.announceChannel.send("RED Team:\n" + await list_players(red_team))
             await redMessage.pin()
             await bluMessage.pin()
         else:
@@ -65,8 +64,8 @@ async def select_player(ctx: discord.ext.commands.Context, team: str, player_cla
         red_team[player_class.capitalize()] = player_obj
         await ctx.channel.send(f"{player_obj.display_name} selected for RED {player_class}")
         if redMessage is None:
-            bluMessage = await pug_scheduler.earlyMedicPugMessage.channel.send("BLU Team:\n" + await list_players(blu_team))
-            redMessage = await pug_scheduler.earlyMedicPugMessage.channel.send("RED Team:\n" + await list_players(red_team))
+            bluMessage = await messages.announceChannel.send("BLU Team:\n" + await list_players(blu_team))
+            redMessage = await messages.announceChannel.send("RED Team:\n" + await list_players(red_team))
             await redMessage.pin()
             await bluMessage.pin()
         else:
@@ -129,7 +128,7 @@ async def swap_class_across_teams(ctx: discord.ext.commands.Context, player_clas
 
 async def list_unassigned_players(ctx: discord.ext.commands.Context):
     unassigned = []
-    for player in start_pug.player_classes.keys():
+    for player in active_pug.start_pug.player_classes.keys():
         if player not in blu_team.values() and player not in red_team.values():
             unassigned.append(player.display_name)
     await ctx.channel.send("Players yet to be assigned a class: " + ", ".join(unassigned))
