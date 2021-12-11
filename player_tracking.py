@@ -11,16 +11,16 @@ async def add_medic(player: discord.User):
     db = sqlite3.connect('players.db')
     c = db.cursor()
 
-    c.execute('''SELECT player, weeks_remaining FROM medics WHERE player = ?''', (player_id,))
+    c.execute('''SELECT player, pugs_remaining FROM medics WHERE player = ?''', (player_id,))
     if c.fetchone() is None:  # Player is not on the medics table, add them with 3 weeks remaining
-        c.execute('''INSERT INTO medics (player, weeks_remaining)
+        c.execute('''INSERT INTO medics (player, pugs_remaining)
         VALUES (?, ?)''', (player_id, 6))
     else:  # Player is already on the medics table, reset their weeks remaining to 3
         c.execute('''UPDATE medics
-        SET weeks_remaining = 6
+        SET pugs_remaining = 6
         WHERE player = ?''', (player_id,))
 
-    c.execute('''SELECT player, weeks_remaining FROM medics''')
+    c.execute('''SELECT player, pugs_remaining FROM medics''')
     medics = c.fetchall()
 
     db.commit()
@@ -33,15 +33,15 @@ async def decrement_medic_counters():
     c = db.cursor()
 
     c.execute('''CREATE TABLE IF NOT EXISTS medics
-        (player TEXT PRIMARY KEY, weeks_remaining INTEGER)''')
+        (player TEXT PRIMARY KEY, pugs_remaining INTEGER)''')
 
     c.execute('''UPDATE medics
-    SET weeks_remaining = weeks_remaining - 1''')  # Reduce weeks remaining by 1
+    SET pugs_remaining = pugs_remaining - 1''')  # Reduce weeks remaining by 1
 
     c.execute('''DELETE FROM medics
-    WHERE weeks_remaining = 0''')  # Delete from table if weeks remaining is 0
+    WHERE pugs_remaining = 0''')  # Delete from table if weeks remaining is 0
 
-    c.execute('''SELECT player, weeks_remaining FROM medics''')
+    c.execute('''SELECT player, pugs_remaining FROM medics''')
     medics = c.fetchall()
 
     db.commit()
@@ -53,7 +53,7 @@ async def update_early_signups():
     db = sqlite3.connect('players.db')
     c = db.cursor()
 
-    c.execute('''SELECT player, weeks_remaining FROM medics''')
+    c.execute('''SELECT player, pugs_remaining FROM medics''')
     medics = c.fetchall()
     for medic in medics:
         player: discord.Member
@@ -221,7 +221,7 @@ async def player_status(ctx, player: discord.Member):
 
     c.execute('''SELECT player, currently_warned, total_warnings, pug_banned FROM warnings WHERE player = ?''', (player_id,))
     warnings_row = c.fetchone()
-    c.execute('''SELECT player, weeks_remaining FROM medics WHERE player = ?''', (player_id,))
+    c.execute('''SELECT player, pugs_remaining FROM medics WHERE player = ?''', (player_id,))
     medics_row = c.fetchone()
 
     if warnings_row is None:
