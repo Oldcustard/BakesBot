@@ -79,8 +79,8 @@ async def warn_player(player: discord.User):
 
     if row is None:  # Player is not on the warnings table, add them with 1 active warning
         c.execute('''INSERT INTO warnings (player, warned_pugs_remaining, total_warnings, pug_banned)
-         VALUES (?, ?, ?, ?)''', (player_id, 1, 1, 0))
-        await player.send(f"You have been warned for baiting. This may be due to a late withdrawal, or not showing up to a pug. This warning will last until after the next pug.")
+         VALUES (?, ?, ?, ?)''', (player_id, 2, 1, 0))
+        await player.send(f"You have been warned for baiting. This may be due to a late withdrawal, or not showing up to a pug. This warning will last for 1 week.")
         await messages.send_to_admin(f"{player_name} has been warned. {player_name} has 1 total warning.")
         print(f"{player_name} has been warned.")
     elif row[1]:  # Player is on the warnings table, and has already been warned for this pug
@@ -88,9 +88,9 @@ async def warn_player(player: discord.User):
         print(f"{player_name} has already been warned for this pug, no warning added.")
     else:  # Player is already on the warnings table, give them a current warning and add 1 to their total
         c.execute('''UPDATE warnings
-         SET warned_pugs_remaining = 1, total_warnings = total_warnings + 1
+         SET warned_pugs_remaining = 2, total_warnings = total_warnings + 1
          WHERE player = ?''', (player_id,))
-        await player.send(f"You have been warned for baiting. This may be due to a late withdrawal, or not showing up to a pug. This warning will last until after the next pug.")
+        await player.send(f"You have been warned for baiting. This may be due to a late withdrawal, or not showing up to a pug. This warning will last for 1 week.")
         await messages.send_to_admin(f"{player_name} has been warned. {player_name} has {row[2] + 1} total warning{'s' if row[2] + 1 != 1 else ''}.")
         print(f"{player_name} has been warned.")
 
@@ -123,12 +123,12 @@ async def unwarn_player(player: discord.User):
     db.close()
 
 
-async def clear_active_warnings():
+async def decrement_active_warnings():
     db = sqlite3.connect('players.db')
     c = db.cursor()
 
     c.execute('''UPDATE warnings
-       SET warned_pugs_remaining = 0''')  # Clear all active warnings for the week.
+       SET warned_pugs_remaining = warned_pugs_remaining - 1 WHERE warned_pugs_remaining > 0''')  # Decrement active warnings.
 
     db.commit()
     db.close()
@@ -231,7 +231,7 @@ async def player_status(ctx, player: discord.Member):
         active_warning = "**not currently warned**"
         total_warnings = warnings_row[2]
     else:
-        active_warning = "**currently warned**"
+        active_warning = f"**currently warned for {warnings_row[1]} more pugs**"
         total_warnings = warnings_row[2]
 
     if warnings_row is None:
