@@ -9,12 +9,13 @@ import discord
 import active_pug
 import messages
 import player_tracking
-import start_pug
+from second import start_pug
 import player_selection
 
 config = configparser.ConfigParser()
 config.read('config.ini')
-config = config['Pug Settings']
+timing_config = config['Timing Settings']
+config = config['Second Pug Settings']
 
 pug_enabled = bool(strtobool(config['pug enabled']))
 
@@ -22,9 +23,9 @@ ANNOUNCE_WDAY = config['announce weekday']
 ANNOUNCE_HOUR = config['announce hour']
 ANNOUNCE_MINUTE = config['announce minute']
 
-EARLY_OFFSET = float(config['medic offset'])
-LATE_SIGNUP_PENALTY = float(config['signup penalty time'])
-PENALTY_TRIGGER_OFFSET = float(config['late penalty offset'])
+EARLY_OFFSET = float(timing_config['medic offset'])
+LATE_SIGNUP_PENALTY = float(timing_config['signup penalty time'])
+PENALTY_TRIGGER_OFFSET = float(timing_config['late penalty offset'])
 
 pugMessage: discord.Message
 earlyPugMessage: discord.Message
