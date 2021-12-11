@@ -83,7 +83,14 @@ async def warn_player(player: discord.User):
         await player.send(f"You have been warned for baiting. This may be due to a late withdrawal, or not showing up to a pug. This warning will last for 1 week.")
         await messages.send_to_admin(f"{player_name} has been warned. {player_name} has 1 total warning.")
         print(f"{player_name} has been warned.")
-    elif row[1]:  # Player is on the warnings table, and has already been warned for this pug
+    elif row[1] == 1: # Player had a warning already, they will be reset to 2 weeks for baiting again.
+        c.execute('''UPDATE warnings
+                 SET warned_pugs_remaining = 2, total_warnings = total_warnings + 1
+                 WHERE player = ?''', (player_id,))
+        await player.send(f"You have been warned for baiting. This may be due to a late withdrawal, or not showing up to a pug. This warning will last for 1 week.")
+        await messages.send_to_admin(f"{player_name} has been warned. They already had an active warning so their penalty has been reset to 2 pugs.  {player_name} has {row[2] + 1} total warning{'s' if row[2] + 1 != 1 else ''}.")
+        print(f"{player_name} has been warned.")
+    elif row[1] == 2:  # Player is on the warnings table, and has already been warned for this pug
         await messages.send_to_admin(f"{player_name} has already been warned for this pug, no warning added. {player_name} has {row[2]} total warning{'s' if row[2] != 1 else ''}.")
         print(f"{player_name} has already been warned for this pug, no warning added.")
     else:  # Player is already on the warnings table, give them a current warning and add 1 to their total
