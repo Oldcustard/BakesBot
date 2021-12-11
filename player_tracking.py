@@ -14,10 +14,10 @@ async def add_medic(player: discord.User):
     c.execute('''SELECT player, weeks_remaining FROM medics WHERE player = ?''', (player_id,))
     if c.fetchone() is None:  # Player is not on the medics table, add them with 3 weeks remaining
         c.execute('''INSERT INTO medics (player, weeks_remaining)
-        VALUES (?, ?)''', (player_id, 3))
+        VALUES (?, ?)''', (player_id, 6))
     else:  # Player is already on the medics table, reset their weeks remaining to 3
         c.execute('''UPDATE medics
-        SET weeks_remaining = 3
+        SET weeks_remaining = 6
         WHERE player = ?''', (player_id,))
 
     c.execute('''SELECT player, weeks_remaining FROM medics''')
@@ -244,7 +244,7 @@ async def player_status(ctx, player: discord.Member):
     if medics_row is None:
         medic_status = "**does not have Medic priority**."
     else:
-        medic_status = f"**has Medic priority** for **{medics_row[1]}** more week{'s' if medics_row[1] != 1 else ''}."
+        medic_status = f"**has Medic priority** for **{medics_row[1]}** more pug{'s' if medics_row[1] != 1 else ''}."
 
     if player in start_pug.player_classes.keys():
         signed_up_classes = ', '.join([str(emoji) for emoji in start_pug.player_classes[player]])
