@@ -8,7 +8,7 @@ import configparser
 import map_voting
 import messages
 import player_selection
-from second import pug_scheduler
+from main import pug_scheduler
 import player_tracking
 
 config = configparser.ConfigParser()
