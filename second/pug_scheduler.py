@@ -64,6 +64,8 @@ async def schedule_announcement(announce_channel: discord.TextChannel):
         print(f"Pug announcement scheduled for {announce_date}")
         announce_timestamp = round(datetime.datetime.timestamp(announce_date))
         await messages.send_to_admin(f"{messages.dev.mention}: Pug announcement scheduled for <t:{announce_timestamp}:F>")
+        global startup
+        startup = False
         await asyncio.sleep(seconds_until(announce_date))
         global pugMessage, pug_date
         pugMessage, pug_date = await start_pug.announce_pug(announce_channel)
@@ -71,8 +73,6 @@ async def schedule_announcement(announce_channel: discord.TextChannel):
         penalty_trigger_time = pug_date - datetime.timedelta(hours=PENALTY_TRIGGER_OFFSET)
         await messages.send_to_admin(f"{messages.host_role.mention}: **Bakes Pug has been announced.**")
         asyncio.ensure_future(schedule_pug_start(pug_date))
-        global startup
-        startup = False
         await active_pug.change_active_pug('second')
 
 
@@ -95,7 +95,7 @@ async def schedule_pug_start(date: datetime.datetime, immediate=False):
     await player_selection.announce_string(timestamp=pug_timestamp)
     await asyncio.sleep(seconds_until(date))
     print("Pug starts now: clearing active warnings, warning baiters")
-    await player_tracking.clear_active_warnings()
+    await player_tracking.decrement_active_warnings()
     await start_pug.auto_warn_bating_players()
     if not immediate:
         print("Medic processing will occur in 75 minutes")
