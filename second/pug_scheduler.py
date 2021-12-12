@@ -84,6 +84,7 @@ async def schedule_early_announcement(early_announce_channel: discord.TextChanne
     global earlyPugMessage, earlyMedicPugMessage
     earlyPugMessage, earlyMedicPugMessage = await start_pug.announce_early(early_announce_channel, regular_announce_channel)
     await messages.send_to_admin(f"{messages.host_role.mention}: **Early signups are open**")
+    await active_pug.change_early_active_pug('second')
 
 
 async def schedule_pug_start(date: datetime.datetime, immediate=False):
