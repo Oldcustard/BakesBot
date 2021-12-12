@@ -79,10 +79,10 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
     if user != client.user and reaction.message in map_voting.active_votes:
         await map_voting.vote_for_map(reaction, user)
     try:
-        if user != client.user and reaction.message == active_pug.pug_scheduler.earlyPugMessage:
-            await active_pug.start_pug.on_reaction_add(reaction, user)  # Early signup
-        elif user != client.user and reaction.message == active_pug.pug_scheduler.earlyMedicPugMessage:
-            await active_pug.start_pug.on_reaction_add(reaction, user)  # Early medic signup
+        if user != client.user and reaction.message == active_pug.early_pug_scheduler.earlyPugMessage:
+            await active_pug.early_start_pug.on_reaction_add(reaction, user)  # Early signup
+        elif user != client.user and reaction.message == active_pug.early_pug_scheduler.earlyMedicPugMessage:
+            await active_pug.early_start_pug.on_reaction_add(reaction, user)  # Early medic signup
         elif user != client.user and reaction.message == active_pug.pug_scheduler.pugMessage:
             await active_pug.start_pug.on_reaction_add(reaction, user)  # Regular signup
     except AttributeError:  # Signups not declared yet, ignore
