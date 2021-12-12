@@ -6,14 +6,16 @@ from distutils.util import strtobool
 
 import discord
 
+import active_pug
 import messages
 import player_tracking
-import start_pug
+from main import start_pug
 import player_selection
 
 config = configparser.ConfigParser()
 config.read('config.ini')
-config = config['Pug Settings']
+timing_config = config['Timing Settings']
+config = config['Main Pug Settings']
 
 pug_enabled = bool(strtobool(config['pug enabled']))
 
@@ -21,9 +23,9 @@ ANNOUNCE_WDAY = config['announce weekday']
 ANNOUNCE_HOUR = config['announce hour']
 ANNOUNCE_MINUTE = config['announce minute']
 
-EARLY_OFFSET = float(config['medic offset'])
-LATE_SIGNUP_PENALTY = float(config['signup penalty time'])
-PENALTY_TRIGGER_OFFSET = float(config['late penalty offset'])
+EARLY_OFFSET = float(timing_config['medic offset'])
+LATE_SIGNUP_PENALTY = float(timing_config['signup penalty time'])
+PENALTY_TRIGGER_OFFSET = float(timing_config['late penalty offset'])
 
 pugMessage: discord.Message
 earlyPugMessage: discord.Message
@@ -71,6 +73,7 @@ async def schedule_announcement(announce_channel: discord.TextChannel):
         penalty_trigger_time = pug_date - datetime.timedelta(hours=PENALTY_TRIGGER_OFFSET)
         await messages.send_to_admin(f"{messages.host_role.mention}: **Bakes Pug has been announced.**")
         asyncio.ensure_future(schedule_pug_start(pug_date))
+        await active_pug.change_active_pug('main')
 
 
 async def schedule_early_announcement(early_announce_channel: discord.TextChannel, regular_announce_channel: discord.TextChannel, early_announce_date: datetime.datetime):
@@ -92,7 +95,7 @@ async def schedule_pug_start(date: datetime.datetime, immediate=False):
     await player_selection.announce_string(timestamp=pug_timestamp)
     await asyncio.sleep(seconds_until(date))
     print("Pug starts now: clearing active warnings, warning baiters")
-    await player_tracking.clear_active_warnings()
+    await player_tracking.decrement_active_warnings()
     await start_pug.auto_warn_bating_players()
     if not immediate:
         print("Medic processing will occur in 75 minutes")

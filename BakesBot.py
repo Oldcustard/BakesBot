@@ -1,6 +1,7 @@
 # BakesBot.py
 import datetime
 import json
+import asyncio
 
 from dotenv import load_dotenv
 
@@ -10,12 +11,13 @@ import discord
 from discord.ext import commands
 import logging
 
+import active_pug
 import elo_tracking
 import map_voting
 import messages
+import main.pug_scheduler
+import second.pug_scheduler
 import player_selection
-import pug_scheduler
-import start_pug
 import player_tracking
 
 load_dotenv()
@@ -57,9 +59,11 @@ async def on_ready():
     messages.bluChannel = client.get_channel(BLU_CHANNEL_ID)
     messages.redChannel = client.get_channel(RED_CHANNEL_ID)
     messages.waitingChannel = client.get_channel(WAITING_CHANNEL_ID)
-    if pug_scheduler.startup:
+    if main.pug_scheduler.startup:
+        asyncio.ensure_future(main.pug_scheduler.schedule_announcement(messages.announceChannel))
+    if second.pug_scheduler.startup:
         print(f'{client.user} logged in, scheduling announcement')
-        await pug_scheduler.schedule_announcement(messages.announceChannel)
+        asyncio.ensure_future(second.pug_scheduler.schedule_announcement(messages.announceChannel))
     else:
         print(f'{client.user} reconnected.')
         await messages.send_to_admin(f"{messages.dev.mention}: Bot reconnected.")
@@ -75,12 +79,12 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
     if user != client.user and reaction.message in map_voting.active_votes:
         await map_voting.vote_for_map(reaction, user)
     try:
-        if user != client.user and reaction.message == pug_scheduler.earlyPugMessage:
-            await start_pug.on_reaction_add(reaction, user)  # Early signup
-        elif user != client.user and reaction.message == pug_scheduler.earlyMedicPugMessage:
-            await start_pug.on_reaction_add(reaction, user)  # Early medic signup
-        elif user != client.user and reaction.message == pug_scheduler.pugMessage:
-            await start_pug.on_reaction_add(reaction, user)  # Regular signup
+        if user != client.user and reaction.message == active_pug.pug_scheduler.earlyPugMessage:
+            await active_pug.start_pug.on_reaction_add(reaction, user)  # Early signup
+        elif user != client.user and reaction.message == active_pug.pug_scheduler.earlyMedicPugMessage:
+            await active_pug.start_pug.on_reaction_add(reaction, user)  # Early medic signup
+        elif user != client.user and reaction.message == active_pug.pug_scheduler.pugMessage:
+            await active_pug.start_pug.on_reaction_add(reaction, user)  # Regular signup
     except AttributeError:  # Signups not declared yet, ignore
         pass
 
@@ -95,7 +99,7 @@ def is_host():
 @client.command(name='select', aliases=['s'])
 @is_host()
 async def select_player(ctx: commands.Context, team, player_class, *, player: discord.Member):
-    if start_pug.signupsMessage is None:
+    if active_pug.start_pug.signupsMessage is None:
         await ctx.channel.send("Player selection only available after pug is announced")
         return
     await player_selection.select_player(ctx, team, player_class, player)
@@ -125,19 +129,19 @@ async def on_command_error(ctx: commands.Context, error):
 @client.command(name='forcestart')
 @is_host()
 async def force_start_pug(ctx: discord.ext.commands.Context):
-    await pug_scheduler.schedule_pug_start(datetime.datetime.now(datetime.timezone.utc).astimezone(), True)
+    await active_pug.pug_scheduler.schedule_pug_start(datetime.datetime.now(datetime.timezone.utc).astimezone(), True)
 
 
 @client.command(name='forcereset')
 @is_host()
 async def force_reset(ctx: discord.ext.commands.Context):
-    await start_pug.reset_pug()
+    await active_pug.start_pug.reset_pug()
 
 
 @client.command(name='withdraw')
 @is_host()
 async def force_withdraw_player(ctx: commands.Context, *, player: discord.Member):
-    await start_pug.withdraw_player(player)
+    await active_pug.start_pug.withdraw_player(player)
 
 
 @client.command(name='warn')
@@ -244,9 +248,9 @@ async def ping_players(ctx: commands.Context):
     await player_selection.ping_not_present()
 
 
-def main():
+def start():
     client.run(os.getenv('TOKEN'))
 
 
 if __name__ == '__main__':
-    main()
+    start()

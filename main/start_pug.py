@@ -8,16 +8,17 @@ import configparser
 import map_voting
 import messages
 import player_selection
-import pug_scheduler
+from main import pug_scheduler
 import player_tracking
 
 config = configparser.ConfigParser()
 config.read('config.ini')
-config = config['Pug Settings']
+global_config = config['Global Pug Settings']
 
-ANNOUNCE_STRING = config['intro string']
-EARLY_ANNOUNCE_STRING = config['early signups intro string']
+ANNOUNCE_STRING = global_config['intro string']
+EARLY_ANNOUNCE_STRING = global_config['early signups intro string']
 
+config = config['Main Pug Settings']
 PUG_WDAY = config['pug weekday']
 PUG_HOUR = config['pug hour']
 LIST_PLAYER_NAME_LENGTH = 7
