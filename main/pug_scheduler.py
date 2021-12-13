@@ -123,7 +123,8 @@ async def schedule_pug_start(date: datetime.datetime, immediate=False):
     if immediate:
         return
     await start_pug.reset_pug()
-    asyncio.ensure_future(schedule_announcement(messages.announceChannel))
+    global announcement_future
+    announcement_future = asyncio.ensure_future(schedule_announcement(messages.announceChannel))
 
 
 async def penalty_signups_check():
