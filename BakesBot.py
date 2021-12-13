@@ -96,6 +96,13 @@ def is_host():
     return commands.check(predicate)
 
 
+def is_dev():
+    def predicate(ctx: commands.Context):
+        return ctx.author == messages.dev
+
+    return commands.check(predicate)
+
+
 @client.command(name='select', aliases=['s'])
 @is_host()
 async def select_player(ctx: commands.Context, team, player_class, *, player: discord.Member):
@@ -127,13 +134,13 @@ async def on_command_error(ctx: commands.Context, error):
 
 
 @client.command(name='forcestart')
-@is_host()
+@is_dev()
 async def force_start_pug(ctx: discord.ext.commands.Context):
     await active_pug.pug_scheduler.schedule_pug_start(datetime.datetime.now(datetime.timezone.utc).astimezone(), True)
 
 
 @client.command(name='forcereset')
-@is_host()
+@is_dev()
 async def force_reset(ctx: discord.ext.commands.Context):
     await active_pug.start_pug.reset_pug()
 
