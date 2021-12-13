@@ -60,10 +60,10 @@ async def on_ready():
     messages.redChannel = client.get_channel(RED_CHANNEL_ID)
     messages.waitingChannel = client.get_channel(WAITING_CHANNEL_ID)
     if main.pug_scheduler.startup:
-        asyncio.ensure_future(main.pug_scheduler.schedule_announcement(messages.announceChannel))
+        main.pug_scheduler.announcement_future = asyncio.ensure_future(main.pug_scheduler.schedule_announcement(messages.announceChannel))
     if second.pug_scheduler.startup:
         print(f'{client.user} logged in, scheduling announcement')
-        asyncio.ensure_future(second.pug_scheduler.schedule_announcement(messages.announceChannel))
+        second.pug_scheduler.announcement_future = asyncio.ensure_future(second.pug_scheduler.schedule_announcement(messages.announceChannel))
     else:
         print(f'{client.user} reconnected.')
         await messages.send_to_admin(f"{messages.dev.mention}: Bot reconnected.")
@@ -253,6 +253,16 @@ async def fetch_logs_error(ctx, error):
 @is_host()
 async def ping_players(ctx: commands.Context):
     await player_selection.ping_not_present()
+
+
+@client.command(name='shutdown')
+@is_dev()
+async def cancel_scheduled_announcements(ctx: commands.Context):
+    await ctx.channel.send("Cancelling future announcements...")
+    main.pug_scheduler.announcement_future.cancel()
+    main.pug_scheduler.early_announcement_future.cancel()
+    second.pug_scheduler.announcement_future.cancel()
+    second.pug_scheduler.early_announcement_future.cancel()
 
 
 def start():
