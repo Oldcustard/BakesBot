@@ -50,6 +50,7 @@ async def select_player(ctx: discord.ext.commands.Context, team: str, player_cla
         return
     if team.lower() in blu_name:
         blu_team[player_class.capitalize()] = player_obj
+        inform_player_of_late_change(player_obj, player_class.capitalize())
         await ctx.channel.send(f"{player_obj.display_name} selected for BLU {player_class}")
         if bluMessage is None:
             bluMessage = await messages.announceChannel.send("BLU Team:\n" + await list_players(blu_team))
@@ -62,6 +63,7 @@ async def select_player(ctx: discord.ext.commands.Context, team: str, player_cla
 
     elif team.lower() == 'red':
         red_team[player_class.capitalize()] = player_obj
+        inform_player_of_late_change(player_obj, player_class.capitalize())
         await ctx.channel.send(f"{player_obj.display_name} selected for RED {player_class}")
         if redMessage is None:
             bluMessage = await messages.announceChannel.send("BLU Team:\n" + await list_players(blu_team))
@@ -172,7 +174,7 @@ async def ping_not_present():
     ping_messages.append(message)
     await messages.send_to_admin("Absent players have been pinged!")
 
-async def inform_player_of_late_change(player: discord.member, player_class: str):
+async def inform_player_of_late_change(player: discord.Member, player_class: str):
     pug_starts_soon, _timestamp = await active_pug.pug_scheduler.after_penalty_trigger_check()
     signed_up_players = list(blu_team.values()) + list(red_team.values())
     if pug_starts_soon and player in signed_up_players:
