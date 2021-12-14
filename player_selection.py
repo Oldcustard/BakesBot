@@ -56,6 +56,8 @@ async def select_player(ctx: discord.ext.commands.Context, team: str, player_cla
             redMessage = await messages.announceChannel.send("RED Team:\n" + await list_players(red_team))
             await redMessage.pin()
             await bluMessage.pin()
+            active_pug.start_pug.messages_to_delete.append(bluMessage)
+            active_pug.start_pug.messages_to_delete.append(redMessage)
         else:
             await bluMessage.edit(content="BLU Team:\n" + await list_players(blu_team))
             await announce_string()
@@ -68,6 +70,8 @@ async def select_player(ctx: discord.ext.commands.Context, team: str, player_cla
             redMessage = await messages.announceChannel.send("RED Team:\n" + await list_players(red_team))
             await redMessage.pin()
             await bluMessage.pin()
+            active_pug.start_pug.messages_to_delete.append(bluMessage)
+            active_pug.start_pug.messages_to_delete.append(redMessage)
         else:
             await redMessage.edit(content="RED Team:\n" + await list_players(red_team))
             await announce_string()
@@ -100,11 +104,14 @@ async def announce_string(connect_string=None, timestamp=None):
                 return
             timeMessage = await bluMessage.channel.send(f"**Reminder:** pug is <t:{timestamp}:R>. Please withdraw if you are not able to make it")
             reminderMessage = await bluMessage.channel.send(msg)
+            active_pug.start_pug.messages_to_delete.append(timeMessage)
         return
     if stringMessage is None:  # First string
         stringMessage = await bluMessage.channel.send(connect_string)
         await reminderMessage.delete()
         reminderMessage = await bluMessage.channel.send(msg)
+        active_pug.start_pug.messages_to_delete.append(stringMessage)
+        active_pug.start_pug.messages_to_delete.append(reminderMessage)
     else:  # Updated string
         await stringMessage.edit(content=connect_string)
 
