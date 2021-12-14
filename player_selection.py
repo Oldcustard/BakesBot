@@ -172,3 +172,15 @@ async def ping_not_present():
     ping_messages.append(message)
     await messages.send_to_admin("Absent players have been pinged!")
 
+async def inform_player_of_late_change(player: discord.member, player_class: str):
+    pug_starts_soon, _timestamp = await active_pug.pug_scheduler.after_penalty_trigger_check()
+    signed_up_players = list(blu_team.values()) + list(red_team.values())
+    if pug_starts_soon and player in signed_up_players:
+        await player.send(f"Your class in the upcoming Bakes Pug has been switched to {player_class}. As the pug is less than 3 hours away we are letting you know.")
+    elif pug_starts_soon:
+        await player.send(f"You have been assigned to play {player_class} in the upcoming Bakes Pug. As the pug is less than 3 hours away we are letting you know.\n If you are unable to make it, please withdraw by pressing the ❌ on the pug announcement.")
+
+
+
+
+
