@@ -60,10 +60,10 @@ async def on_ready():
     messages.redChannel = client.get_channel(RED_CHANNEL_ID)
     messages.waitingChannel = client.get_channel(WAITING_CHANNEL_ID)
     if main.pug_scheduler.startup:
-        asyncio.ensure_future(main.pug_scheduler.schedule_announcement(messages.announceChannel))
+        main.pug_scheduler.announcement_future = asyncio.ensure_future(main.pug_scheduler.schedule_announcement(messages.announceChannel))
     if second.pug_scheduler.startup:
         print(f'{client.user} logged in, scheduling announcement')
-        asyncio.ensure_future(second.pug_scheduler.schedule_announcement(messages.announceChannel))
+        second.pug_scheduler.announcement_future = asyncio.ensure_future(second.pug_scheduler.schedule_announcement(messages.announceChannel))
     else:
         print(f'{client.user} reconnected.')
         await messages.send_to_admin(f"{messages.dev.mention}: Bot reconnected.")
@@ -92,6 +92,13 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
 def is_host():
     def predicate(ctx):
         return messages.host_role in ctx.message.author.roles
+
+    return commands.check(predicate)
+
+
+def is_dev():
+    def predicate(ctx: commands.Context):
+        return ctx.author == messages.dev
 
     return commands.check(predicate)
 
@@ -127,13 +134,13 @@ async def on_command_error(ctx: commands.Context, error):
 
 
 @client.command(name='forcestart')
-@is_host()
+@is_dev()
 async def force_start_pug(ctx: discord.ext.commands.Context):
     await active_pug.pug_scheduler.schedule_pug_start(datetime.datetime.now(datetime.timezone.utc).astimezone(), True)
 
 
 @client.command(name='forcereset')
-@is_host()
+@is_dev()
 async def force_reset(ctx: discord.ext.commands.Context):
     await active_pug.start_pug.reset_pug()
 
@@ -246,6 +253,16 @@ async def fetch_logs_error(ctx, error):
 @is_host()
 async def ping_players(ctx: commands.Context):
     await player_selection.ping_not_present()
+
+
+@client.command(name='shutdown')
+@is_dev()
+async def cancel_scheduled_announcements(ctx: commands.Context):
+    await ctx.channel.send("Cancelling future announcements...")
+    main.pug_scheduler.announcement_future.cancel()
+    main.pug_scheduler.early_announcement_future.cancel()
+    second.pug_scheduler.announcement_future.cancel()
+    second.pug_scheduler.early_announcement_future.cancel()
 
 
 def start():

@@ -34,6 +34,9 @@ penalty_signup_time: datetime.datetime
 penalty_trigger_time: datetime.datetime
 pug_date: datetime.datetime
 
+announcement_future: asyncio.Task
+early_announcement_future: asyncio.Task
+
 startup = True
 
 
@@ -44,47 +47,56 @@ def seconds_until(desired_time: datetime.datetime):
 
 
 async def schedule_announcement(announce_channel: discord.TextChannel):
-    if pug_enabled:
-        announce_day = time.strptime(ANNOUNCE_WDAY, "%A")
-        current_date = datetime.datetime.now(datetime.timezone.utc).astimezone()
-        current_day = current_date.weekday()
-        time_to_announce = datetime.timedelta(days=announce_day.tm_wday - current_day,
-                                              hours=int(ANNOUNCE_HOUR) - current_date.hour,
-                                              minutes=int(ANNOUNCE_MINUTE) - current_date.minute)
-        if time_to_announce.total_seconds() < 0:
-            time_to_announce = time_to_announce + datetime.timedelta(days=7)  # Ensure announcement is in the future
-        announce_date = current_date + time_to_announce
-        announce_date = announce_date.replace(hour=int(ANNOUNCE_HOUR), minute=int(ANNOUNCE_MINUTE), second=0,
-                                              microsecond=0)
-        early_announce_date = announce_date - datetime.timedelta(hours=EARLY_OFFSET)
-        global penalty_signup_time
-        penalty_signup_time = announce_date + datetime.timedelta(hours=LATE_SIGNUP_PENALTY)
+    try:
+        if pug_enabled:
+            announce_day = time.strptime(ANNOUNCE_WDAY, "%A")
+            current_date = datetime.datetime.now(datetime.timezone.utc).astimezone()
+            current_day = current_date.weekday()
+            time_to_announce = datetime.timedelta(days=announce_day.tm_wday - current_day,
+                                                  hours=int(ANNOUNCE_HOUR) - current_date.hour,
+                                                  minutes=int(ANNOUNCE_MINUTE) - current_date.minute)
+            if time_to_announce.total_seconds() < 0:
+                time_to_announce = time_to_announce + datetime.timedelta(days=7)  # Ensure announcement is in the future
+            announce_date = current_date + time_to_announce
+            announce_date = announce_date.replace(hour=int(ANNOUNCE_HOUR), minute=int(ANNOUNCE_MINUTE), second=0,
+                                                  microsecond=0)
+            early_announce_date = announce_date - datetime.timedelta(hours=EARLY_OFFSET)
+            global penalty_signup_time
+            penalty_signup_time = announce_date + datetime.timedelta(hours=LATE_SIGNUP_PENALTY)
 
-        asyncio.ensure_future(schedule_early_announcement(messages.earlyAnnounceChannel, announce_channel, early_announce_date))
-        print(f"Pug announcement scheduled for {announce_date}")
-        announce_timestamp = round(datetime.datetime.timestamp(announce_date))
-        await messages.send_to_admin(f"{messages.dev.mention}: Pug announcement scheduled for <t:{announce_timestamp}:F>")
-        global startup
-        startup = False
-        await asyncio.sleep(seconds_until(announce_date))
-        global pugMessage, pug_date
-        pugMessage, pug_date = await start_pug.announce_pug(announce_channel)
-        global penalty_trigger_time
-        penalty_trigger_time = pug_date - datetime.timedelta(hours=PENALTY_TRIGGER_OFFSET)
-        await messages.send_to_admin(f"{messages.host_role.mention}: **Bakes Pug has been announced.**")
-        asyncio.ensure_future(schedule_pug_start(pug_date))
-        await active_pug.change_active_pug('main')
+            global early_announcement_future
+            early_announcement_future = asyncio.ensure_future(schedule_early_announcement(messages.earlyAnnounceChannel, announce_channel, early_announce_date))
+            print(f"Pug announcement scheduled for {announce_date}")
+            announce_timestamp = round(datetime.datetime.timestamp(announce_date))
+            await messages.send_to_admin(f"{messages.dev.mention}: Pug announcement scheduled for <t:{announce_timestamp}:F>")
+            global startup
+            startup = False
+            await asyncio.sleep(seconds_until(announce_date))
+            global pugMessage, pug_date
+            pugMessage, pug_date = await start_pug.announce_pug(announce_channel)
+            global penalty_trigger_time
+            penalty_trigger_time = pug_date - datetime.timedelta(hours=PENALTY_TRIGGER_OFFSET)
+            await messages.send_to_admin(f"{messages.host_role.mention}: **Bakes Pug has been announced.**")
+            asyncio.ensure_future(schedule_pug_start(pug_date))
+            await active_pug.change_active_pug('main')
+    except asyncio.CancelledError:
+        print(f"Announcement for {announce_date} has been cancelled.")
+        await messages.send_to_admin(f"Announcement for <t:{announce_timestamp}:F> has been cancelled.")
 
 
 async def schedule_early_announcement(early_announce_channel: discord.TextChannel, regular_announce_channel: discord.TextChannel, early_announce_date: datetime.datetime):
-    print(f"Early announcement scheduled for {early_announce_date}")
-    early_announce_timestamp = round(datetime.datetime.timestamp(early_announce_date))
-    await messages.send_to_admin(f"{messages.dev.mention}: Early announcement scheduled for <t:{early_announce_timestamp}:F>")
-    await asyncio.sleep(seconds_until(early_announce_date))
-    global earlyPugMessage, earlyMedicPugMessage
-    earlyPugMessage, earlyMedicPugMessage = await start_pug.announce_early(early_announce_channel, regular_announce_channel)
-    await messages.send_to_admin(f"{messages.host_role.mention}: **Early signups are open**")
-    await active_pug.change_early_active_pug('main')
+    try:
+        print(f"Early announcement scheduled for {early_announce_date}")
+        early_announce_timestamp = round(datetime.datetime.timestamp(early_announce_date))
+        await messages.send_to_admin(f"{messages.dev.mention}: Early announcement scheduled for <t:{early_announce_timestamp}:F>")
+        await asyncio.sleep(seconds_until(early_announce_date))
+        global earlyPugMessage, earlyMedicPugMessage
+        earlyPugMessage, earlyMedicPugMessage = await start_pug.announce_early(early_announce_channel, regular_announce_channel)
+        await messages.send_to_admin(f"{messages.host_role.mention}: **Early signups are open**")
+        await active_pug.change_early_active_pug('second')
+    except asyncio.CancelledError:
+        print(f"Early Announcement for {early_announce_date} has been cancelled.")
+        await messages.send_to_admin(f"Early Announcement for <t:{early_announce_timestamp}:F> has been cancelled.")
 
 
 async def schedule_pug_start(date: datetime.datetime, immediate=False):
@@ -111,7 +123,8 @@ async def schedule_pug_start(date: datetime.datetime, immediate=False):
     if immediate:
         return
     await start_pug.reset_pug()
-    asyncio.ensure_future(schedule_announcement(messages.announceChannel))
+    global announcement_future
+    announcement_future = asyncio.ensure_future(schedule_announcement(messages.announceChannel))
 
 
 async def penalty_signups_check():
