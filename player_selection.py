@@ -167,9 +167,9 @@ async def drag_into_same_vc(ctx: discord.ext.commands.Context):
 
 async def ping_not_present():
     player: discord.Member
-    signed_up_players = list(blu_team.values()) + list(red_team.values())
-    present_players = list(messages.bluChannel.members) + list(messages.redChannel.members) + list(messages.waitingChannel.members)
-    absent_players = [player.mention for player in signed_up_players if player not in present_players and player is not None]
+    signed_up_players = set(blu_team.values()) | set(red_team.values())
+    present_players = set(messages.bluChannel.members) | set(messages.redChannel.members) | set(messages.waitingChannel.members)
+    absent_players = [player.mention for player in (signed_up_players - present_players)]
     message = await messages.announceChannel.send(f"Join up! {', '.join(absent_players)}")
     ping_messages.append(message)
     await messages.send_to_admin("Absent players have been pinged!")
