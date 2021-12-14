@@ -174,6 +174,7 @@ async def ping_not_present():
     ping_messages.append(message)
     await messages.send_to_admin("Absent players have been pinged!")
 
+
 async def inform_player_of_late_change(player: discord.Member, player_class: str):
     pug_starts_soon, _timestamp = await active_pug.pug_scheduler.after_penalty_trigger_check()
     signed_up_players = list(blu_team.values()) + list(red_team.values())
