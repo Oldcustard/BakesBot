@@ -2,7 +2,7 @@ import sqlite3
 import discord
 
 import messages
-from main import start_pug
+import active_pug
 import player_selection
 
 
@@ -274,8 +274,8 @@ async def player_status(ctx, player: discord.Member):
         else:
             medic_status = f"**has Medic priority** for **{medics_row[1]}** more pug{'s' if medics_row[1] != 1 else ''}."
 
-        if player in start_pug.player_classes.keys():
-            signed_up_classes = ', '.join([str(emoji) for emoji in start_pug.player_classes[player]])
+        if player in active_pug.start_pug.player_classes.keys():
+            signed_up_classes = ', '.join([str(emoji) for emoji in active_pug.start_pug.player_classes[player]])
         else:
             signed_up_classes = "**no classes**"
 
