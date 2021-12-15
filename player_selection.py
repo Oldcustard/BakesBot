@@ -1,6 +1,6 @@
 from typing import Dict, List
 
-import discord.ext.commands
+import disnake.ext.commands
 
 import messages
 import active_pug
@@ -40,7 +40,7 @@ timeMessage: discord.Message = None
 ping_messages: List[discord.Message] = []
 
 
-async def select_player(ctx: discord.ext.commands.Context, team: str, player_class: str, player_obj: discord.Member):
+async def select_player(ctx: disnake.ext.commands.Context, team: str, player_class: str, player_obj: discord.Member):
     global bluMessage, redMessage
     if player_obj is None:
         await ctx.channel.send(f"Player {player_obj} not found. Try different capitalisation or mention them directly.")
@@ -118,7 +118,7 @@ async def announce_string(connect_string=None, timestamp=None):
         await stringMessage.edit(content=connect_string)
 
 
-async def swap_class_across_teams(ctx: discord.ext.commands.Context, player_class: str):
+async def swap_class_across_teams(ctx: disnake.ext.commands.Context, player_class: str):
     global bluMessage, redMessage
     player_class = player_class.capitalize()
     if player_class not in blu_team:
@@ -135,7 +135,7 @@ async def swap_class_across_teams(ctx: discord.ext.commands.Context, player_clas
         await ctx.channel.send(f"{blu_team[player_class].display_name} is now BLU {player_class} & {red_team[player_class].display_name} is now RED {player_class}.")
 
 
-async def list_unassigned_players(ctx: discord.ext.commands.Context):
+async def list_unassigned_players(ctx: disnake.ext.commands.Context):
     unassigned = []
     for player in active_pug.start_pug.player_classes.keys():
         if player not in blu_team.values() and player not in red_team.values():
@@ -143,7 +143,7 @@ async def list_unassigned_players(ctx: discord.ext.commands.Context):
     await ctx.channel.send("Players yet to be assigned a class: " + ", ".join(unassigned))
 
 
-async def drag_into_team_vc(ctx: discord.ext.commands.Context):
+async def drag_into_team_vc(ctx: disnake.ext.commands.Context):
     member: discord.Member
     for member in ctx.author.voice.channel.members:
         if member in blu_team.values():
@@ -158,7 +158,7 @@ async def drag_into_team_vc(ctx: discord.ext.commands.Context):
                 continue
 
 
-async def drag_into_same_vc(ctx: discord.ext.commands.Context):
+async def drag_into_same_vc(ctx: disnake.ext.commands.Context):
     member: discord.Member
     for member in messages.bluChannel.members:
         try:

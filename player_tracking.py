@@ -1,5 +1,5 @@
 import sqlite3
-import discord
+import disnake as discord
 
 import messages
 import active_pug

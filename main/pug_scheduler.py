@@ -4,7 +4,7 @@ import datetime
 import time
 from distutils.util import strtobool
 
-import discord
+import disnake as discord
 
 import active_pug
 import messages

@@ -1,6 +1,7 @@
 from typing import List
 
-import discord.ext.commands
+import disnake as discord
+import disnake.ext.commands
 
 import active_pug
 import messages
@@ -11,7 +12,7 @@ active_votes: List[discord.MessageReference] = []
 emoji_list = ('1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟')
 
 
-async def start_map_vote(ctx: discord.ext.commands.Context, *maps):
+async def start_map_vote(ctx: disnake.ext.commands.Context, *maps):
     map_list_string = ""
     for i, map_name in enumerate(maps):
         line = f"{emoji_list[i]} {map_name.capitalize()}"

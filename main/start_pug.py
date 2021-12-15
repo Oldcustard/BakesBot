@@ -1,6 +1,6 @@
 from typing import Dict, List, Tuple
 
-import discord
+import disnake as discord
 import time
 import datetime
 import configparser

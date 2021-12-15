@@ -7,8 +7,8 @@ from dotenv import load_dotenv
 
 import os
 import configparser
-import discord
-from discord.ext import commands
+import disnake as discord
+from disnake.ext import commands
 import logging
 
 import active_pug
@@ -135,13 +135,13 @@ async def on_command_error(ctx: commands.Context, error):
 
 @client.command(name='forcestart')
 @is_dev()
-async def force_start_pug(ctx: discord.ext.commands.Context):
+async def force_start_pug(ctx: disnake.ext.commands.Context):
     await active_pug.pug_scheduler.schedule_pug_start(datetime.datetime.now(datetime.timezone.utc).astimezone(), True)
 
 
 @client.command(name='forcereset')
 @is_dev()
-async def force_reset(ctx: discord.ext.commands.Context):
+async def force_reset(ctx: disnake.ext.commands.Context):
     await active_pug.start_pug.reset_pug()
 
 
