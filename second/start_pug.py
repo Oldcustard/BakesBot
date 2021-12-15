@@ -53,6 +53,7 @@ signupsMessage: discord.Message = None
 signupsListMessage: discord.Message = None
 
 players_to_warn = []
+messages_to_delete: List[discord.Message] = []
 
 
 async def announce_pug(channel: discord.TextChannel):
@@ -69,6 +70,7 @@ async def announce_pug(channel: discord.TextChannel):
     pug_time_string = f"<t:{pug_timestamp}:F>"
     announce_message = f"\n{ANNOUNCE_STRING} \nPug will be **{pug_time_string}** (this is displayed in your **local time**)\nPress ❌ to withdraw from the pug."
     pugMessage: discord.Message = await channel.send(announce_message)
+    messages_to_delete.append(pugMessage)
     for reactionEmoji in emojis_ids:
         await pugMessage.add_reaction(reactionEmoji)
     await pugMessage.add_reaction('❌')
@@ -83,6 +85,8 @@ async def announce_early(early_signups_channel: discord.TextChannel, signups_cha
         await earlyPugMessage.add_reaction(reactionEmoji)
     await earlyPugMessage.add_reaction('❌')
     earlyPugMedicMessage: discord.Message = await signups_channel.send(medic_announce_message)
+    messages_to_delete.append(earlyPugMessage)
+    messages_to_delete.append(earlyPugMedicMessage)
     await earlyPugMedicMessage.add_reaction(emojis_ids[6])
     return earlyPugMessage, earlyPugMedicMessage
 
@@ -184,29 +188,30 @@ async def auto_warn_bating_players():
 
 
 async def reset_pug():
-    global signupsMessage, signupsListMessage
+    global messages_to_delete, signupsMessage, signupsListMessage
+    for message in messages_to_delete:
+        try:
+            await message.delete()
+        except discord.NotFound:
+            continue
+        finally:
+            messages_to_delete.remove(message)
     await signupsMessage.unpin()
     await signupsListMessage.unpin()
-    await player_selection.bluMessage.delete()
-    await player_selection.redMessage.delete()
-    await player_selection.stringMessage.delete()
-    await player_selection.reminderMessage.delete()
-    await player_selection.timeMessage.delete()
-    await pug_scheduler.pugMessage.delete()
-    await pug_scheduler.earlyMedicPugMessage.delete()
-    await pug_scheduler.earlyPugMessage.delete()
     for vote in map_voting.active_votes:
         try:
             await vote.delete()
         except discord.NotFound:
-            pass
-        map_voting.active_votes.remove(vote)
+            continue
+        finally:
+            map_voting.active_votes.remove(vote)
     for ping in player_selection.ping_messages:
         try:
             await ping.delete()
         except discord.NotFound:
-            pass
-        player_selection.ping_messages.remove(ping)
+            continue
+        finally:
+            player_selection.ping_messages.remove(ping)
     signupsMessage = None
     signupsListMessage = None
     player_selection.bluMessage = None
