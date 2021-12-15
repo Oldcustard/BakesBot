@@ -265,6 +265,24 @@ async def cancel_scheduled_announcements(ctx: commands.Context):
     second.pug_scheduler.early_announcement_future.cancel()
 
 
+@client.command(name='clearpins')
+@is_dev()
+async def clear_bot_pins(ctx: commands.Context):
+    pinned_message: discord.Message
+    await ctx.channel.send("Clearing admin channel pins...")
+    for pinned_message in await messages.adminChannel.pins():
+        if pinned_message.author == client.user:
+            await pinned_message.unpin()
+    print("Cleared admin channel pins")
+    await ctx.channel.send("Cleared admin channel pins")
+    await ctx.channel.send("Clearing announce channel pins...")
+    for pinned_message in await messages.announceChannel.pins():
+        if pinned_message.author == client.user:
+            await pinned_message.unpin()
+    print("Cleared announce channel pins")
+    await ctx.channel.send("Cleared announce channel pins")
+
+
 def start():
     client.run(os.getenv('TOKEN'))
 
