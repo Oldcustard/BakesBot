@@ -188,7 +188,7 @@ async def auto_warn_bating_players():
 
 
 async def reset_pug():
-    global messages_to_delete, signupsMessage, signupsListMessage
+    global messages_to_delete, signupsMessage, signupsListMessage, signups, player_classes
     for message in messages_to_delete:
         try:
             await message.delete()
@@ -211,4 +211,6 @@ async def reset_pug():
     player_selection.ping_messages.clear()
     player_selection.blu_team = dict.fromkeys(player_selection.blu_team.keys(), None)
     player_selection.red_team = dict.fromkeys(player_selection.red_team.keys(), None)
+    signups = dict.fromkeys(signups.keys(), [])
+    player_classes = {}
     print("Pug status reset; messages deleted")
