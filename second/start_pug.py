@@ -209,4 +209,6 @@ async def reset_pug():
     pug_scheduler.earlyPugMessage = None
     map_voting.active_votes.clear()
     player_selection.ping_messages.clear()
+    player_selection.blu_team = dict.fromkeys(player_selection.blu_team.keys(), None)
+    player_selection.red_team = dict.fromkeys(player_selection.red_team.keys(), None)
     print("Pug status reset; messages deleted")
