@@ -198,6 +198,20 @@ async def reset_pug():
             messages_to_delete.remove(message)
     await signupsMessage.unpin()
     await signupsListMessage.unpin()
+    for vote in map_voting.active_votes:
+        try:
+            await vote.delete()
+        except discord.NotFound:
+            continue
+        finally:
+            map_voting.active_votes.remove(vote)
+    for ping in player_selection.ping_messages:
+        try:
+            await ping.delete()
+        except discord.NotFound:
+            continue
+        finally:
+            player_selection.ping_messages.remove(ping)
     signupsMessage = None
     signupsListMessage = None
     player_selection.bluMessage = None
