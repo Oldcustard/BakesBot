@@ -177,5 +177,6 @@ async def ping_not_present():
     absent_players = [player.mention for player in signed_up_players if player not in present_players and player is not None]
     message = await messages.announceChannel.send(f"Join up! {', '.join(absent_players)}")
     ping_messages.append(message)
+    active_pug.start_pug.messages_to_delete.append(message)
     await messages.send_to_admin("Absent players have been pinged!")
 
