@@ -188,7 +188,7 @@ async def auto_warn_bating_players():
 
 
 async def reset_pug():
-    global messages_to_delete
+    global messages_to_delete, signupsMessage, signupsListMessage
     for message in messages_to_delete:
         try:
             await message.delete()
@@ -196,7 +196,6 @@ async def reset_pug():
             continue
         finally:
             messages_to_delete.remove(message)
-    global signupsMessage, signupsListMessage
     await signupsMessage.unpin()
     await signupsListMessage.unpin()
     for vote in map_voting.active_votes:
