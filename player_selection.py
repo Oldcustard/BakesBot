@@ -179,9 +179,9 @@ async def inform_player_of_late_change(player: discord.Member, player_class: str
     pug_starts_soon, _timestamp = await active_pug.pug_scheduler.after_penalty_trigger_check()
     signed_up_players = list(blu_team.values()) + list(red_team.values())
     if pug_starts_soon and player in signed_up_players:
-        await player.send(f"Your class in the upcoming Bakes Pug has been switched to {player_class}. As the pug is less than 3 hours away we are letting you know.")
+        await player.send(f"**Please Note:** Your class in the upcoming Bakes Pug has been switched to **{player_class}**.")
     elif pug_starts_soon:
-        await player.send(f"You have been assigned to play {player_class} in the upcoming Bakes Pug. As the pug is less than 3 hours away we are letting you know.\n If you are unable to make it, please withdraw by pressing the ❌ on the pug announcement.")
+        await player.send(f"**IMPORTANT:** You have just been assigned to play **{player_class}** in the upcoming Bakes Pug.\nIf you are unable to make it, please withdraw by pressing ❌ on the pug announcement.")
 
 
 
