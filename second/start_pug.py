@@ -194,8 +194,7 @@ async def reset_pug():
             await message.delete()
         except discord.NotFound:
             continue
-        finally:
-            messages_to_delete.remove(message)
+    messages_to_delete.clear()
     await signupsMessage.unpin()
     await signupsListMessage.unpin()
     signupsMessage = None
