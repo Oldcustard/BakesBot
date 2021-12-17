@@ -49,8 +49,8 @@ async def select_player(ctx: discord.ext.commands.Context, team: str, player_cla
         await ctx.channel.send(f"Class not recognised")
         return
     if team.lower() in blu_name:
-        blu_team[player_class.capitalize()] = player_obj
         await inform_player_of_late_change(player_obj, player_class.capitalize())
+        blu_team[player_class.capitalize()] = player_obj
         await ctx.channel.send(f"{player_obj.display_name} selected for BLU {player_class}")
         if bluMessage is None:
             bluMessage = await messages.announceChannel.send("BLU Team:\n" + await list_players(blu_team))
@@ -62,8 +62,8 @@ async def select_player(ctx: discord.ext.commands.Context, team: str, player_cla
             await announce_string()
 
     elif team.lower() == 'red':
-        red_team[player_class.capitalize()] = player_obj
         await inform_player_of_late_change(player_obj, player_class.capitalize())
+        red_team[player_class.capitalize()] = player_obj
         await ctx.channel.send(f"{player_obj.display_name} selected for RED {player_class}")
         if redMessage is None:
             bluMessage = await messages.announceChannel.send("BLU Team:\n" + await list_players(blu_team))
