@@ -73,7 +73,13 @@ async def update_early_signups():
         db.close()
 
 
-async def warn_player(player: discord.User):
+async def warn_player(player: discord.Member, inter: discord.ApplicationCommandInteraction = None):
+    async def respond(message):
+        if inter:
+            await inter.response.send_message(message)
+        else:
+            await messages.send_to_admin(message)
+
     player_name = player.display_name
     player_id = player.id
     db = sqlite3.connect('players.db')
@@ -89,24 +95,24 @@ async def warn_player(player: discord.User):
             c.execute('''INSERT INTO warnings (player, warned_pugs_remaining, total_warnings, pug_banned)
              VALUES (?, ?, ?, ?)''', (player_id, 2, 1, 0))
             await player.send(f"You have been warned for baiting. This may be due to a late withdrawal, or not showing up to a pug. This warning will last for 1 week.")
-            await messages.send_to_admin(f"{player_name} has been warned. {player_name} has 1 total warning.")
+            await respond(f"{player_name} has been warned. {player_name} has 1 total warning.")
             print(f"{player_name} has been warned.")
         elif row[1] == 1: # Player had a warning already, they will be reset to 2 weeks for baiting again.
             c.execute('''UPDATE warnings
                      SET warned_pugs_remaining = 2, total_warnings = total_warnings + 1
                      WHERE player = ?''', (player_id,))
             await player.send(f"You have been warned for baiting. This may be due to a late withdrawal, or not showing up to a pug. This warning will last for 1 week.")
-            await messages.send_to_admin(f"{player_name} has been warned. They already had an active warning so their penalty has been reset to 2 pugs.  {player_name} has {row[2] + 1} total warning{'s' if row[2] + 1 != 1 else ''}.")
+            await respond(f"{player_name} has been warned. They already had an active warning so their penalty has been reset to 2 pugs.  {player_name} has {row[2] + 1} total warning{'s' if row[2] + 1 != 1 else ''}.")
             print(f"{player_name} has been warned.")
         elif row[1] == 2:  # Player is on the warnings table, and has already been warned for this pug
-            await messages.send_to_admin(f"{player_name} has already been warned for this pug, no warning added. {player_name} has {row[2]} total warning{'s' if row[2] != 1 else ''}.")
+            await respond(f"{player_name} has already been warned for this pug, no warning added. {player_name} has {row[2]} total warning{'s' if row[2] != 1 else ''}.")
             print(f"{player_name} has already been warned for this pug, no warning added.")
         else:  # Player is already on the warnings table, give them a current warning and add 1 to their total
             c.execute('''UPDATE warnings
              SET warned_pugs_remaining = 2, total_warnings = total_warnings + 1
              WHERE player = ?''', (player_id,))
             await player.send(f"You have been warned for baiting. This may be due to a late withdrawal, or not showing up to a pug. This warning will last for 1 week.")
-            await messages.send_to_admin(f"{player_name} has been warned. {player_name} has {row[2] + 1} total warning{'s' if row[2] + 1 != 1 else ''}.")
+            await respond(f"{player_name} has been warned. {player_name} has {row[2] + 1} total warning{'s' if row[2] + 1 != 1 else ''}.")
             print(f"{player_name} has been warned.")
 
         db.commit()
@@ -114,7 +120,7 @@ async def warn_player(player: discord.User):
         db.close()
 
 
-async def unwarn_player(player: discord.User):
+async def unwarn_player(player: discord.Member, inter: discord.ApplicationCommandInteraction):
     player_name = player.display_name
     player_id = player.id
     db = sqlite3.connect('players.db')
@@ -125,15 +131,15 @@ async def unwarn_player(player: discord.User):
         row = c.fetchone()
 
         if row is None:
-            await messages.send_to_admin(f"{player_name} has had no recorded warnings. No action taken.")
+            await inter.response.send_message(f"{player_name} has had no recorded warnings. No action taken.")
         elif not row[1]:
-            await messages.send_to_admin(f"{player_name} is not currently warned. No action taken.")
+            await inter.response.send_message(f"{player_name} is not currently warned. No action taken.")
         else:
             c.execute('''UPDATE warnings
                      SET warned_pugs_remaining = 0, total_warnings = total_warnings - 1
                      WHERE player = ?''', (player_id,))
             await player.send(f"Your active warning for baiting has been removed by an admin.")
-            await messages.send_to_admin(f"{player_name} has had their warning removed. They now have {row[2] - 1} total warning{'s' if row[2] - 1 != 1 else ''}.")
+            await inter.response.send_message(f"{player_name} has had their warning removed. They now have {row[2] - 1} total warning{'s' if row[2] - 1 != 1 else ''}.")
             print(f"{player_name} has been unwarned.")
 
         db.commit()

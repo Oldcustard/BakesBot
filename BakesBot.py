@@ -28,7 +28,7 @@ config.read('config.ini')
 
 intents = discord.Intents().default()
 intents.members = True
-client = commands.Bot('$', intents=intents)
+client = commands.Bot('$', intents=intents, test_guilds=[902442233482063892])
 
 ANNOUNCE_CHANNEL_ID = int(os.getenv('announce_channel_id'))
 EARLY_ANNOUNCE_CHANNEL_ID = int(os.getenv('early_announce_channel_id'))
@@ -90,8 +90,8 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
 
 
 def is_host():
-    def predicate(ctx):
-        return messages.host_role in ctx.message.author.roles
+    def predicate(inter: discord.ApplicationCommandInteraction):
+        return messages.host_role in inter.author.roles
 
     return commands.check(predicate)
 
@@ -135,13 +135,13 @@ async def on_command_error(ctx: commands.Context, error):
 
 @client.command(name='forcestart')
 @is_dev()
-async def force_start_pug(ctx: disnake.ext.commands.Context):
+async def force_start_pug(ctx: commands.Context):
     await active_pug.pug_scheduler.schedule_pug_start(datetime.datetime.now(datetime.timezone.utc).astimezone(), True)
 
 
 @client.command(name='forcereset')
 @is_dev()
-async def force_reset(ctx: disnake.ext.commands.Context):
+async def force_reset(ctx: commands.Context):
     await active_pug.start_pug.reset_pug()
 
 
@@ -151,16 +151,16 @@ async def force_withdraw_player(ctx: commands.Context, *, player: discord.Member
     await active_pug.start_pug.withdraw_player(player)
 
 
-@client.command(name='warn')
+@client.slash_command(name='warn', description="Warn a player for baiting")
 @is_host()
-async def warn_player(ctx: commands.Context, *, player: discord.Member):
-    await player_tracking.warn_player(player)
+async def warn_player(inter: discord.ApplicationCommandInteraction, *, player: discord.Member):
+    await player_tracking.warn_player(player, inter)
 
 
-@client.command(name='unwarn')
+@client.slash_command(name='unwarn', description="Manually remove a warning")
 @is_host()
-async def unwarn_player(ctx: commands.Context, *, player: discord.Member):
-    await player_tracking.unwarn_player(player)
+async def unwarn_player(inter: discord.ApplicationCommandInteraction, *, player: discord.Member):
+    await player_tracking.unwarn_player(player, inter)
 
 
 @client.command(name='ban')
