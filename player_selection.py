@@ -49,6 +49,7 @@ async def select_player(ctx: discord.ext.commands.Context, team: str, player_cla
         await ctx.channel.send(f"Class not recognised")
         return
     if team.lower() in blu_name:
+        await inform_player_of_late_change(player_obj, player_class.capitalize())
         blu_team[player_class.capitalize()] = player_obj
         await ctx.channel.send(f"{player_obj.display_name} selected for BLU {player_class}")
         if bluMessage is None:
@@ -63,6 +64,7 @@ async def select_player(ctx: discord.ext.commands.Context, team: str, player_cla
             await announce_string()
 
     elif team.lower() == 'red':
+        await inform_player_of_late_change(player_obj, player_class.capitalize())
         red_team[player_class.capitalize()] = player_obj
         await ctx.channel.send(f"{player_obj.display_name} selected for RED {player_class}")
         if redMessage is None:
@@ -172,11 +174,24 @@ async def drag_into_same_vc(ctx: discord.ext.commands.Context):
 
 async def ping_not_present():
     player: discord.Member
-    signed_up_players = list(blu_team.values()) + list(red_team.values())
-    present_players = list(messages.bluChannel.members) + list(messages.redChannel.members) + list(messages.waitingChannel.members)
-    absent_players = [player.mention for player in signed_up_players if player not in present_players and player is not None]
+    signed_up_players = set(blu_team.values()) | set(red_team.values())
+    present_players = set(messages.bluChannel.members) | set(messages.redChannel.members) | set(messages.waitingChannel.members)
+    absent_players = [player.mention for player in (signed_up_players - present_players)]
     message = await messages.announceChannel.send(f"Join up! {', '.join(absent_players)}")
     ping_messages.append(message)
     active_pug.start_pug.messages_to_delete.append(message)
     await messages.send_to_admin("Absent players have been pinged!")
+
+
+async def inform_player_of_late_change(player: discord.Member, player_class: str):
+    pug_starts_soon, _timestamp = await active_pug.pug_scheduler.after_penalty_trigger_check()
+    signed_up_players = list(blu_team.values()) + list(red_team.values())
+    if pug_starts_soon and player in signed_up_players:
+        await player.send(f"**Please Note:** Your class in the upcoming Bakes Pug has been switched to **{player_class}**.")
+    elif pug_starts_soon:
+        await player.send(f"**IMPORTANT:** You have just been assigned to play **{player_class}** in the upcoming Bakes Pug.\nIf you are unable to make it, please withdraw by pressing ❌ on the pug announcement.")
+
+
+
+
 
