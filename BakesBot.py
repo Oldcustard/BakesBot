@@ -2,6 +2,7 @@
 import datetime
 import json
 import asyncio
+from typing import List
 
 from dotenv import load_dotenv
 
@@ -28,8 +29,11 @@ config.read('config.ini')
 
 intents = discord.Intents().default()
 intents.members = True
-client = commands.Bot('$', intents=intents, test_guilds=[902442233482063892])
+client = commands.Bot('$', intents=intents, test_guilds=[902442233482063892], sync_permissions=True)
 
+permissions: List[discord.PartialGuildApplicationCommandPermissions] = []
+
+GUILD_ID = int(os.getenv('guild_id'))
 ANNOUNCE_CHANNEL_ID = int(os.getenv('announce_channel_id'))
 EARLY_ANNOUNCE_CHANNEL_ID = int(os.getenv('early_announce_channel_id'))
 ADMIN_CHANNEL_ID = int(os.getenv('admin_channel_id'))
@@ -48,7 +52,7 @@ WAITING_CHANNEL_ID = int(os.getenv('waiting_channel_id'))
 async def on_ready():
     messages.announceChannel = client.get_channel(ANNOUNCE_CHANNEL_ID)
     messages.earlyAnnounceChannel = client.get_channel(EARLY_ANNOUNCE_CHANNEL_ID)
-    messages.guild = messages.announceChannel.guild
+    messages.guild = client.get_guild(GUILD_ID)
     messages.medic_role = messages.guild.get_role(MEDIC_ROLE_ID)
     messages.host_role = messages.guild.get_role(HOST_ROLE_ID)
     messages.banned_role = messages.guild.get_role(PUG_BANNED_ROLE_ID)
@@ -89,156 +93,120 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
         pass
 
 
-def is_host():
-    def predicate(inter: discord.ApplicationCommandInteraction):
-        return messages.host_role in inter.author.roles
-
-    return commands.check(predicate)
-
-
-def is_dev():
-    def predicate(ctx: commands.Context):
-        return ctx.author == messages.dev
-
-    return commands.check(predicate)
-
-
-@client.command(name='select', aliases=['s'])
-@is_host()
-async def select_player(ctx: commands.Context, team, player_class, *, player: discord.Member):
+@client.slash_command(name='select', aliases=['s'], description='Select a player for a class', default_permission=False)
+@commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
+async def select_player(inter: discord.ApplicationCommandInteraction, team, player_class, *, player: discord.Member):
     if active_pug.start_pug.signupsMessage is None:
-        await ctx.channel.send("Player selection only available after pug is announced")
+        await inter.send("Player selection only available after pug is announced")
         return
-    await player_selection.select_player(ctx, team, player_class, player)
+    await player_selection.select_player(inter, team, player_class, player)
 
 
 @client.event
-async def on_command_error(ctx: commands.Context, error):
-    if ctx.command is None:  # Command not recognised
-        await ctx.channel.send(f"Command not recognised.")
+async def on_slash_command_error(inter: discord.ApplicationCommandInteraction, error):
+    if inter.application_command.has_error_handler():  # Command has a specific handler, ignore
         return
-    if ctx.command.has_error_handler():  # Command has a specific handler, ignore
-        return
-    if isinstance(error, commands.CheckFailure):
-        await ctx.channel.send(f"Insufficient permissions.")
-    elif isinstance(error, commands.MemberNotFound):
-        await ctx.channel.send(f"Player not found. Try different capitalisation or mention them directly.")
-    elif isinstance(error, commands.MissingRequiredArgument):
-        await ctx.channel.send("Missing all required parameters")
-    elif isinstance(error, commands.CommandInvokeError):
-        await ctx.channel.send(f"An error occurred: {error.original} {type(error.original)} ({messages.dev.mention})")
+    if isinstance(error, commands.CommandInvokeError):
+        await inter.response.send_message(f"An error occurred: {error.original} {type(error.original)} ({messages.dev.mention})")
         raise error
     else:
-        await ctx.channel.send(f"An error occurred: {error} {type(error)} ({messages.dev.mention})")
+        await inter.response.send_message(f"An error occurred: {error} {type(error)} ({messages.dev.mention})")
         raise error
 
 
-@client.command(name='forcestart')
-@is_dev()
-async def force_start_pug(ctx: commands.Context):
+@client.slash_command(name='forcestart', description='Force start pug', default_permission=False)
+@commands.guild_permissions(GUILD_ID, {DEV_ID: True})
+async def force_start_pug(inter: discord.ApplicationCommandInteraction):
     await active_pug.pug_scheduler.schedule_pug_start(datetime.datetime.now(datetime.timezone.utc).astimezone(), True)
 
 
-@client.command(name='forcereset')
-@is_dev()
-async def force_reset(ctx: commands.Context):
+@client.slash_command(name='forcereset', description='Force reset pug', default_permission=False)
+@commands.guild_permissions(GUILD_ID, {DEV_ID: True})
+async def force_reset(inter: discord.ApplicationCommandInteraction):
     await active_pug.start_pug.reset_pug()
 
 
-@client.command(name='withdraw')
-@is_host()
-async def force_withdraw_player(ctx: commands.Context, *, player: discord.Member):
-    await active_pug.start_pug.withdraw_player(player)
+@client.slash_command(name='withdraw', description='Withdraw a player from a pug', default_permission=False)
+@commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
+async def force_withdraw_player(inter: discord.ApplicationCommandInteraction, *, player: discord.Member):
+    await active_pug.start_pug.withdraw_player(player, inter)
 
 
-@client.slash_command(name='warn', description="Warn a player for baiting")
-@is_host()
+@client.slash_command(name='warn', description="Warn a player for baiting", default_permission=False)
+@commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
 async def warn_player(inter: discord.ApplicationCommandInteraction, *, player: discord.Member):
     await player_tracking.warn_player(player, inter)
 
 
-@client.slash_command(name='unwarn', description="Manually remove a warning")
-@is_host()
+@client.slash_command(name='unwarn', description="Manually remove a warning", default_permission=False)
+@commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
 async def unwarn_player(inter: discord.ApplicationCommandInteraction, *, player: discord.Member):
     await player_tracking.unwarn_player(player, inter)
 
 
-@client.command(name='ban')
-@is_host()
-async def ban_player(ctx: commands.Context, player: discord.Member, *, reason):
-    await player_tracking.pug_ban(player, reason)
+@client.slash_command(name='ban', description='Ban a player from playing in pugs', default_permission=False)
+@commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
+async def ban_player(inter: discord.ApplicationCommandInteraction, player: discord.Member, *, reason):
+    await player_tracking.pug_ban(inter, player, reason)
 
 
-@ban_player.error
-async def ban_player_error(ctx, error):
-    if isinstance(error, commands.CheckFailure):
-        await ctx.channel.send("Insufficient permissions.")
-    if isinstance(error, commands.MissingRequiredArgument):
-        await ctx.channel.send("Required Parameters: <player> <reason>")
-    else:
-        await ctx.channel.send(f"An error occurred: {error} {type(error)} ({messages.dev.mention})")
-        raise error
+@client.slash_command(name='unban', description='Unban a player', default_permission=False)
+@commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
+async def unban_player(inter: discord.ApplicationCommandInteraction, *, player: discord.Member):
+    await player_tracking.pug_unban(inter, player)
 
 
-@client.command(name='unban')
-@is_host()
-async def unban_player(ctx: commands.Context, *, player: discord.Member):
-    await player_tracking.pug_unban(player)
+@client.slash_command(name='status', description='Get the current status of a player', default_permission=False)
+@commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
+async def get_player_status(inter: discord.ApplicationCommandInteraction, *, player: discord.Member):
+    await player_tracking.player_status(inter, player)
 
 
-@client.command(name='status')
-@is_host()
-async def get_player_status(ctx: commands.Context, *, player: discord.Member):
-    await player_tracking.player_status(ctx, player)
-
-
-@client.command(name='string')
-@is_host()
-async def announce_string(ctx: commands.Context, *, connect_string):
+@client.slash_command(name='string', description='Announce the pug connect string', default_permission=False)
+@commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
+async def announce_string(inter: discord.ApplicationCommandInteraction, *, connect_string):
     await player_selection.announce_string(connect_string)
 
 
-@client.command(name='switch')
-@is_host()
-async def switch_players(ctx: commands.Context, player_class: str):
-    await player_selection.swap_class_across_teams(ctx, player_class)
+@client.slash_command(name='switch', description='Switch two players on a class', default_permission=False)
+@commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
+async def switch_players(inter: discord.ApplicationCommandInteraction, player_class: str):
+    await player_selection.swap_class_across_teams(inter, player_class)
 
 
-@client.command(name='unassigned', aliases=['ua'])
-@is_host()
-async def list_unassigned_players(ctx: commands.Context):
-    await player_selection.list_unassigned_players(ctx)
+@client.slash_command(name='unassigned', aliases=['ua'], description='List players who are signed up but not assigned a class', default_permission=False)
+@commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
+async def list_unassigned_players(inter: discord.ApplicationCommandInteraction):
+    await player_selection.list_unassigned_players(inter)
 
 
-@client.command(name='vote')
-@is_host()
-async def start_map_vote(ctx: commands.Context, *maps):
-    await map_voting.start_map_vote(ctx, *maps)
+@client.slash_command(name='vote', description='Start a map vote', default_permission=False)
+@commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
+async def start_map_vote(inter: discord.ApplicationCommandInteraction, *maps):
+    await map_voting.start_map_vote(inter, *maps)
 
 
-@client.command(name='teamvc')
-@is_host()
-async def drag_into_team_vc(ctx: commands.Context):
-    await player_selection.drag_into_team_vc(ctx)
+@client.slash_command(name='teamvc', description='Move players into their team voice channel', default_permission=False)
+@commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
+async def drag_into_team_vc(inter: discord.ApplicationCommandInteraction):
+    await player_selection.drag_into_team_vc(inter)
 
 
-@client.command(name='summon', aliases=['here'])
-@is_host()
-async def drag_into_same_vc(ctx: commands.Context):
-    await player_selection.drag_into_same_vc(ctx)
+@client.slash_command(name='summon', aliases=['here'], description='Move players into your current voice channel', default_permission=False)
+@commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
+async def drag_into_same_vc(inter: discord.ApplicationCommandInteraction):
+    await player_selection.drag_into_same_vc(inter)
 
 
-@client.command(name='log')
-@is_host()
-async def fetch_logs(ctx: commands.Context, log_url: str):
-    await elo_tracking.fetch_logs(ctx, log_url)
+@client.slash_command(name='log', description='Submit the logs.tf log for elo tracking', default_permission=False)
+@commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
+async def fetch_logs(inter: discord.ApplicationCommandInteraction, log_url: str):
+    await elo_tracking.fetch_logs(inter, log_url)
 
 
 @fetch_logs.error
 async def fetch_logs_error(ctx, error):
-    if isinstance(error, commands.MissingRequiredArgument):
-        await ctx.channel.send("Missing all parameters")
-    elif isinstance(error, IndexError):
+    if isinstance(error, IndexError):
         await ctx.channel.send("Log not found")
     elif isinstance(error, json.JSONDecodeError):
         await ctx.channel.send("Log not found")
@@ -249,38 +217,57 @@ async def fetch_logs_error(ctx, error):
         raise error
 
 
-@client.command(name='ping')
-@is_host()
-async def ping_players(ctx: commands.Context):
-    await player_selection.ping_not_present()
+@client.slash_command(name='ping', description='Ping signed up players who are currently not in a voice channel', default_permission=False)
+@commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
+async def ping_players(inter: discord.ApplicationCommandInteraction):
+    await player_selection.ping_not_present(inter)
 
 
-@client.command(name='shutdown')
-@is_dev()
-async def cancel_scheduled_announcements(ctx: commands.Context):
-    await ctx.channel.send("Cancelling future announcements...")
+@client.slash_command(name='shutdown', default_permission=False)
+@commands.guild_permissions(GUILD_ID, user_ids={DEV_ID: True})
+async def cancel_scheduled_announcements(inter: discord.ApplicationCommandInteraction):
+    await inter.send("Cancelling future announcements...")
     main.pug_scheduler.announcement_future.cancel()
     main.pug_scheduler.early_announcement_future.cancel()
     second.pug_scheduler.announcement_future.cancel()
     second.pug_scheduler.early_announcement_future.cancel()
 
 
-@client.command(name='clearpins')
-@is_dev()
-async def clear_bot_pins(ctx: commands.Context):
+@client.slash_command(name='clearpins', default_permission=False)
+@commands.guild_permissions(GUILD_ID, user_ids={DEV_ID: True})
+async def clear_bot_pins(inter: discord.ApplicationCommandInteraction):
     pinned_message: discord.Message
-    await ctx.channel.send("Clearing admin channel pins...")
+    await inter.response.defer()
     for pinned_message in await messages.adminChannel.pins():
         if pinned_message.author == client.user:
             await pinned_message.unpin()
     print("Cleared admin channel pins")
-    await ctx.channel.send("Cleared admin channel pins")
-    await ctx.channel.send("Clearing announce channel pins...")
     for pinned_message in await messages.announceChannel.pins():
         if pinned_message.author == client.user:
             await pinned_message.unpin()
     print("Cleared announce channel pins")
-    await ctx.channel.send("Cleared announce channel pins")
+    await inter.send("Cleared pins")
+
+
+@client.slash_command(description='button', default_permission=False)
+@commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
+async def button(inter: discord.ApplicationCommandInteraction):
+    view = discord.ui.View()
+    #button_obj = discord.ui.Button(style=discord.ButtonStyle.danger, label='test')
+    #button_obj2 = discord.ui.Button(style=discord.ButtonStyle.success, label='test')
+    options = [discord.SelectOption(label='dibbydoda', description='a bad player'), discord.SelectOption(label='oldcustard', description='a good player')]
+    selection = discord.ui.Select(placeholder="Select a Player", options=options)
+    selection2 = discord.ui.Select(placeholder="Select a Player", options=options)
+    selection3 = discord.ui.Select(placeholder="Select a Player", options=options)
+    selection4 = discord.ui.Select(placeholder="Select a Player", options=options)
+    selection5 = discord.ui.Select(placeholder="Select a Player", options=options)
+    selection6 = discord.ui.Select(placeholder="Select a Player", options=options)
+    view.add_item(selection)
+    view.add_item(selection2)
+    view.add_item(selection3)
+    view.add_item(selection4)
+    view.add_item(selection5)
+    await inter.response.send_message('test', view=view)
 
 
 def start():

@@ -41,18 +41,18 @@ timeMessage: discord.Message = None
 ping_messages: List[discord.Message] = []
 
 
-async def select_player(ctx: disnake.ext.commands.Context, team: str, player_class: str, player_obj: discord.Member):
+async def select_player(inter: discord.ApplicationCommandInteraction, team: str, player_class: str, player_obj: discord.Member):
     global bluMessage, redMessage
     if player_obj is None:
-        await ctx.channel.send(f"Player {player_obj} not found. Try different capitalisation or mention them directly.")
+        await inter.send(f"Player {player_obj} not found. Try different capitalisation or mention them directly.")
         return
     if player_class.capitalize() not in blu_team:
-        await ctx.channel.send(f"Class not recognised")
+        await inter.send(f"Class not recognised")
         return
     if team.lower() in blu_name:
         await inform_player_of_late_change(player_obj, player_class.capitalize())
         blu_team[player_class.capitalize()] = player_obj
-        await ctx.channel.send(f"{player_obj.display_name} selected for BLU {player_class}")
+        await inter.send(f"{player_obj.display_name} selected for BLU {player_class}")
         if bluMessage is None:
             bluMessage = await messages.announceChannel.send("BLU Team:\n" + await list_players(blu_team))
             redMessage = await messages.announceChannel.send("RED Team:\n" + await list_players(red_team))
@@ -67,7 +67,7 @@ async def select_player(ctx: disnake.ext.commands.Context, team: str, player_cla
     elif team.lower() == 'red':
         await inform_player_of_late_change(player_obj, player_class.capitalize())
         red_team[player_class.capitalize()] = player_obj
-        await ctx.channel.send(f"{player_obj.display_name} selected for RED {player_class}")
+        await inter.send(f"{player_obj.display_name} selected for RED {player_class}")
         if redMessage is None:
             bluMessage = await messages.announceChannel.send("BLU Team:\n" + await list_players(blu_team))
             redMessage = await messages.announceChannel.send("RED Team:\n" + await list_players(red_team))
@@ -79,7 +79,7 @@ async def select_player(ctx: disnake.ext.commands.Context, team: str, player_cla
             await redMessage.edit(content="RED Team:\n" + await list_players(red_team))
             await announce_string()
     else:
-        await ctx.channel.send("Team not recognised")
+        await inter.send("Team not recognised")
         return
 
 
@@ -119,34 +119,34 @@ async def announce_string(connect_string=None, timestamp=None):
         await stringMessage.edit(content=connect_string)
 
 
-async def swap_class_across_teams(ctx: disnake.ext.commands.Context, player_class: str):
+async def swap_class_across_teams(inter: discord.ApplicationCommandInteraction, player_class: str):
     global bluMessage, redMessage
     player_class = player_class.capitalize()
     if player_class not in blu_team:
-        await ctx.channel.send(f"Class not recognised.")
+        await inter.send(f"Class not recognised.")
         return
     if bluMessage is None or redMessage is None:
-        await ctx.channel.send(f"No players are assigned to classes yet.")
+        await inter.send(f"No players are assigned to classes yet.")
         return
     else:
         blu_team[player_class], red_team[player_class] = red_team[player_class], blu_team[player_class]
         await bluMessage.edit(content="BLU Team:\n" + await list_players(blu_team))
         await redMessage.edit(content="RED Team:\n" + await list_players(red_team))
         await announce_string()
-        await ctx.channel.send(f"{blu_team[player_class].display_name} is now BLU {player_class} & {red_team[player_class].display_name} is now RED {player_class}.")
+        await inter.send(f"{blu_team[player_class].display_name} is now BLU {player_class} & {red_team[player_class].display_name} is now RED {player_class}.")
 
 
-async def list_unassigned_players(ctx: disnake.ext.commands.Context):
+async def list_unassigned_players(inter: discord.ApplicationCommandInteraction):
     unassigned = []
     for player in active_pug.start_pug.player_classes.keys():
         if player not in blu_team.values() and player not in red_team.values():
             unassigned.append(player.display_name)
-    await ctx.channel.send("Players yet to be assigned a class: " + ", ".join(unassigned))
+    await inter.send("Players yet to be assigned a class: " + ", ".join(unassigned))
 
 
-async def drag_into_team_vc(ctx: disnake.ext.commands.Context):
+async def drag_into_team_vc(inter: discord.ApplicationCommandInteraction):
     member: discord.Member
-    for member in ctx.author.voice.channel.members:
+    for member in inter.author.voice.channel.members:
         if member in blu_team.values():
             try:
                 await member.move_to(messages.bluChannel)
@@ -159,21 +159,21 @@ async def drag_into_team_vc(ctx: disnake.ext.commands.Context):
                 continue
 
 
-async def drag_into_same_vc(ctx: disnake.ext.commands.Context):
+async def drag_into_same_vc(inter: discord.ApplicationCommandInteraction):
     member: discord.Member
     for member in messages.bluChannel.members:
         try:
-            await member.move_to(ctx.author.voice.channel)
+            await member.move_to(inter.author.voice.channel)
         except discord.HTTPException:
             continue
     for member in messages.redChannel.members:
         try:
-            await member.move_to(ctx.author.voice.channel)
+            await member.move_to(inter.author.voice.channel)
         except discord.HTTPException:
             continue
 
 
-async def ping_not_present():
+async def ping_not_present(inter: discord.ApplicationCommandInteraction):
     player: discord.Member
     signed_up_players = set(blu_team.values()) | set(red_team.values())
     present_players = set(messages.bluChannel.members) | set(messages.redChannel.members) | set(messages.waitingChannel.members)
@@ -181,7 +181,7 @@ async def ping_not_present():
     message = await messages.announceChannel.send(f"Join up! {', '.join(absent_players)}")
     ping_messages.append(message)
     active_pug.start_pug.messages_to_delete.append(message)
-    await messages.send_to_admin("Absent players have been pinged!")
+    await inter.send("Absent players have been pinged!")
 
 
 async def inform_player_of_late_change(player: discord.Member, player_class: str):

@@ -177,7 +177,7 @@ async def check_active_baiter(player: discord.Member):
         db.close()
 
 
-async def pug_ban(player: discord.Member, reason: str):
+async def pug_ban(inter: discord.ApplicationCommandInteraction, player: discord.Member, reason: str):
     player_name = player.name
     player_id = player.id
     db = sqlite3.connect('players.db')
@@ -193,7 +193,7 @@ async def pug_ban(player: discord.Member, reason: str):
             await player.add_roles(messages.banned_role)
             await player.remove_roles(messages.gamer_role)
             await player.send(f"You have been banned from playing in Bakes Pugs.\nReason: {reason}")
-            await messages.send_to_admin(f"{player_name} has been Pug Banned.")
+            await inter.send(f"{player_name} has been Pug Banned.")
             print(f"{player_name} has been pug banned.")
         elif not row[1]:
             c.execute('''UPDATE warnings
@@ -206,17 +206,17 @@ async def pug_ban(player: discord.Member, reason: str):
             await player.add_roles(messages.banned_role)
             await player.remove_roles(messages.gamer_role)
             await player.send(f"You have been banned from playing in Bakes Pugs.\nReason: {reason}")
-            await messages.send_to_admin(f"{player_name} has been Pug Banned.")
+            await inter.send(f"{player_name} has been Pug Banned.")
             print(f"{player_name} has been pug banned.")
         elif row[1]:
-            await messages.send_to_admin(f"{player_name} is already Pug Banned. No action taken.")
+            await inter.send(f"{player_name} is already Pug Banned. No action taken.")
 
         db.commit()
     finally:
         db.close()
 
 
-async def pug_unban(player: discord.Member):
+async def pug_unban(inter: discord.ApplicationCommandInteraction, player: discord.Member):
     player_name = player.name
     player_id = player.id
     db = sqlite3.connect('players.db')
@@ -229,7 +229,7 @@ async def pug_unban(player: discord.Member):
         if row is None or not row[1]:  # No player ban recorded, but if they have the banned role, remove it anyway
             await player.remove_roles(messages.banned_role)
             await player.add_roles(messages.gamer_role)
-            await messages.send_to_admin(f"{player_name} had no ban recorded. If they had the Pug Banned role it has been removed.")
+            await inter.send(f"{player_name} had no ban recorded. If they had the Pug Banned role it has been removed.")
             print(f"{player_name} has been unbanned.")
         elif row[1]:
             c.execute('''UPDATE warnings
@@ -237,7 +237,7 @@ async def pug_unban(player: discord.Member):
                      WHERE player = ?''', (player_id,))
             await player.remove_roles(messages.banned_role)
             await player.add_roles(messages.gamer_role)
-            await messages.send_to_admin(f"{player_name} has been unbanned.")
+            await inter.send(f"{player_name} has been unbanned.")
             await player.send(f"You have been unbanned from playing in Bakes Pugs.")
             print(f"{player_name} has been unbanned.")
 
@@ -246,7 +246,7 @@ async def pug_unban(player: discord.Member):
         db.close()
 
 
-async def player_status(ctx, player: discord.Member):
+async def player_status(inter: discord.ApplicationCommandInteraction, player: discord.Member):
     player_name = player.display_name
     player_id = player.id
     db = sqlite3.connect('players.db')
@@ -301,6 +301,6 @@ async def player_status(ctx, player: discord.Member):
         else:
             assigned_message = 'are **not assigned to any class.**'
 
-        await ctx.channel.send(f"{player_name} {medic_status}\nThey are {active_warning} and have **{total_warnings}** total warning{'s' if total_warnings != 1 else ''}. They are {banned_status} from playing in pugs.\nThey are signed up for {signed_up_classes} and {assigned_message}")
+        await inter.send(f"{player_name} {medic_status}\nThey are {active_warning} and have **{total_warnings}** total warning{'s' if total_warnings != 1 else ''}. They are {banned_status} from playing in pugs.\nThey are signed up for {signed_up_classes} and {assigned_message}")
     finally:
         db.close()

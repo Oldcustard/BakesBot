@@ -12,7 +12,7 @@ active_votes: List[discord.MessageReference] = []
 emoji_list = ('1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟')
 
 
-async def start_map_vote(ctx: disnake.ext.commands.Context, *maps):
+async def start_map_vote(inter: discord.ApplicationCommandInteraction, *maps):
     map_list_string = ""
     for i, map_name in enumerate(maps):
         line = f"{emoji_list[i]} {map_name.capitalize()}"
@@ -22,7 +22,7 @@ async def start_map_vote(ctx: disnake.ext.commands.Context, *maps):
     active_pug.start_pug.messages_to_delete.append(message)
     for i in range(len(maps)):
         await message.add_reaction(emoji_list[i])
-    await ctx.channel.send("Vote has started")
+    await inter.send("Vote has started")
 
 
 async def vote_for_map(reaction: discord.Reaction, user: discord.Member):

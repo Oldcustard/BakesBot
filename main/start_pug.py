@@ -158,7 +158,12 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.Member):
     await user.send(f"Successfully signed up for {reaction.emoji} (preference {preference})")
 
 
-async def withdraw_player(user: discord.Member):
+async def withdraw_player(user: discord.Member, inter: discord.ApplicationCommandInteraction = None):
+    async def respond(message):
+        if inter:
+            await inter.send(message)
+        else:
+            await messages.send_to_admin(message)
     if user not in player_classes:  # user pressed withdraw without being signed up
         return
     player_classes.pop(user)
@@ -173,12 +178,12 @@ async def withdraw_player(user: discord.Member):
     if user in player_selection.blu_team.values() or user in player_selection.red_team.values():
         is_past_penalty_time, penalty_trigger_time = await pug_scheduler.after_penalty_trigger_check()
         if is_past_penalty_time:
-            await messages.send_to_admin(f"{messages.host_role.mention}: {user.display_name} has withdrawn from the pug. As it is after {penalty_trigger_time}, they will receive a bait warning.")
+            await respond(f"{messages.host_role.mention}: {user.display_name} has withdrawn from the pug. As it is after {penalty_trigger_time}, they will receive a bait warning.")
             players_to_warn.append(user)
             await user.send(f"You have withdrawn from the pug. As you have been assigned a class and it is after {penalty_trigger_time}, you will receive a bait warning.")
             return
         else:
-            await messages.send_to_admin(f"{messages.host_role.mention}: {user.display_name} has withdrawn from the pug.")
+            await respond(f"{messages.host_role.mention}: {user.display_name} has withdrawn from the pug.")
     await user.send(f"You have withdrawn from the pug.")
 
 

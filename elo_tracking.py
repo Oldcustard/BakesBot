@@ -3,12 +3,12 @@ import urllib.request
 import json
 from elosports.elo import Elo
 
-import disnake.ext.commands
+import disnake as discord
 
 import player_selection
 
 
-async def fetch_logs(ctx: disnake.ext.commands.Context, log_url):
+async def fetch_logs(inter: discord.ApplicationCommandInteraction, log_url):
     log_id = log_url.split('.tf/')[1]
     log_json = urllib.request.urlopen("http://logs.tf/json/" + log_id)
     log_json = json.load(log_json)
@@ -18,10 +18,10 @@ async def fetch_logs(ctx: disnake.ext.commands.Context, log_url):
     score = (log_json['teams']['Blue']['score'], log_json['teams']['Red']['score'])
     winning_team = 'BLU' if score[0] > score[1] else 'RED'
     game_type = 'AD' if log_json['info']['AD_scoring'] is True else 'KOTH'
-    await ctx.channel.send(f"Game type: {game_type}. Round wins: {round_wins}")
-    await ctx.channel.send(f"Winning team: {winning_team}. Score {score[0]}-{score[1]}")
+    await inter.send(f"Game type: {game_type}. Round wins: {round_wins}")
+    await inter.send(f"Winning team: {winning_team}. Score {score[0]}-{score[1]}")
     await update_elo(winning_team, round_wins, game_type)
-    await ctx.channel.send("elo scores updated")
+    await inter.send("elo scores updated")
 
 
 async def update_elo(winning_team, round_wins, game_type):
