@@ -182,8 +182,8 @@ async def list_unassigned_players(inter: discord.ApplicationCommandInteraction):
 
 @client.slash_command(name='vote', description='Start a map vote', default_permission=False)
 @commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
-async def start_map_vote(inter: discord.ApplicationCommandInteraction, *maps):
-    await map_voting.start_map_vote(inter, *maps)
+async def start_map_vote(inter: discord.ApplicationCommandInteraction, map_type=commands.param(choices=["Attack/Defend", "KOTH"])):
+    await map_voting.start_map_vote(inter, map_type)
 
 
 @client.slash_command(name='teamvc', description='Move players into their team voice channel', default_permission=False)
