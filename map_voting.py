@@ -7,7 +7,17 @@ import active_pug
 import messages
 import player_selection
 
-active_votes: List[discord.Message] = []
+
+class MapVote:
+    def __init__(self, message: discord.Message, options: Dict[str, List[discord.Member]]):
+        self.message = message
+        self.options = options
+
+    def add_vote(self, member: discord.Member, option: str):
+        self.options[option].append(member)
+
+
+active_votes: List[MapVote] = []
 
 payload_map_list = {
             'Swiftwater': '🚇',
@@ -46,9 +56,15 @@ async def start_map_vote(inter: discord.ApplicationCommandInteraction, map_type)
     await inter.response.send_message("Select maps", view=MapSelectView())
 
     def create_callback():
-        async def _callback(inter: discord.MessageInteraction):
-            await inter.send(f"Successfully voted for {inter.component.emoji} {inter.component.label}", ephemeral=True)
-        return _callback
+        async def _vote_for_map(inter: discord.MessageInteraction):
+            if inter.author in player_selection.blu_team.values() or inter.author in player_selection.red_team.values():
+                for vote in active_votes:
+                    if vote.message == inter.message:
+                        vote.add_vote(inter.author, inter.component.label)
+                        await inter.send(f"Successfully voted for {inter.component.emoji}{inter.component.label}", ephemeral=True)
+            else:
+                await inter.send(f"You may only vote once you have been assigned a class", ephemeral=True)
+        return _vote_for_map
 
     async def start_vote():
         view = discord.ui.View(timeout=None)
@@ -62,13 +78,5 @@ async def start_map_vote(inter: discord.ApplicationCommandInteraction, map_type)
             view.add_item(button)
 
         message = await messages.announceChannel.send("Map voting open. Please select from the maps below (as many as you like)", view=view)
-        active_votes.append(message)
-        #active_pug.start_pug.messages_to_delete.append(message)
-
-
-async def vote_for_map(reaction: discord.Reaction, user: discord.Member):
-    if user not in player_selection.blu_team.values() and user not in player_selection.red_team.values():
-        await reaction.remove(user)
-        await user.send("You may only vote once you have been assigned to a class.")
-        return
-
+        active_votes.append(MapVote(message, dict([(key, []) for key in selected_maps])))
+        active_pug.start_pug.messages_to_delete.append(message)
