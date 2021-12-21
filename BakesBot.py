@@ -80,8 +80,6 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
     if reaction is None:
         reaction = discord.utils.get(message.reactions, emoji=str(payload.emoji))
     user = payload.member
-    if user != client.user and reaction.message in map_voting.active_votes:
-        await map_voting.vote_for_map(reaction, user)
     try:
         if user != client.user and reaction.message == active_pug.early_pug_scheduler.earlyPugMessage:
             await active_pug.early_start_pug.on_reaction_add(reaction, user)  # Early signup
