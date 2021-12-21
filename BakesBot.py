@@ -249,27 +249,6 @@ async def clear_bot_pins(inter: discord.ApplicationCommandInteraction):
     await inter.send("Cleared pins")
 
 
-@client.slash_command(description='button', default_permission=False)
-@commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
-async def button(inter: discord.ApplicationCommandInteraction):
-    view = discord.ui.View()
-    #button_obj = discord.ui.Button(style=discord.ButtonStyle.danger, label='test')
-    #button_obj2 = discord.ui.Button(style=discord.ButtonStyle.success, label='test')
-    options = [discord.SelectOption(label='dibbydoda', description='a bad player'), discord.SelectOption(label='oldcustard', description='a good player')]
-    selection = discord.ui.Select(placeholder="Select a Player", options=options)
-    selection2 = discord.ui.Select(placeholder="Select a Player", options=options)
-    selection3 = discord.ui.Select(placeholder="Select a Player", options=options)
-    selection4 = discord.ui.Select(placeholder="Select a Player", options=options)
-    selection5 = discord.ui.Select(placeholder="Select a Player", options=options)
-    selection6 = discord.ui.Select(placeholder="Select a Player", options=options)
-    view.add_item(selection)
-    view.add_item(selection2)
-    view.add_item(selection3)
-    view.add_item(selection4)
-    view.add_item(selection5)
-    await inter.response.send_message('test', view=view)
-
-
 def start():
     client.run(os.getenv('TOKEN'))
 
