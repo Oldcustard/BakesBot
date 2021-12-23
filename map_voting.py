@@ -86,3 +86,12 @@ async def start_map_vote(inter: discord.ApplicationCommandInteraction, map_type)
         message = await messages.announceChannel.send("Map voting open. Please select from the maps below (as many as you like)", view=view)
         active_votes.append(MapVote(message, dict([(key, []) for key in selected_maps])))
         active_pug.start_pug.messages_to_delete.append(message)
+
+
+async def view_results(inter: discord.ApplicationCommandInteraction):
+    msg = ""
+    for vote in active_votes:
+        msg += "\n"
+        for option, voters in vote.options.items():
+            msg += f"\n{option}: {len(voters)}"
+    await inter.send(msg)

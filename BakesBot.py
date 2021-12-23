@@ -184,6 +184,12 @@ async def start_map_vote(inter: discord.ApplicationCommandInteraction, map_type=
     await map_voting.start_map_vote(inter, map_type)
 
 
+@client.slash_command(name='results', description='View map vote results', default_permission=False)
+@commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
+async def view_vote_results(inter: discord.ApplicationCommandInteraction):
+    await map_voting.view_results(inter)
+
+
 @client.slash_command(name='teamvc', description='Move players into their team voice channel', default_permission=False)
 @commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
 async def drag_into_team_vc(inter: discord.ApplicationCommandInteraction):
