@@ -73,24 +73,6 @@ async def on_ready():
         await messages.send_to_admin(f"{messages.dev.mention}: Bot reconnected.")
 
 
-@client.event
-async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
-    message = await client.get_channel(payload.channel_id).fetch_message(payload.message_id)
-    reaction = discord.utils.get(message.reactions, emoji=payload.emoji)
-    if reaction is None:
-        reaction = discord.utils.get(message.reactions, emoji=str(payload.emoji))
-    user = payload.member
-    try:
-        if user != client.user and reaction.message == active_pug.early_pug_scheduler.earlyPugMessage:
-            await active_pug.early_start_pug.on_reaction_add(reaction, user)  # Early signup
-        elif user != client.user and reaction.message == active_pug.early_pug_scheduler.earlyMedicPugMessage:
-            await active_pug.early_start_pug.on_reaction_add(reaction, user)  # Early medic signup
-        elif user != client.user and reaction.message == active_pug.pug_scheduler.pugMessage:
-            await active_pug.start_pug.on_reaction_add(reaction, user)  # Regular signup
-    except AttributeError:  # Signups not declared yet, ignore
-        pass
-
-
 @client.slash_command(name='select', aliases=['s'], description='Select a player for a class', default_permission=False)
 @commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
 async def select_player(inter: discord.ApplicationCommandInteraction, team, player_class, *, player: discord.Member):
@@ -127,7 +109,7 @@ async def force_reset(inter: discord.ApplicationCommandInteraction):
 @client.slash_command(name='withdraw', description='Withdraw a player from a pug', default_permission=False)
 @commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
 async def force_withdraw_player(inter: discord.ApplicationCommandInteraction, *, player: discord.Member):
-    await active_pug.start_pug.withdraw_player(player, inter)
+    await active_pug.start_pug.withdraw_player(inter, player)
 
 
 @client.slash_command(name='warn', description="Warn a player for baiting", default_permission=False)
