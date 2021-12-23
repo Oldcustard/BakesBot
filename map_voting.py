@@ -14,7 +14,11 @@ class MapVote:
         self.options = options
 
     def add_vote(self, member: discord.Member, option: str):
-        self.options[option].append(member)
+        if member not in self.options[option]:
+            self.options[option].append(member)
+            return True
+        else:
+            return False
 
 
 active_votes: List[MapVote] = []
@@ -60,8 +64,10 @@ async def start_map_vote(inter: discord.ApplicationCommandInteraction, map_type)
             if inter.author in player_selection.blu_team.values() or inter.author in player_selection.red_team.values():
                 for vote in active_votes:
                     if vote.message == inter.message:
-                        vote.add_vote(inter.author, inter.component.label)
-                        await inter.send(f"Successfully voted for {inter.component.emoji}{inter.component.label}", ephemeral=True)
+                        if vote.add_vote(inter.author, inter.component.label):
+                            await inter.send(f"Successfully voted for {inter.component.emoji}{inter.component.label}", ephemeral=True)
+                        else:
+                            await inter.send(f"You have already voted for {inter.component.emoji}{inter.component.label}", ephemeral=True)
             else:
                 await inter.send(f"You may only vote once you have been assigned a class", ephemeral=True)
         return _vote_for_map
