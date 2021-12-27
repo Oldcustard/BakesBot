@@ -78,8 +78,15 @@ async def on_ready():
 async def select_player(inter: discord.ApplicationCommandInteraction, team, player_class, *, player: discord.Member):
     if active_pug.start_pug.signupsMessage is None:
         await inter.send("Player selection only available after pug is announced")
-        return
-    await player_selection.select_player(inter, team, player_class, player)
+    else:
+        await player_selection.select_player(inter, team, player_class, player)
+
+
+@client.slash_command(name='newselect', description='Begin new selection process (BETA)', default_permission=False)
+@commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
+async def select_player_new(inter: discord.ApplicationCommandInteraction):
+    await player_selection.select_player_new(inter)
+
 
 
 @client.event

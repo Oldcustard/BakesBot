@@ -32,13 +32,14 @@ red_team = {
 
 blu_name = ['blu', 'blue']
 
-bluMessage: discord.Message = None
-redMessage: discord.Message = None
-stringMessage: discord.Message = None
-reminderMessage: discord.Message = None
-timeMessage: discord.Message = None
+bluMessage: discord.Message | None = None
+redMessage: discord.Message | None = None
+stringMessage: discord.Message | None = None
+reminderMessage: discord.Message | None = None
+timeMessage: discord.Message | None = None
 
 ping_messages: List[discord.Message] = []
+current_select_msgs: List[discord.Message] = []
 
 
 async def select_player(inter: discord.ApplicationCommandInteraction, team: str, player_class: str, player_obj: discord.Member):
@@ -81,6 +82,129 @@ async def select_player(inter: discord.ApplicationCommandInteraction, team: str,
     else:
         await inter.send("Team not recognised")
         return
+
+
+async def select_player_callback(inter: discord.MessageInteraction):
+    global bluMessage, redMessage
+    team, player_class = inter.component.placeholder.split()
+    if team == 'BLU':
+        if len(inter.values) == 0:
+            blu_team[player_class] = None
+        else:
+            player_obj = messages.guild.get_member_named(inter.values[0])
+            if player_obj is None:
+                await inter.send("Player not found")
+                return
+            blu_team[player_class] = player_obj
+        await inter.response.defer()
+        await update_select_options()
+        if bluMessage is None:
+            bluMessage = await messages.announceChannel.send("BLU Team:\n" + await list_players(blu_team))
+            redMessage = await messages.announceChannel.send("RED Team:\n" + await list_players(red_team))
+            await redMessage.pin()
+            await bluMessage.pin()
+            active_pug.start_pug.messages_to_delete.append(bluMessage)
+            active_pug.start_pug.messages_to_delete.append(redMessage)
+        else:
+            await bluMessage.edit(content="BLU Team:\n" + await list_players(blu_team))
+            await announce_string()
+    else:
+        if len(inter.values) == 0:
+            red_team[player_class] = None
+        else:
+            player_obj = messages.guild.get_member_named(inter.values[0])
+            if player_obj is None:
+                await inter.send("Player not found")
+                return
+            red_team[player_class] = player_obj
+        await inter.response.defer()
+        await update_select_options()
+        if redMessage is None:
+            bluMessage = await messages.announceChannel.send("BLU Team:\n" + await list_players(blu_team))
+            redMessage = await messages.announceChannel.send("RED Team:\n" + await list_players(red_team))
+            await redMessage.pin()
+            await bluMessage.pin()
+            active_pug.start_pug.messages_to_delete.append(bluMessage)
+            active_pug.start_pug.messages_to_delete.append(redMessage)
+        else:
+            await redMessage.edit(content="RED Team:\n" + await list_players(red_team))
+            await announce_string()
+
+
+async def load_select_options(team: str, player_class: str) -> List[discord.SelectOption]:
+    options: List[discord.SelectOption] = []
+    for player, _pref in active_pug.start_pug.signups[active_pug.start_pug.emojis_ids[player_class]]:
+        option = discord.SelectOption(label=player.display_name)
+        if team == 'BLU' and blu_team[player_class] == player:
+            option.default = True
+        elif team == 'RED' and red_team[player_class] == player:
+            option.default = True
+        elif player in blu_team.values() or player in red_team.values():
+            continue
+        options.append(option)
+    return options
+
+
+async def update_select_options():
+    for message in current_select_msgs:
+        view = discord.ui.View.from_message(message)
+        select: discord.ui.Select
+        for select in view.children:
+            team, player_class = select.placeholder.split()
+            select.options = await load_select_options(team, player_class)
+            if len(select.options) == 0:
+                select.options = [discord.SelectOption(label='No players available')]
+                select.disabled = True
+            else:
+                select.disabled = False
+            select.callback = select_player_callback
+        await message.edit(content=message.content, view=view)
+
+
+async def select_player_new(inter: discord.ApplicationCommandInteraction):
+    current_select_msgs.clear()
+    views: List[discord.ui.View] = []
+    select_view = discord.ui.View(timeout=300)
+    views.append(select_view)
+
+    for player_class in blu_team.keys():
+        dropdown = discord.ui.Select(placeholder='BLU ' + player_class, min_values=0, options=await load_select_options('BLU', player_class))
+        if len(dropdown.options) == 0:
+            dropdown.options = [discord.SelectOption(label='No players available')]
+            dropdown.disabled = True
+        dropdown.callback = select_player_callback
+        if len(select_view.children) == 5:
+            select_view = discord.ui.View(timeout=300)
+            views.append(select_view)
+        select_view.add_item(dropdown)
+    for view in views:
+        if not inter.response.is_done():
+            await inter.response.send_message(f"BLU Team ({views.index(view)+1}/{len(views)})", view=view)
+            message = await inter.original_message()
+        else:
+            message = await inter.followup.send(f"BLU Team ({views.index(view)+1}/{len(views)})", view=view)
+        current_select_msgs.append(message)
+
+    views.clear()
+    select_view = discord.ui.View(timeout=300)
+    views.append(select_view)
+
+    for player_class in red_team.keys():
+        dropdown = discord.ui.Select(placeholder='RED ' + player_class, min_values=0, options=await load_select_options('RED', player_class))
+        if len(dropdown.options) == 0:
+            dropdown.options = [discord.SelectOption(label='No players available')]
+            dropdown.disabled = True
+        dropdown.callback = select_player_callback
+        if len(select_view.children) == 5:
+            select_view = discord.ui.View(timeout=300)
+            views.append(select_view)
+        select_view.add_item(dropdown)
+    for view in views:
+        if not inter.response.is_done():
+            message = await inter.response.send(f"RED Team ({views.index(view) + 1}/{len(views)})", view=view)
+        else:
+            message = await inter.followup.send(f"RED Team ({views.index(view) + 1}/{len(views)})", view=view)
+        current_select_msgs.append(message)
 
 
 async def list_players(team: Dict):
