@@ -72,17 +72,20 @@ async def on_ready():
         print(f'{client.user} reconnected.')
         await messages.send_to_admin(f"{messages.dev.mention}: Bot reconnected.")
 
+Team = commands.option_enum(['BLU', 'RED'])
+PlayerClass = commands.option_enum(['Scout', 'Soldier', 'Pyro', 'Demo', 'Heavy', 'Engi', 'Medic', 'Sniper', 'Spy'])
 
-@client.slash_command(name='select', aliases=['s'], description='Select a player for a class', default_permission=False)
+
+@client.slash_command(name='override', description='Manually select a player for a class', default_permission=False)
 @commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
-async def select_player(inter: discord.ApplicationCommandInteraction, team, player_class, *, player: discord.Member):
+async def select_player(inter: discord.ApplicationCommandInteraction, team: Team, player_class: PlayerClass, *, player: discord.Member):
     if active_pug.start_pug.signupsMessage is None:
         await inter.send("Player selection only available after pug is announced")
     else:
         await player_selection.select_player(inter, team, player_class, player)
 
 
-@client.slash_command(name='newselect', description='Begin new selection process (BETA)', default_permission=False)
+@client.slash_command(name='select', description='Select players for classes.', default_permission=False)
 @commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
 async def select_player_new(inter: discord.ApplicationCommandInteraction):
     await player_selection.select_player_new(inter)
