@@ -20,6 +20,12 @@ class MapVote:
         else:
             return False
 
+    def delete_votes(self, member: discord.Member):
+        for option in self.options.values():
+            if member in option:
+                option.remove(member)
+
+
 
 active_votes: List[MapVote] = []
 
@@ -95,3 +101,8 @@ async def view_results(inter: discord.ApplicationCommandInteraction):
         for option, voters in vote.options.items():
             msg += f"\n{option}: {len(voters)}"
     await inter.send(msg)
+
+
+async def remove_player_votes(user: discord.Member):
+    for vote in active_votes:
+        vote.delete_votes(user)

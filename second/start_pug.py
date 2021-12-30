@@ -74,7 +74,7 @@ async def announce_pug(channel: discord.TextChannel):
         button = discord.ui.Button(label=class_name, emoji=class_emoji)
         button.callback = signup_player_callback
         view.add_item(button)
-    withdraw_button = discord.ui.Button(label='Withdraw', emoji='❌')
+    withdraw_button = discord.ui.Button(label='Withdraw', emoji='❌', style=discord.ButtonStyle.danger)
     withdraw_button.callback = withdraw_player
     view.add_item(withdraw_button)
     pugMessage: discord.Message = await channel.send(announce_message, view=view)
@@ -90,7 +90,7 @@ async def announce_early(early_signups_channel: discord.TextChannel, signups_cha
         button = discord.ui.Button(label=class_name, emoji=class_emoji)
         button.callback = signup_player_callback
         early_view.add_item(button)
-    withdraw_button = discord.ui.Button(label='Withdraw', emoji='❌')
+    withdraw_button = discord.ui.Button(label='Withdraw', emoji='❌', style=discord.ButtonStyle.danger)
     withdraw_button.callback = withdraw_player
     early_view.add_item(withdraw_button)
     earlyPugMessage: discord.Message = await early_signups_channel.send(announce_message, view=early_view)
@@ -193,6 +193,7 @@ async def withdraw_player(inter: discord.ApplicationCommandInteraction | discord
             if user in signup:
                 signup_class.remove(signup)
     print(f'{user.display_name} has withdrawn')
+    await map_voting.remove_player_votes(user)
     await signupsMessage.edit(content=await list_players_by_class())
     await signupsListMessage.edit(content=await list_players())
     await map_voting.clear_user_votes(user)
@@ -210,6 +211,16 @@ async def withdraw_player(inter: discord.ApplicationCommandInteraction | discord
             await respond_admin(f"{user.display_name} has withdrawn from the pug.")
         elif isinstance(inter, discord.MessageInteraction):
             await respond_user(f"You have withdrawn from the pug.")
+    for player_class, player in player_selection.blu_team.items():
+        if player == user:
+            player_selection.blu_team[player_class] = None
+            await player_selection.bluMessage.edit(content="BLU Team:\n" + await player_selection.list_players(player_selection.blu_team))
+            await player_selection.announce_string()
+    for player_class, player in player_selection.red_team.items():
+        if player == user:
+            player_selection.red_team[player_class] = None
+            await player_selection.redMessage.edit(content="RED Team:\n" + await player_selection.list_players(player_selection.red_team))
+            await player_selection.announce_string()
 
 
 async def auto_warn_bating_players():
