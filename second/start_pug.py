@@ -196,7 +196,6 @@ async def withdraw_player(inter: discord.ApplicationCommandInteraction | discord
     await map_voting.remove_player_votes(user)
     await signupsMessage.edit(content=await list_players_by_class())
     await signupsListMessage.edit(content=await list_players())
-    await map_voting.clear_user_votes(user)
     if user in player_selection.blu_team.values() or user in player_selection.red_team.values():
         is_past_penalty_time, penalty_trigger_time = await pug_scheduler.after_penalty_trigger_check()
         if is_past_penalty_time:
