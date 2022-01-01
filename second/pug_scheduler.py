@@ -4,7 +4,7 @@ import datetime
 import time
 from distutils.util import strtobool
 
-import discord
+import disnake as discord
 
 import active_pug
 import messages
@@ -68,7 +68,7 @@ async def schedule_announcement(announce_channel: discord.TextChannel):
             early_announcement_future = asyncio.ensure_future(schedule_early_announcement(messages.earlyAnnounceChannel, announce_channel, early_announce_date))
             print(f"Pug announcement scheduled for {announce_date}")
             announce_timestamp = round(datetime.datetime.timestamp(announce_date))
-            await messages.send_to_admin(f"{messages.dev.mention}: Pug announcement scheduled for <t:{announce_timestamp}:F>")
+            await messages.send_to_admin(f"Pug announcement scheduled for <t:{announce_timestamp}:F>")
             global startup
             startup = False
             await asyncio.sleep(seconds_until(announce_date))
@@ -88,7 +88,7 @@ async def schedule_early_announcement(early_announce_channel: discord.TextChanne
     try:
         print(f"Early announcement scheduled for {early_announce_date}")
         early_announce_timestamp = round(datetime.datetime.timestamp(early_announce_date))
-        await messages.send_to_admin(f"{messages.dev.mention}: Early announcement scheduled for <t:{early_announce_timestamp}:F>")
+        await messages.send_to_admin(f"Early announcement scheduled for <t:{early_announce_timestamp}:F>")
         await asyncio.sleep(seconds_until(early_announce_date))
         global earlyPugMessage, earlyMedicPugMessage
         earlyPugMessage, earlyMedicPugMessage = await start_pug.announce_early(early_announce_channel, regular_announce_channel)
