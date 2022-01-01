@@ -97,7 +97,7 @@ async def select_player_callback(inter: discord.MessageInteraction):
             if player_obj is None:
                 await inter.send("Player not found")
                 return
-            await inform_player_of_late_change(player_obj)
+            await inform_player_of_late_change(player_obj, player_class.capitalize())
             blu_team[player_class] = player_obj
         await inter.response.defer()
         await update_select_options()
@@ -120,7 +120,7 @@ async def select_player_callback(inter: discord.MessageInteraction):
             if player_obj is None:
                 await inter.send("Player not found")
                 return
-            await inform_player_of_late_change(player_obj)
+            await inform_player_of_late_change(player_obj, player_class.capitalize())
             red_team[player_class] = player_obj
         await inter.response.defer()
         await update_select_options()
