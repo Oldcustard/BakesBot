@@ -252,6 +252,7 @@ async def reset_pug():
     player_selection.ping_messages.clear()
     player_selection.blu_team = dict.fromkeys(player_selection.blu_team.keys(), None)
     player_selection.red_team = dict.fromkeys(player_selection.red_team.keys(), None)
+    player_selection.players_changed_late.clear()
     signups = dict.fromkeys(signups.keys(), [])
     player_classes = {}
     print("Pug status reset; messages deleted")

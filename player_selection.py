@@ -40,6 +40,7 @@ timeMessage: discord.Message | None = None
 
 ping_messages: List[discord.Message] = []
 current_select_msgs: List[discord.Message] = []
+players_changed_late: List[discord.Member] = []
 
 
 async def select_player(inter: discord.ApplicationCommandInteraction, team: str, player_class: str, player_obj: discord.Member):
@@ -85,16 +86,18 @@ async def select_player(inter: discord.ApplicationCommandInteraction, team: str,
 
 
 async def select_player_callback(inter: discord.MessageInteraction):
-    global bluMessage, redMessage
+    global bluMessage, redMessage, players_changed_late
     team, player_class = inter.component.placeholder.split()
     if team == 'BLU':
         if len(inter.values) == 0:
+            players_changed_late.append(blu_team[player_class])
             blu_team[player_class] = None
         else:
             player_obj = messages.guild.get_member_named(inter.values[0])
             if player_obj is None:
                 await inter.send("Player not found")
                 return
+            await inform_player_of_late_change(player_obj)
             blu_team[player_class] = player_obj
         await inter.response.defer()
         await update_select_options()
@@ -110,12 +113,14 @@ async def select_player_callback(inter: discord.MessageInteraction):
             await announce_string()
     else:
         if len(inter.values) == 0:
+            players_changed_late.append(red_team[player_class])
             red_team[player_class] = None
         else:
             player_obj = messages.guild.get_member_named(inter.values[0])
             if player_obj is None:
                 await inter.send("Player not found")
                 return
+            await inform_player_of_late_change(player_obj)
             red_team[player_class] = player_obj
         await inter.response.defer()
         await update_select_options()
@@ -309,9 +314,10 @@ async def ping_not_present(inter: discord.ApplicationCommandInteraction):
 
 
 async def inform_player_of_late_change(player: discord.Member, player_class: str):
+    global players_changed_late
     pug_starts_soon, _timestamp = await active_pug.pug_scheduler.after_penalty_trigger_check()
     signed_up_players = list(blu_team.values()) + list(red_team.values())
-    if pug_starts_soon and player in signed_up_players:
+    if pug_starts_soon and (player in signed_up_players or player in players_changed_late):
         await player.send(f"**Please Note:** Your class in the upcoming Bakes Pug has been switched to **{player_class}**.")
     elif pug_starts_soon:
         await player.send(f"**IMPORTANT:** You have just been assigned to play **{player_class}** in the upcoming Bakes Pug.\nIf you are unable to make it, please withdraw by pressing ❌ on the pug announcement.")
