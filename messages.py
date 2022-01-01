@@ -1,7 +1,7 @@
 import configparser
 from distutils.util import strtobool
 
-import discord
+import disnake as discord
 
 config = configparser.ConfigParser()
 config.read('config.ini')
