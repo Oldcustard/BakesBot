@@ -208,6 +208,7 @@ async def withdraw_player(inter: discord.ApplicationCommandInteraction | discord
     else:
         if isinstance(inter, discord.ApplicationCommandInteraction):
             await respond_admin(f"{user.display_name} has withdrawn from the pug.")
+            await respond_user(f"You have withdrawn from the pug.")
         elif isinstance(inter, discord.MessageInteraction):
             await respond_user(f"You have withdrawn from the pug.")
     for player_class, player in player_selection.blu_team.items():
