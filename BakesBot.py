@@ -29,7 +29,7 @@ config.read('config.ini')
 
 intents = discord.Intents().default()
 intents.members = True
-client = commands.Bot('$', intents=intents, test_guilds=[int(os.getenv('guild_id'))], sync_permissions=True)
+client = commands.Bot('!', intents=intents, test_guilds=[int(os.getenv('guild_id'))], sync_permissions=True)
 
 permissions: List[discord.PartialGuildApplicationCommandPermissions] = []
 
