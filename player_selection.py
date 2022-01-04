@@ -139,7 +139,7 @@ async def select_player_callback(inter: discord.MessageInteraction):
 async def load_select_options(team: str, player_class: str) -> List[discord.SelectOption]:
     options: List[discord.SelectOption] = []
     for player, _pref in active_pug.start_pug.signups[active_pug.start_pug.emojis_ids[player_class]]:
-        option = discord.SelectOption(label=player.display_name)
+        option = discord.SelectOption(label=player.display_name, emoji=active_pug.start_pug.emojis_ids[player_class], value=player.display_name)
         if team == 'BLU' and blu_team[player_class] == player:
             option.default = True
         elif team == 'RED' and red_team[player_class] == player:
@@ -182,12 +182,9 @@ async def select_player_new(inter: discord.ApplicationCommandInteraction):
             select_view = discord.ui.View(timeout=300)
             views.append(select_view)
         select_view.add_item(dropdown)
+    await inter.response.send_message("**Player Selection**")
     for view in views:
-        if not inter.response.is_done():
-            await inter.response.send_message(f"BLU Team ({views.index(view)+1}/{len(views)})", view=view)
-            message = await inter.original_message()
-        else:
-            message = await inter.followup.send(f"BLU Team ({views.index(view)+1}/{len(views)})", view=view)
+        message = await inter.followup.send(f"BLU Team ({views.index(view)+1}/{len(views)})\n🟦🟦🟦🟦🟦🟦", view=view)
         current_select_msgs.append(message)
 
     views.clear()
@@ -205,10 +202,7 @@ async def select_player_new(inter: discord.ApplicationCommandInteraction):
             views.append(select_view)
         select_view.add_item(dropdown)
     for view in views:
-        if not inter.response.is_done():
-            message = await inter.response.send(f"RED Team ({views.index(view) + 1}/{len(views)})", view=view)
-        else:
-            message = await inter.followup.send(f"RED Team ({views.index(view) + 1}/{len(views)})", view=view)
+        message = await inter.followup.send(f"RED Team ({views.index(view) + 1}/{len(views)})\n🟥🟥🟥🟥🟥🟥", view=view)
         current_select_msgs.append(message)
 
 
