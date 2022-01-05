@@ -63,7 +63,7 @@ async def select_player(inter: discord.ApplicationCommandInteraction, team: str,
             active_pug.start_pug.messages_to_delete.append(bluMessage)
             active_pug.start_pug.messages_to_delete.append(redMessage)
         else:
-            await bluMessage.edit(content="BLU Team:\n" + await list_players(blu_team))
+            bluMessage = await bluMessage.edit(content="BLU Team:\n" + await list_players(blu_team))
             await announce_string()
 
     elif team.lower() == 'red':
@@ -78,7 +78,7 @@ async def select_player(inter: discord.ApplicationCommandInteraction, team: str,
             active_pug.start_pug.messages_to_delete.append(bluMessage)
             active_pug.start_pug.messages_to_delete.append(redMessage)
         else:
-            await redMessage.edit(content="RED Team:\n" + await list_players(red_team))
+            redMessage = await redMessage.edit(content="RED Team:\n" + await list_players(red_team))
             await announce_string()
     else:
         await inter.send("Team not recognised")
@@ -109,7 +109,7 @@ async def select_player_callback(inter: discord.MessageInteraction):
             active_pug.start_pug.messages_to_delete.append(bluMessage)
             active_pug.start_pug.messages_to_delete.append(redMessage)
         else:
-            await bluMessage.edit(content="BLU Team:\n" + await list_players(blu_team))
+            bluMessage = await bluMessage.edit(content="BLU Team:\n" + await list_players(blu_team))
             await announce_string()
     else:
         if len(inter.values) == 0:
@@ -132,7 +132,7 @@ async def select_player_callback(inter: discord.MessageInteraction):
             active_pug.start_pug.messages_to_delete.append(bluMessage)
             active_pug.start_pug.messages_to_delete.append(redMessage)
         else:
-            await redMessage.edit(content="RED Team:\n" + await list_players(red_team))
+            redMessage = await redMessage.edit(content="RED Team:\n" + await list_players(red_team))
             await announce_string()
 
 
@@ -230,7 +230,7 @@ async def announce_string(connect_string=None, timestamp=None):
     msg = f"{bluMessage.content}\n\n{redMessage.content}"
     if connect_string is None:  # Function was called to update players/post early reminder
         if reminderMessage is not None:  # Check if reminder message already exists
-            await reminderMessage.edit(content=msg)
+            reminderMessage = await reminderMessage.edit(content=msg)
         else:
             if timestamp is None:  # Function was called to update players, but no reminder exists, so exit
                 return
@@ -245,7 +245,7 @@ async def announce_string(connect_string=None, timestamp=None):
         active_pug.start_pug.messages_to_delete.append(stringMessage)
         active_pug.start_pug.messages_to_delete.append(reminderMessage)
     else:  # Updated string
-        await stringMessage.edit(content=connect_string)
+        stringMessage = await stringMessage.edit(content=connect_string)
 
 
 async def swap_class_across_teams(inter: discord.ApplicationCommandInteraction, player_class: str):
@@ -259,8 +259,8 @@ async def swap_class_across_teams(inter: discord.ApplicationCommandInteraction, 
         return
     else:
         blu_team[player_class], red_team[player_class] = red_team[player_class], blu_team[player_class]
-        await bluMessage.edit(content="BLU Team:\n" + await list_players(blu_team))
-        await redMessage.edit(content="RED Team:\n" + await list_players(red_team))
+        bluMessage = await bluMessage.edit(content="BLU Team:\n" + await list_players(blu_team))
+        redMessage = await redMessage.edit(content="RED Team:\n" + await list_players(red_team))
         await announce_string()
         await inter.send(f"{blu_team[player_class].display_name} is now BLU {player_class} & {red_team[player_class].display_name} is now RED {player_class}.")
 
