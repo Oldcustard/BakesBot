@@ -156,6 +156,7 @@ async def get_player_status(inter: discord.ApplicationCommandInteraction, *, pla
 @commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
 async def announce_string(inter: discord.ApplicationCommandInteraction, *, connect_string):
     await player_selection.announce_string(connect_string)
+    await inter.send("Posting string")
 
 
 @client.slash_command(name='switch', description='Switch two players on a class', default_permission=False)
@@ -209,7 +210,7 @@ async def fetch_logs_error(ctx, error):
     elif isinstance(error, commands.CheckFailure):
         return
     else:
-        ctx.channel.send(f"An unhandled error occurred ({messages.dev.mention})")
+        await ctx.channel.send(f"An unhandled error occurred ({messages.dev.mention})")
         raise error
 
 

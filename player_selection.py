@@ -274,6 +274,7 @@ async def list_unassigned_players(inter: discord.ApplicationCommandInteraction):
 
 
 async def drag_into_team_vc(inter: discord.ApplicationCommandInteraction):
+    inter.response.defer()
     member: discord.Member
     for member in inter.author.voice.channel.members:
         if member in blu_team.values():
@@ -286,9 +287,11 @@ async def drag_into_team_vc(inter: discord.ApplicationCommandInteraction):
                 await member.move_to(messages.redChannel)
             except discord.HTTPException:
                 continue
+    await inter.send("All players moved to team VCs")
 
 
 async def drag_into_same_vc(inter: discord.ApplicationCommandInteraction):
+    await inter.response.defer()
     member: discord.Member
     for member in messages.bluChannel.members:
         try:
@@ -300,6 +303,7 @@ async def drag_into_same_vc(inter: discord.ApplicationCommandInteraction):
             await member.move_to(inter.author.voice.channel)
         except discord.HTTPException:
             continue
+    await inter.send("All players moved to your VC")
 
 
 async def ping_not_present(inter: discord.ApplicationCommandInteraction):
