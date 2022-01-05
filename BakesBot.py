@@ -91,16 +91,15 @@ async def select_player_new(inter: discord.ApplicationCommandInteraction):
     await player_selection.select_player_new(inter)
 
 
-
 @client.event
 async def on_slash_command_error(inter: discord.ApplicationCommandInteraction, error):
     if inter.application_command.has_error_handler():  # Command has a specific handler, ignore
         return
     if isinstance(error, commands.CommandInvokeError):
-        await inter.response.send_message(f"An error occurred: {error.original} {type(error.original)} ({messages.dev.mention})")
+        await inter.send(f"An error occurred: {error.original} {type(error.original)} ({messages.dev.mention})")
         raise error
     else:
-        await inter.response.send_message(f"An error occurred: {error} {type(error)} ({messages.dev.mention})")
+        await inter.send(f"An error occurred: {error} {type(error)} ({messages.dev.mention})")
         raise error
 
 
@@ -202,15 +201,13 @@ async def fetch_logs(inter: discord.ApplicationCommandInteraction, log_url: str)
 
 
 @fetch_logs.error
-async def fetch_logs_error(ctx, error):
-    if isinstance(error, IndexError):
-        await ctx.channel.send("Log not found")
-    elif isinstance(error, json.JSONDecodeError):
-        await ctx.channel.send("Log not found")
-    elif isinstance(error, commands.CheckFailure):
-        return
+async def fetch_logs_error(inter: discord.ApplicationCommandInteraction, error):
+    if isinstance(error.original, IndexError):
+        await inter.send("Log not found")
+    elif isinstance(error.original, json.JSONDecodeError):
+        await inter.send("Log not found")
     else:
-        await ctx.channel.send(f"An unhandled error occurred ({messages.dev.mention})")
+        await inter.send(f"An error occurred: {error.original} {type(error.original)} ({messages.dev.mention})")
         raise error
 
 
