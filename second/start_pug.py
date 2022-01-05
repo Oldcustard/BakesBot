@@ -132,8 +132,8 @@ async def signup_player_callback(inter: discord.MessageInteraction):
         await signupsMessage.pin()
         await signupsListMessage.pin()
     else:
-        await signupsMessage.edit(content=await list_players_by_class())
-        await signupsListMessage.edit(content=await list_players())
+        signupsMessage = await signupsMessage.edit(content=await list_players_by_class())
+        signupsListMessage = await signupsListMessage.edit(content=await list_players())
     await inter.send(f"Successfully signed up for {inter.component.emoji}{inter.component.label} (preference {preference})", ephemeral=True)
 
 
@@ -214,12 +214,12 @@ async def withdraw_player(inter: discord.ApplicationCommandInteraction | discord
     for player_class, player in player_selection.blu_team.items():
         if player == user:
             player_selection.blu_team[player_class] = None
-            await player_selection.bluMessage.edit(content="BLU Team:\n" + await player_selection.list_players(player_selection.blu_team))
+            player_selection.bluMessage = await player_selection.bluMessage.edit(content="BLU Team:\n" + await player_selection.list_players(player_selection.blu_team))
             await player_selection.announce_string()
     for player_class, player in player_selection.red_team.items():
         if player == user:
             player_selection.red_team[player_class] = None
-            await player_selection.redMessage.edit(content="RED Team:\n" + await player_selection.list_players(player_selection.red_team))
+            player_selection.redMessage = await player_selection.redMessage.edit(content="RED Team:\n" + await player_selection.list_players(player_selection.red_team))
             await player_selection.announce_string()
 
 

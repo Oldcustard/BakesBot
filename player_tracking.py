@@ -280,7 +280,9 @@ async def player_status(inter: discord.ApplicationCommandInteraction, player: di
         else:
             medic_status = f"**has Medic priority** for **{medics_row[1]}** more pug{'s' if medics_row[1] != 1 else ''}."
 
-        if player in active_pug.start_pug.player_classes.keys():
+        if active_pug.start_pug is None:
+            signed_up_classes = "**no classes**"
+        elif player in active_pug.start_pug.player_classes.keys():
             signed_up_classes = ', '.join([str(emoji) for emoji in active_pug.start_pug.player_classes[player]])
         else:
             signed_up_classes = "**no classes**"

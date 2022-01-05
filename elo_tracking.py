@@ -1,5 +1,6 @@
 import sqlite3
 import urllib.request
+import certifi
 import json
 from elosports.elo import Elo
 
@@ -9,8 +10,9 @@ import player_selection
 
 
 async def fetch_logs(inter: discord.ApplicationCommandInteraction, log_url):
+    await inter.response.defer()
     log_id = log_url.split('.tf/')[1]
-    log_json = urllib.request.urlopen("http://logs.tf/json/" + log_id)
+    log_json = urllib.request.urlopen("http://logs.tf/json/" + log_id, cafile=certifi.where())
     log_json = json.load(log_json)
     round_wins = []
     for game_round in log_json['rounds']:
