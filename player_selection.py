@@ -167,7 +167,11 @@ async def update_select_options():
 
 
 async def select_player_new(inter: discord.ApplicationCommandInteraction):
+    # Delete any previous select messages
+    for selectmessage in current_select_msgs:
+        await selectmessage.delete()
     current_select_msgs.clear()
+
     views: List[discord.ui.View] = []
     select_view = discord.ui.View(timeout=300)
     views.append(select_view)
