@@ -274,7 +274,7 @@ async def list_unassigned_players(inter: discord.ApplicationCommandInteraction):
 
 
 async def drag_into_team_vc(inter: discord.ApplicationCommandInteraction):
-    inter.response.defer()
+    await inter.response.defer()
     member: discord.Member
     for member in inter.author.voice.channel.members:
         if member in blu_team.values():
