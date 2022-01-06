@@ -39,7 +39,7 @@ reminderMessage: discord.Message | None = None
 timeMessage: discord.Message | None = None
 
 ping_messages: List[discord.Message] = []
-current_select_msgs: List[discord.Message] = []
+current_select_msgs: List[discord.MessageReference] = []
 players_changed_late: List[discord.Member] = []
 
 
@@ -151,7 +151,8 @@ async def load_select_options(team: str, player_class: str) -> List[discord.Sele
 
 
 async def update_select_options():
-    for message in current_select_msgs:
+    for message_reference in current_select_msgs:
+        message = message_reference.cached_message
         view = discord.ui.View.from_message(message)
         select: discord.ui.Select
         for select in view.children:
@@ -169,7 +170,8 @@ async def update_select_options():
 async def select_player_new(inter: discord.ApplicationCommandInteraction):
     # Delete any previous select messages
     for selectmessage in current_select_msgs:
-        await selectmessage.delete()
+        message = selectmessage.cached_message
+        await message.delete()
     current_select_msgs.clear()
 
     views: List[discord.ui.View] = []
@@ -189,7 +191,7 @@ async def select_player_new(inter: discord.ApplicationCommandInteraction):
     await inter.response.send_message("**Player Selection**")
     for view in views:
         message = await inter.followup.send(f"BLU Team ({views.index(view)+1}/{len(views)})\n🟦🟦🟦🟦🟦🟦", view=view)
-        current_select_msgs.append(message)
+        current_select_msgs.append(discord.MessageReference.from_message(message))
 
     views.clear()
     select_view = discord.ui.View(timeout=300)
@@ -207,7 +209,7 @@ async def select_player_new(inter: discord.ApplicationCommandInteraction):
         select_view.add_item(dropdown)
     for view in views:
         message = await inter.followup.send(f"RED Team ({views.index(view) + 1}/{len(views)})\n🟥🟥🟥🟥🟥🟥", view=view)
-        current_select_msgs.append(message)
+        current_select_msgs.append(discord.MessageReference.from_message(message))
 
 
 async def list_players(team: Dict):
