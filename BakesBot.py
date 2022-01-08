@@ -16,8 +16,7 @@ import active_pug
 import elo_tracking
 import map_voting
 import messages
-import main.pug_scheduler
-import second.pug_scheduler
+import pug_scheduler
 import player_selection
 import player_tracking
 
@@ -47,6 +46,9 @@ BLU_CHANNEL_ID = int(os.getenv('blu_channel_id'))
 RED_CHANNEL_ID = int(os.getenv('red_channel_id'))
 WAITING_CHANNEL_ID = int(os.getenv('waiting_channel_id'))
 
+main_scheduler: pug_scheduler.PugScheduler | None = None
+second_scheduler: pug_scheduler.PugScheduler | None = None
+
 
 @client.event
 async def on_ready():
@@ -63,11 +65,16 @@ async def on_ready():
     messages.bluChannel = client.get_channel(BLU_CHANNEL_ID)
     messages.redChannel = client.get_channel(RED_CHANNEL_ID)
     messages.waitingChannel = client.get_channel(WAITING_CHANNEL_ID)
-    if main.pug_scheduler.startup:
-        main.pug_scheduler.announcement_future = asyncio.ensure_future(main.pug_scheduler.schedule_announcement(messages.announceChannel))
-    if second.pug_scheduler.startup:
+    if active_pug.startup:
+        global main_scheduler, second_scheduler
+        main_scheduler = pug_scheduler.PugScheduler('main')
+        second_scheduler = pug_scheduler.PugScheduler('second')
+        main_scheduler.announcement_future = asyncio.ensure_future(
+            main_scheduler.schedule_announcement(messages.announceChannel))
+        second_scheduler.announcement_future = asyncio.ensure_future(
+            second_scheduler.schedule_announcement(messages.announceChannel))
+        active_pug.startup = False
         print(f'{client.user} logged in, scheduling announcement')
-        second.pug_scheduler.announcement_future = asyncio.ensure_future(second.pug_scheduler.schedule_announcement(messages.announceChannel))
     else:
         print(f'{client.user} reconnected.')
         await messages.send_to_admin(f"{messages.dev.mention}: Bot reconnected.")
@@ -79,7 +86,7 @@ PlayerClass = commands.option_enum(['Scout', 'Soldier', 'Pyro', 'Demo', 'Heavy',
 @client.slash_command(name='override', description='Manually select a player for a class', default_permission=False)
 @commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
 async def select_player(inter: discord.ApplicationCommandInteraction, team: Team, player_class: PlayerClass, *, player: discord.Member):
-    if active_pug.start_pug.signupsMessage is None:
+    if active_pug.active_start_pug.signupsMessage is None:
         await inter.send("Player selection only available after pug is announced")
     else:
         await player_selection.select_player(inter, team, player_class, player)
@@ -107,20 +114,20 @@ async def on_slash_command_error(inter: discord.ApplicationCommandInteraction, e
 @commands.guild_permissions(GUILD_ID, {DEV_ID: True})
 async def force_start_pug(inter: discord.ApplicationCommandInteraction):
     await inter.send("Forcing Start...")
-    await active_pug.pug_scheduler.schedule_pug_start(datetime.datetime.now(datetime.timezone.utc).astimezone(), True)
+    await active_pug.active_pug_scheduler.schedule_pug_start(datetime.datetime.now(datetime.timezone.utc).astimezone(), True)
 
 
 @client.slash_command(name='forcereset', description='Force reset pug', default_permission=False)
 @commands.guild_permissions(GUILD_ID, {DEV_ID: True})
 async def force_reset(inter: discord.ApplicationCommandInteraction):
     await inter.send("Forcing Reset...")
-    await active_pug.start_pug.reset_pug()
+    await active_pug.active_start_pug.reset_pug()
 
 
 @client.slash_command(name='withdraw', description='Withdraw a player from a pug', default_permission=False)
 @commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
 async def force_withdraw_player(inter: discord.ApplicationCommandInteraction, *, player: discord.Member):
-    await active_pug.start_pug.withdraw_player(inter, player)
+    await active_pug.active_start_pug.withdraw_player(inter, player)
 
 
 @client.slash_command(name='warn', description="Warn a player for baiting", default_permission=False)
@@ -223,10 +230,10 @@ async def ping_players(inter: discord.ApplicationCommandInteraction):
 @commands.guild_permissions(GUILD_ID, user_ids={DEV_ID: True})
 async def cancel_scheduled_announcements(inter: discord.ApplicationCommandInteraction):
     await inter.send("Cancelling future announcements...")
-    main.pug_scheduler.announcement_future.cancel()
-    main.pug_scheduler.early_announcement_future.cancel()
-    second.pug_scheduler.announcement_future.cancel()
-    second.pug_scheduler.early_announcement_future.cancel()
+    main_scheduler.announcement_future.cancel()
+    main_scheduler.early_announcement_future.cancel()
+    second_scheduler.announcement_future.cancel()
+    second_scheduler.early_announcement_future.cancel()
 
 
 @client.slash_command(name='clearpins', default_permission=False)

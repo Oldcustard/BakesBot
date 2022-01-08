@@ -1,10 +1,10 @@
 from typing import Dict, List
 
 import disnake as discord
-import disnake.ext.commands
 
 import messages
 import active_pug
+import start_pug
 
 blu_team = {
     'Scout': None,
@@ -60,8 +60,8 @@ async def select_player(inter: discord.ApplicationCommandInteraction, team: str,
             redMessage = await messages.announceChannel.send("RED Team:\n" + await list_players(red_team))
             await redMessage.pin()
             await bluMessage.pin()
-            active_pug.start_pug.messages_to_delete.append(bluMessage)
-            active_pug.start_pug.messages_to_delete.append(redMessage)
+            active_pug.active_start_pug.messages_to_delete.append(bluMessage)
+            active_pug.active_start_pug.messages_to_delete.append(redMessage)
         else:
             bluMessage = await bluMessage.edit(content="BLU Team:\n" + await list_players(blu_team))
             await announce_string()
@@ -75,8 +75,8 @@ async def select_player(inter: discord.ApplicationCommandInteraction, team: str,
             redMessage = await messages.announceChannel.send("RED Team:\n" + await list_players(red_team))
             await redMessage.pin()
             await bluMessage.pin()
-            active_pug.start_pug.messages_to_delete.append(bluMessage)
-            active_pug.start_pug.messages_to_delete.append(redMessage)
+            active_pug.active_start_pug.messages_to_delete.append(bluMessage)
+            active_pug.active_start_pug.messages_to_delete.append(redMessage)
         else:
             redMessage = await redMessage.edit(content="RED Team:\n" + await list_players(red_team))
             await announce_string()
@@ -106,8 +106,8 @@ async def select_player_callback(inter: discord.MessageInteraction):
             redMessage = await messages.announceChannel.send("RED Team:\n" + await list_players(red_team))
             await redMessage.pin()
             await bluMessage.pin()
-            active_pug.start_pug.messages_to_delete.append(bluMessage)
-            active_pug.start_pug.messages_to_delete.append(redMessage)
+            active_pug.active_start_pug.messages_to_delete.append(bluMessage)
+            active_pug.active_start_pug.messages_to_delete.append(redMessage)
         else:
             bluMessage = await bluMessage.edit(content="BLU Team:\n" + await list_players(blu_team))
             await announce_string()
@@ -129,8 +129,8 @@ async def select_player_callback(inter: discord.MessageInteraction):
             redMessage = await messages.announceChannel.send("RED Team:\n" + await list_players(red_team))
             await redMessage.pin()
             await bluMessage.pin()
-            active_pug.start_pug.messages_to_delete.append(bluMessage)
-            active_pug.start_pug.messages_to_delete.append(redMessage)
+            active_pug.active_start_pug.messages_to_delete.append(bluMessage)
+            active_pug.active_start_pug.messages_to_delete.append(redMessage)
         else:
             redMessage = await redMessage.edit(content="RED Team:\n" + await list_players(red_team))
             await announce_string()
@@ -138,8 +138,8 @@ async def select_player_callback(inter: discord.MessageInteraction):
 
 async def load_select_options(team: str, player_class: str) -> List[discord.SelectOption]:
     options: List[discord.SelectOption] = []
-    for player, _pref in active_pug.start_pug.signups[active_pug.start_pug.emojis_ids[player_class]]:
-        option = discord.SelectOption(label=player.display_name, emoji=active_pug.start_pug.emojis_ids[player_class], value=player.display_name)
+    for player, _pref in active_pug.active_start_pug.signups[start_pug.emojis_ids[player_class]]:
+        option = discord.SelectOption(label=player.display_name, emoji=start_pug.emojis_ids[player_class], value=player.display_name)
         if team == 'BLU' and blu_team[player_class] == player:
             option.default = True
         elif team == 'RED' and red_team[player_class] == player:
@@ -235,14 +235,14 @@ async def announce_string(connect_string=None, timestamp=None):
                 return
             timeMessage = await bluMessage.channel.send(f"**Reminder:** pug is <t:{timestamp}:R>. Please withdraw if you are not able to make it")
             reminderMessage = await bluMessage.channel.send(msg)
-            active_pug.start_pug.messages_to_delete.append(timeMessage)
+            active_pug.active_start_pug.messages_to_delete.append(timeMessage)
         return
     if stringMessage is None:  # First string
         stringMessage = await bluMessage.channel.send(connect_string)
         await reminderMessage.delete()
         reminderMessage = await bluMessage.channel.send(msg)
-        active_pug.start_pug.messages_to_delete.append(stringMessage)
-        active_pug.start_pug.messages_to_delete.append(reminderMessage)
+        active_pug.active_start_pug.messages_to_delete.append(stringMessage)
+        active_pug.active_start_pug.messages_to_delete.append(reminderMessage)
     else:  # Updated string
         stringMessage = await stringMessage.edit(content=connect_string)
 
@@ -266,7 +266,7 @@ async def swap_class_across_teams(inter: discord.ApplicationCommandInteraction, 
 
 async def list_unassigned_players(inter: discord.ApplicationCommandInteraction):
     unassigned = []
-    for player in active_pug.start_pug.player_classes.keys():
+    for player in active_pug.active_start_pug.player_classes.keys():
         if player not in blu_team.values() and player not in red_team.values():
             unassigned.append(player.display_name)
     await inter.send("Players yet to be assigned a class: " + ", ".join(unassigned))
@@ -312,13 +312,13 @@ async def ping_not_present(inter: discord.ApplicationCommandInteraction):
     absent_players = [player.mention for player in (signed_up_players - present_players)]
     message = await messages.announceChannel.send(f"Join up! {', '.join(absent_players)}")
     ping_messages.append(message)
-    active_pug.start_pug.messages_to_delete.append(message)
+    active_pug.active_start_pug.messages_to_delete.append(message)
     await inter.send("Absent players have been pinged!")
 
 
 async def inform_player_of_late_change(player: discord.Member, player_class: str):
     global players_changed_late
-    pug_starts_soon, _timestamp = await active_pug.pug_scheduler.after_penalty_trigger_check()
+    pug_starts_soon, _timestamp = await active_pug.active_pug_scheduler.after_penalty_trigger_check()
     signed_up_players = list(blu_team.values()) + list(red_team.values())
     if pug_starts_soon and (player in signed_up_players or player in players_changed_late):
         await player.send(f"**Please Note:** Your class in the upcoming Bakes Pug has been switched to **{player_class}**.")
