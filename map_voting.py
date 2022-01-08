@@ -67,6 +67,7 @@ async def start_map_vote(inter: discord.ApplicationCommandInteraction, map_type)
 
     def create_callback():
         async def _vote_for_map(inter: discord.MessageInteraction):
+            await inter.response.defer()
             if inter.author in player_selection.blu_team.values() or inter.author in player_selection.red_team.values():
                 for vote in active_votes:
                     if vote.message == inter.message:
