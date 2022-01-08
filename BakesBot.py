@@ -160,7 +160,7 @@ async def announce_string(inter: discord.ApplicationCommandInteraction, *, conne
 
 @client.slash_command(name='switch', description='Switch two players on a class', default_permission=False)
 @commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
-async def switch_players(inter: discord.ApplicationCommandInteraction, player_class: str):
+async def switch_players(inter: discord.ApplicationCommandInteraction, player_class: PlayerClass):
     await player_selection.swap_class_across_teams(inter, player_class)
 
 
