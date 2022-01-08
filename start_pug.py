@@ -240,9 +240,9 @@ class StartPug:
         player_selection.redMessage = None
         player_selection.stringMessage = None
         player_selection.reminderMessage = None
-        pug_scheduler.pugMessage = None
-        pug_scheduler.earlyMedicPugMessage = None
-        pug_scheduler.earlyPugMessage = None
+        self.pug_scheduler.pugMessage = None
+        self.pug_scheduler.earlyMedicPugMessage = None
+        self.pug_scheduler.earlyPugMessage = None
         map_voting.active_votes.clear()
         player_selection.ping_messages.clear()
         player_selection.blu_team = dict.fromkeys(player_selection.blu_team.keys(), None)
