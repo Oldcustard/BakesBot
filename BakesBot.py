@@ -106,12 +106,14 @@ async def on_slash_command_error(inter: discord.ApplicationCommandInteraction, e
 @client.slash_command(name='forcestart', description='Force start pug', default_permission=False)
 @commands.guild_permissions(GUILD_ID, {DEV_ID: True})
 async def force_start_pug(inter: discord.ApplicationCommandInteraction):
+    await inter.send("Forcing Start...")
     await active_pug.pug_scheduler.schedule_pug_start(datetime.datetime.now(datetime.timezone.utc).astimezone(), True)
 
 
 @client.slash_command(name='forcereset', description='Force reset pug', default_permission=False)
 @commands.guild_permissions(GUILD_ID, {DEV_ID: True})
 async def force_reset(inter: discord.ApplicationCommandInteraction):
+    await inter.send("Forcing Reset...")
     await active_pug.start_pug.reset_pug()
 
 
