@@ -61,7 +61,7 @@ class StartPug:
         self.players_to_warn = []
         self.messages_to_delete: List[discord.Message] = []
 
-    async def announce_pug(self, channel: discord.TextChannel):
+    async def get_pug_time(self):
         pug_day = time.strptime(self.PUG_WDAY, "%A")
         current_date = datetime.datetime.now(datetime.timezone.utc).astimezone()
         current_day = current_date.weekday()
@@ -73,7 +73,11 @@ class StartPug:
         print(f"Pug announced. Pug is on {pug_date}")
         pug_timestamp = round(datetime.datetime.timestamp(pug_date))
         pug_time_string = f"<t:{pug_timestamp}:F>"
-        announce_message = f"\n{self.ANNOUNCE_STRING} \nPug will be **{pug_time_string}** (this is displayed in your **local time**)\nPress withdraw if you can no longer play."
+        return pug_date, pug_time_string
+
+    async def announce_pug(self, channel: discord.TextChannel):
+        pug_date, time_string = await self.get_pug_time()
+        announce_message = f"\n{self.ANNOUNCE_STRING} \nPug will be **{time_string}** (this is displayed in your **local time**)\nPress withdraw if you can no longer play."
         view = discord.ui.View(timeout=None)
         for class_name, class_emoji in emojis_ids.items():
             button = discord.ui.Button(label=class_name, emoji=class_emoji)
@@ -87,8 +91,9 @@ class StartPug:
         return pugMessage, pug_date
 
     async def announce_early(self, early_signups_channel: discord.TextChannel, signups_channel: discord.TextChannel):
-        announce_message = f"{messages.medic_role.mention}\n{self.EARLY_ANNOUNCE_STRING} \nPress withdraw if you can no longer play."
-        medic_announce_message = f"\nEarly signups open!\nIf you want to play **Medic**, press the button below. Medics will gain 3 weeks of early signup!"
+        _pug_date, time_string = await self.get_pug_time()
+        announce_message = f"{messages.medic_role.mention}\n{self.EARLY_ANNOUNCE_STRING} \nPug will be on {time_string}\nPress withdraw if you can no longer play."
+        medic_announce_message = f"\nEarly signups open!\nIf you want to play **Medic** for the pug on {time_string}, press the button below. Medics will gain 3 weeks of early signup!"
         early_view = discord.ui.View(timeout=None)
         for class_name, class_emoji in emojis_ids.items():
             button = discord.ui.Button(label=class_name, emoji=class_emoji)
