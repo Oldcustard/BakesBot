@@ -1,3 +1,4 @@
+import re
 from typing import Dict, List
 
 import disnake as discord
@@ -224,7 +225,7 @@ async def list_players(team: Dict):
     return msg
 
 
-async def announce_string(connect_string=None, timestamp=None):
+async def announce_string(connect_string: str | None = None, timestamp=None):
     global stringMessage, reminderMessage, timeMessage
     msg = f"{bluMessage.content}\n\n{redMessage.content}"
     if connect_string is None:  # Function was called to update players/post early reminder
@@ -237,14 +238,18 @@ async def announce_string(connect_string=None, timestamp=None):
             reminderMessage = await bluMessage.channel.send(msg)
             active_pug.active_start_pug.messages_to_delete.append(timeMessage)
         return
+    string_parts = re.split('connect |[;"]', connect_string)
+    print(string_parts)
+    steam_string = f"steam://connect/{string_parts[1]}/{string_parts[3]}"
+    print(steam_string)
     if stringMessage is None:  # First string
-        stringMessage = await bluMessage.channel.send(connect_string)
+        stringMessage = await bluMessage.channel.send(f"{connect_string}\n**Click this link to join immediately** -> {steam_string}")
         await reminderMessage.delete()
         reminderMessage = await bluMessage.channel.send(msg)
         active_pug.active_start_pug.messages_to_delete.append(stringMessage)
         active_pug.active_start_pug.messages_to_delete.append(reminderMessage)
     else:  # Updated string
-        stringMessage = await stringMessage.edit(content=connect_string)
+        stringMessage = await stringMessage.edit(content=f"{connect_string}\n**Click this link to join immediately** -> {steam_string}")
 
 
 async def swap_class_across_teams(inter: discord.ApplicationCommandInteraction, player_class: str):
