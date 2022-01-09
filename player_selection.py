@@ -234,8 +234,8 @@ async def announce_string(connect_string: str | None = None, timestamp=None):
         else:
             if timestamp is None:  # Function was called to update players, but no reminder exists, so exit
                 return
-            timeMessage = await bluMessage.channel.send(f"**Reminder:** pug is <t:{timestamp}:R>. Please withdraw if you are not able to make it")
-            reminderMessage = await bluMessage.channel.send(msg)
+            timeMessage = await messages.announceChannel.send(f"**Reminder:** pug is <t:{timestamp}:R>. Please withdraw if you are not able to make it")
+            reminderMessage = await messages.announceChannel.send(msg)
             active_pug.active_start_pug.messages_to_delete.append(timeMessage)
         return
     string_parts = re.split('connect |[;"]', connect_string)
@@ -243,9 +243,9 @@ async def announce_string(connect_string: str | None = None, timestamp=None):
     steam_string = f"steam://connect/{string_parts[1]}/{string_parts[3]}"
     print(steam_string)
     if stringMessage is None:  # First string
-        stringMessage = await bluMessage.channel.send(f"{connect_string}\n**Click this link to join immediately** -> {steam_string}")
+        stringMessage = await messages.announceChannel.send(f"{connect_string}\n**Click this link to join immediately** -> {steam_string}")
         await reminderMessage.delete()
-        reminderMessage = await bluMessage.channel.send(msg)
+        reminderMessage = await messages.announceChannel.send(msg)
         active_pug.active_start_pug.messages_to_delete.append(stringMessage)
         active_pug.active_start_pug.messages_to_delete.append(reminderMessage)
     else:  # Updated string
