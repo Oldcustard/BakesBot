@@ -244,7 +244,10 @@ async def announce_string(connect_string: str | None = None, timestamp=None):
     print(steam_string)
     if stringMessage is None:  # First string
         stringMessage = await messages.announceChannel.send(f"{connect_string}\n**Click this link to join immediately** -> {steam_string}")
-        await reminderMessage.delete()
+        try:
+            await reminderMessage.delete()
+        except discord.NotFound:
+            pass
         reminderMessage = await messages.announceChannel.send(msg)
         active_pug.active_start_pug.messages_to_delete.append(stringMessage)
         active_pug.active_start_pug.messages_to_delete.append(reminderMessage)
