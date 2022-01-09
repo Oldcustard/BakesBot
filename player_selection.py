@@ -330,8 +330,12 @@ async def inform_player_of_late_change(player: discord.Member, player_class: str
     signed_up_players = list(blu_team.values()) + list(red_team.values())
     if pug_starts_soon and (player in signed_up_players or player in players_changed_late):
         await player.send(f"**Please Note:** Your class in the upcoming Bakes Pug has been switched to **{player_class}**.")
+        await messages.send_to_admin(f"{player.display_name} has been informed of the late change")
+        print(f"{player.display_name} informed of late class change")
     elif pug_starts_soon:
         await player.send(f"**IMPORTANT:** You have just been assigned to play **{player_class}** in the upcoming Bakes Pug.\nIf you are unable to make it, please withdraw by pressing ❌ on the pug announcement.")
+        await messages.send_to_admin(f"{player.display_name} has been informed of the late assignment")
+        print(f"{player.display_name} informed of late assignment")
 
 
 
