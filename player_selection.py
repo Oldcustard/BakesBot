@@ -39,7 +39,7 @@ stringMessage: discord.Message | None = None
 reminderMessage: discord.Message | None = None
 timeMessage: discord.Message | None = None
 
-ping_messages: List[discord.Message] = []
+messages_to_delete: List[discord.Message] = []
 current_select_msgs: List[discord.MessageReference] = []
 players_changed_late: List[discord.Member] = []
 
@@ -236,7 +236,7 @@ async def announce_string(connect_string: str | None = None, timestamp=None):
                 return
             timeMessage = await messages.announceChannel.send(f"**Reminder:** pug is <t:{timestamp}:R>. Please withdraw if you are not able to make it")
             reminderMessage = await messages.announceChannel.send(msg)
-            active_pug.active_start_pug.messages_to_delete.append(timeMessage)
+            messages_to_delete.append(timeMessage)
         return
     string_parts = re.split('connect |[;"]', connect_string)
     print(string_parts)
@@ -249,8 +249,8 @@ async def announce_string(connect_string: str | None = None, timestamp=None):
         except discord.NotFound:
             pass
         reminderMessage = await messages.announceChannel.send(msg)
-        active_pug.active_start_pug.messages_to_delete.append(stringMessage)
-        active_pug.active_start_pug.messages_to_delete.append(reminderMessage)
+        messages_to_delete.append(stringMessage)
+        messages_to_delete.append(reminderMessage)
     else:  # Updated string
         stringMessage = await stringMessage.edit(content=f"{connect_string}\n**Click this link to join immediately** -> {steam_string}")
 
@@ -319,8 +319,7 @@ async def ping_not_present(inter: discord.ApplicationCommandInteraction):
     present_players = set(messages.bluChannel.members) | set(messages.redChannel.members) | set(messages.waitingChannel.members)
     absent_players = [player.mention for player in (signed_up_players - present_players)]
     message = await messages.announceChannel.send(f"Join up! {', '.join(absent_players)}")
-    ping_messages.append(message)
-    active_pug.active_start_pug.messages_to_delete.append(message)
+    messages_to_delete.append(message)
     await inter.send("Absent players have been pinged!")
 
 

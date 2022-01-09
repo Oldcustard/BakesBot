@@ -237,6 +237,12 @@ class StartPug:
             except discord.NotFound:
                 continue
         self.messages_to_delete.clear()
+        for message in player_selection.messages_to_delete:
+            try:
+                await message.delete()
+            except discord.NotFound:
+                continue
+        player_selection.messages_to_delete.clear()
         await self.signupsMessage.unpin()
         await self.signupsListMessage.unpin()
         self.signupsMessage = None
@@ -245,11 +251,11 @@ class StartPug:
         player_selection.redMessage = None
         player_selection.stringMessage = None
         player_selection.reminderMessage = None
+        player_selection.timeMessage = None
         self.pug_scheduler.pugMessage = None
         self.pug_scheduler.earlyMedicPugMessage = None
         self.pug_scheduler.earlyPugMessage = None
         map_voting.active_votes.clear()
-        player_selection.ping_messages.clear()
         player_selection.blu_team = dict.fromkeys(player_selection.blu_team.keys(), None)
         player_selection.red_team = dict.fromkeys(player_selection.red_team.keys(), None)
         player_selection.players_changed_late.clear()
