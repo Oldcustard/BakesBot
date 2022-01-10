@@ -189,7 +189,7 @@ async def select_player_new(inter: discord.ApplicationCommandInteraction):
             select_view = discord.ui.View(timeout=300)
             views.append(select_view)
         select_view.add_item(dropdown)
-    await inter.response.send_message("**Player Selection**")
+    await inter.send("**Player Selection**")
     for view in views:
         message = await inter.followup.send(f"BLU Team ({views.index(view)+1}/{len(views)})\n🟦🟦🟦🟦🟦🟦", view=view)
         current_select_msgs.append(discord.MessageReference.from_message(message))
@@ -281,7 +281,6 @@ async def list_unassigned_players(inter: discord.ApplicationCommandInteraction):
 
 
 async def drag_into_team_vc(inter: discord.ApplicationCommandInteraction):
-    await inter.response.defer()
     member: discord.Member
     for member in inter.author.voice.channel.members:
         if member in blu_team.values():
@@ -298,7 +297,6 @@ async def drag_into_team_vc(inter: discord.ApplicationCommandInteraction):
 
 
 async def drag_into_same_vc(inter: discord.ApplicationCommandInteraction):
-    await inter.response.defer()
     member: discord.Member
     for member in messages.bluChannel.members:
         try:

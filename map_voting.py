@@ -63,7 +63,7 @@ async def start_map_vote(inter: discord.ApplicationCommandInteraction, map_type)
             select.disabled = True
             await inter.edit_original_message(view=self)
 
-    await inter.response.send_message("Select maps", view=MapSelectView())
+    await inter.send("Select maps", view=MapSelectView())
 
     def create_callback():
         async def _vote_for_map(inter: discord.MessageInteraction):

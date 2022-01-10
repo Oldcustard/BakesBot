@@ -89,12 +89,16 @@ async def select_player(inter: discord.ApplicationCommandInteraction, team: Team
     if active_pug.active_start_pug.signupsMessage is None:
         await inter.send("Player selection only available after pug is announced")
     else:
+        await asyncio.sleep(0.5)
+        await inter.response.defer()
         await player_selection.select_player(inter, team, player_class, player)
 
 
 @client.slash_command(name='select', description='Select players for classes.', default_permission=False)
 @commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
 async def select_player_new(inter: discord.ApplicationCommandInteraction):
+    await asyncio.sleep(0.5)
+    await inter.response.defer()
     await player_selection.select_player_new(inter)
 
 
@@ -127,42 +131,56 @@ async def force_reset(inter: discord.ApplicationCommandInteraction):
 @client.slash_command(name='withdraw', description='Withdraw a player from a pug', default_permission=False)
 @commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
 async def force_withdraw_player(inter: discord.ApplicationCommandInteraction, *, player: discord.Member):
+    await asyncio.sleep(0.5)
+    await inter.response.defer()
     await active_pug.active_start_pug.withdraw_player(inter, player)
 
 
 @client.slash_command(name='warn', description="Warn a player for baiting", default_permission=False)
 @commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
 async def warn_player(inter: discord.ApplicationCommandInteraction, *, player: discord.Member):
+    await asyncio.sleep(0.5)
+    await inter.response.defer()
     await player_tracking.warn_player(player, inter)
 
 
 @client.slash_command(name='unwarn', description="Manually remove a warning", default_permission=False)
 @commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
 async def unwarn_player(inter: discord.ApplicationCommandInteraction, *, player: discord.Member):
+    await asyncio.sleep(0.5)
+    await inter.response.defer()
     await player_tracking.unwarn_player(player, inter)
 
 
 @client.slash_command(name='ban', description='Ban a player from playing in pugs', default_permission=False)
 @commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
 async def ban_player(inter: discord.ApplicationCommandInteraction, player: discord.Member, *, reason):
+    await asyncio.sleep(0.5)
+    await inter.response.defer()
     await player_tracking.pug_ban(inter, player, reason)
 
 
 @client.slash_command(name='unban', description='Unban a player', default_permission=False)
 @commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
 async def unban_player(inter: discord.ApplicationCommandInteraction, *, player: discord.Member):
+    await asyncio.sleep(0.5)
+    await inter.response.defer()
     await player_tracking.pug_unban(inter, player)
 
 
 @client.slash_command(name='status', description='Get the current status of a player', default_permission=False)
 @commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
 async def get_player_status(inter: discord.ApplicationCommandInteraction, *, player: discord.Member):
+    await asyncio.sleep(0.5)
+    await inter.response.defer()
     await player_tracking.player_status(inter, player)
 
 
 @client.slash_command(name='string', description='Announce the pug connect string', default_permission=False)
 @commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
 async def announce_string(inter: discord.ApplicationCommandInteraction, *, connect_string):
+    await asyncio.sleep(0.5)
+    await inter.response.defer()
     await player_selection.announce_string(connect_string)
     await inter.send("Posting string")
 
@@ -170,6 +188,8 @@ async def announce_string(inter: discord.ApplicationCommandInteraction, *, conne
 @client.slash_command(name='switch', description='Switch two players on a class', default_permission=False)
 @commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
 async def switch_players(inter: discord.ApplicationCommandInteraction, player_class: PlayerClass):
+    await asyncio.sleep(0.5)
+    await inter.response.defer()
     await player_selection.swap_class_across_teams(inter, player_class)
 
 
@@ -182,30 +202,40 @@ async def list_unassigned_players(inter: discord.ApplicationCommandInteraction):
 @client.slash_command(name='vote', description='Start a map vote', default_permission=False)
 @commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
 async def start_map_vote(inter: discord.ApplicationCommandInteraction, map_type=commands.param(choices=["Attack/Defend", "KOTH"])):
+    await asyncio.sleep(0.5)
+    await inter.response.defer()
     await map_voting.start_map_vote(inter, map_type)
 
 
 @client.slash_command(name='results', description='View map vote results', default_permission=False)
 @commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
 async def view_vote_results(inter: discord.ApplicationCommandInteraction):
+    await asyncio.sleep(0.5)
+    await inter.response.defer()
     await map_voting.view_results(inter)
 
 
 @client.slash_command(name='teamvc', description='Move players into their team voice channel', default_permission=False)
 @commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
 async def drag_into_team_vc(inter: discord.ApplicationCommandInteraction):
+    await asyncio.sleep(0.5)
+    await inter.response.defer()
     await player_selection.drag_into_team_vc(inter)
 
 
 @client.slash_command(name='summon', aliases=['here'], description='Move players into your current voice channel', default_permission=False)
 @commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
 async def drag_into_same_vc(inter: discord.ApplicationCommandInteraction):
+    await asyncio.sleep(0.5)
+    await inter.response.defer()
     await player_selection.drag_into_same_vc(inter)
 
 
 @client.slash_command(name='log', description='Submit the logs.tf log for elo tracking', default_permission=False)
 @commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
 async def fetch_logs(inter: discord.ApplicationCommandInteraction, log_url: str):
+    await asyncio.sleep(0.5)
+    await inter.response.defer()
     await elo_tracking.fetch_logs(inter, log_url)
 
 
@@ -223,6 +253,8 @@ async def fetch_logs_error(inter: discord.ApplicationCommandInteraction, error):
 @client.slash_command(name='ping', description='Ping signed up players who are currently not in a voice channel', default_permission=False)
 @commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
 async def ping_players(inter: discord.ApplicationCommandInteraction):
+    await asyncio.sleep(0.5)
+    await inter.response.defer()
     await player_selection.ping_not_present(inter)
 
 
@@ -240,6 +272,7 @@ async def cancel_scheduled_announcements(inter: discord.ApplicationCommandIntera
 @commands.guild_permissions(GUILD_ID, user_ids={DEV_ID: True})
 async def clear_bot_pins(inter: discord.ApplicationCommandInteraction):
     pinned_message: discord.Message
+    await asyncio.sleep(0.5)
     await inter.response.defer()
     for pinned_message in await messages.adminChannel.pins():
         if pinned_message.author == client.user:
