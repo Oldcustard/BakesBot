@@ -2,8 +2,10 @@ import sqlite3
 
 import openskill
 import openskill.models
+import disnake as discord
 
 import player_selection
+import start_pug
 
 
 async def update_openskill(winning_team, round_wins, game_type):
@@ -93,5 +95,29 @@ async def update_openskill(winning_team, round_wins, game_type):
                 c.execute(f'''UPDATE openskill 
                 SET {player_class}_mean = ?, {player_class}_std = ? WHERE player_id = ?''', (red_players[str(player.id)][0], red_players[str(player.id)][1], player.id))
         db.commit()
+    finally:
+        db.close()
+
+
+async def get_rank(inter: discord.ApplicationCommandInteraction, user: discord.Member):
+    db = sqlite3.connect('players.db')
+    try:
+        ranks = []
+        c = db.cursor()
+        c.execute('''SELECT * FROM openskill WHERE player_id = ?''', (user.id,))
+        row = c.fetchone()
+        if row is None:
+            await inter.send(f"{user.display_name} does not currently have any rank.")
+            return
+        for i, mean in enumerate(row):
+            if i < 2 or i % 2 != 0:
+                continue
+            rank = openskill.ordinal(float(mean), float(row[i+1]))
+            ranks.append(round(rank))
+        msg = f"{user.display_name} has a rank of at least the following:"
+        for i, player_class in enumerate(start_pug.emojis_ids.values()):
+            line = f"\n{player_class}: {ranks[i]}"
+            msg = msg + line
+        await inter.send(msg)
     finally:
         db.close()

@@ -16,6 +16,7 @@ import active_pug
 import elo_tracking
 import map_voting
 import messages
+import openskill_tracking
 import pug_scheduler
 import player_selection
 import player_tracking
@@ -250,6 +251,14 @@ async def clear_bot_pins(inter: discord.ApplicationCommandInteraction):
             await pinned_message.unpin()
     print("Cleared announce channel pins")
     await inter.send("Cleared pins")
+
+
+@client.slash_command(name='rank', description="Display a player's confident openskill rank", default_permission=False)
+@commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
+async def get_player_rank(inter: discord.ApplicationCommandInteraction, player: discord.Member):
+    await asyncio.sleep(0.5)
+    await inter.response.defer()
+    await openskill_tracking.get_rank(inter, player)
 
 
 def start():
