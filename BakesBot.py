@@ -261,6 +261,14 @@ async def get_player_rank(inter: discord.ApplicationCommandInteraction, player: 
     await openskill_tracking.get_rank(inter, player)
 
 
+@client.user_command(name='Get Rank', default_permission=False)
+@commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
+async def get_player_rank_context(inter: discord.ApplicationCommandInteraction):
+    await asyncio.sleep(0.5)
+    await inter.response.defer()
+    await openskill_tracking.get_rank(inter, inter.target)
+
+
 def start():
     client.run(os.getenv('TOKEN'))
 

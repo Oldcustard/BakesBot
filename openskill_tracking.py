@@ -114,7 +114,7 @@ async def get_rank(inter: discord.ApplicationCommandInteraction, user: discord.M
                 continue
             rank = openskill.ordinal(float(mean), float(row[i+1]))
             ranks.append(round(rank))
-        msg = f"{user.display_name} has a rank of at least the following:"
+        msg = f"{user.display_name} has the following ranks:"
         for i, player_class in enumerate(start_pug.emojis_ids.values()):
             line = f"\n{player_class}: {ranks[i]}"
             msg = msg + line
