@@ -172,7 +172,7 @@ async def get_team_balance(inter: discord.ApplicationCommandInteraction):
                 class_ranks.append(round(rank))
                 red_ranks.append(round(rank))
             ranks[player_class] = class_ranks
-        msg = "**Class vs Class balance**"
+        msg = "**Class vs Class Balance**"
         for player_class, player_ranks in ranks.items():
             if player_ranks[0] > player_ranks[1]:
                 better = 'BLU'
@@ -189,6 +189,27 @@ async def get_team_balance(inter: discord.ApplicationCommandInteraction):
         team_better = 'BLU' if blu_avg > red_avg else 'RED'
         msg = msg + f"\n{'**' if team_better == 'BLU' else ''}BLU Average: {blu_avg}{'**' if team_better == 'BLU' else ''} 🟦🟥 " \
                     f"{'**' if team_better == 'RED' else ''}RED Average: {red_avg}{'**' if team_better == 'RED' else ''}"
+
+        msg = msg + f"\n\n**{start_pug.emojis_ids['Pyro']}{start_pug.emojis_ids['Demo']}Combo Balance{start_pug.emojis_ids['Heavy']}{start_pug.emojis_ids['Medic']}**"
+        blu_combo = round((blu_ranks[2] + blu_ranks[3] + blu_ranks[4] + blu_ranks[6])/4, 2)
+        red_combo = round((red_ranks[2] + red_ranks[3] + red_ranks[4] + red_ranks[6])/4, 2)
+        combo_better = 'BLU' if blu_combo > red_combo else 'RED'
+        msg = msg + f"\n{'**' if combo_better == 'BLU' else ''}BLU Average: {blu_combo}{'**' if combo_better == 'BLU' else ''} 🟦🟥 " \
+                    f"{'**' if combo_better == 'RED' else ''}RED Average: {red_combo}{'**' if combo_better == 'RED' else ''}"
+
+        msg = msg + f"\n\n**{start_pug.emojis_ids['Scout']}Flank Balance{start_pug.emojis_ids['Soldier']}**"
+        blu_flank = round((blu_ranks[0] + blu_ranks[1]) / 2, 2)
+        red_flank = round((red_ranks[0] + red_ranks[1]) / 2, 2)
+        flank_better = 'BLU' if blu_flank > red_flank else 'RED'
+        msg = msg + f"\n{'**' if flank_better == 'BLU' else ''}BLU Average: {blu_flank}{'**' if flank_better == 'BLU' else ''} 🟦🟥 " \
+                    f"{'**' if flank_better == 'RED' else ''}RED Average: {red_flank}{'**' if flank_better == 'RED' else ''}"
+
+        msg = msg + f"\n\n**{start_pug.emojis_ids['Sniper']}Picks Balance{start_pug.emojis_ids['Spy']}**"
+        blu_picks = round((blu_ranks[7] + blu_ranks[8]) / 2, 2)
+        red_picks = round((red_ranks[7] + red_ranks[8]) / 2, 2)
+        picks_better = 'BLU' if blu_picks > red_picks else 'RED'
+        msg = msg + f"\n{'**' if picks_better == 'BLU' else ''}BLU Average: {blu_picks}{'**' if picks_better == 'BLU' else ''} 🟦🟥 " \
+                    f"{'**' if picks_better == 'RED' else ''}RED Average: {red_picks}{'**' if picks_better == 'RED' else ''}"
         await inter.send(msg)
     finally:
         db.close()

@@ -285,6 +285,15 @@ async def get_team_balance(inter: discord.ApplicationCommandInteraction):
     await openskill_tracking.get_team_balance(inter)
 
 
+@client.slash_command(name='selectall', description="Assign player to all classes on a team", default_permission=False)
+@commands.guild_permissions(GUILD_ID, user_ids={DEV_ID: True})
+async def assign_player_to_all_classes(inter: discord.ApplicationCommandInteraction, team: Team, user: discord.Member):
+    await asyncio.sleep(0.5)
+    await inter.response.defer()
+    for player_class in player_selection.blu_team.keys():
+        await player_selection.select_player(inter, team, player_class, user)
+
+
 def start():
     client.run(os.getenv('TOKEN'))
 
