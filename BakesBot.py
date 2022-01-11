@@ -204,7 +204,7 @@ async def drag_into_same_vc(inter: discord.ApplicationCommandInteraction):
     await player_selection.drag_into_same_vc(inter)
 
 
-@client.slash_command(name='log', description='Submit the logs.tf log for elo tracking', default_permission=False)
+@client.slash_command(name='log', description='Submit the logs.tf log for openskill tracking', default_permission=False)
 @commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
 async def fetch_logs(inter: discord.ApplicationCommandInteraction, log_url: str):
     await elo_tracking.fetch_logs(inter, log_url)
