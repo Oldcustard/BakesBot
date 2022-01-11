@@ -121,3 +121,74 @@ async def get_rank(inter: discord.ApplicationCommandInteraction, user: discord.M
         await inter.send(msg)
     finally:
         db.close()
+
+
+async def compare_rank(inter: discord.ApplicationCommandInteraction, player_class: str):
+    blu_player = player_selection.blu_team[player_class]
+    red_player = player_selection.red_team[player_class]
+    db = sqlite3.connect('players.db')
+    try:
+        c = db.cursor()
+        c.execute(f'''SELECT player_name, {player_class}_mean, {player_class}_std FROM openskill WHERE player_id = ? OR player_id = ?''', (blu_player.id, red_player.id))
+        players = c.fetchall()
+        msg = ""
+        for row in players:
+            rank = openskill.ordinal(float(row[1]), float(row[2]))
+            msg = msg + f"\n{row[0]} **{player_class}** rank: **{round(rank)}**"
+        await inter.send(msg)
+    finally:
+        db.close()
+
+
+async def get_team_balance(inter: discord.ApplicationCommandInteraction):
+    db = sqlite3.connect('players.db')
+    try:
+        ranks = {}
+        blu_ranks = []
+        red_ranks = []
+        c = db.cursor()
+        for player_class in player_selection.blu_team.keys():
+            blu_player = player_selection.blu_team[player_class]
+            red_player = player_selection.red_team[player_class]
+            class_ranks = []
+            if blu_player is None or red_player is None:
+                continue
+            c.execute(f'''SELECT {player_class}_mean, {player_class}_std FROM openskill WHERE player_id = ?''', (blu_player.id,))
+            row = c.fetchone()
+            if row is None:
+                class_ranks.append(0)
+                blu_ranks.append(0)
+            else:
+                rank = openskill.ordinal(float(row[0]), float(row[1]))
+                class_ranks.append(round(rank))
+                blu_ranks.append(round(rank))
+            c.execute(f'''SELECT {player_class}_mean, {player_class}_std FROM openskill WHERE player_id = ?''', (red_player.id,))
+            row = c.fetchone()
+            if row is None:
+                class_ranks.append(0)
+                red_ranks.append(0)
+            else:
+                rank = openskill.ordinal(float(row[0]), float(row[1]))
+                class_ranks.append(round(rank))
+                red_ranks.append(round(rank))
+            ranks[player_class] = class_ranks
+        msg = "**Class vs Class balance**"
+        for player_class, player_ranks in ranks.items():
+            if player_ranks[0] > player_ranks[1]:
+                better = 'BLU'
+            elif player_ranks[1] > player_ranks[0]:
+                better = 'RED'
+            else:
+                better = 'EVEN'
+            line = f"\n{'**' if better == 'BLU' else ''}{player_selection.blu_team[player_class].display_name} ({player_ranks[0]}){'**' if better == 'BLU' else ''}" \
+                   f" {start_pug.emojis_ids[player_class]}" \
+                   f" {'**' if better == 'RED' else ''}{player_selection.red_team[player_class].display_name} ({player_ranks[1]}){'**' if better == 'RED' else ''}"
+            msg = msg + line
+        blu_avg = round(sum(blu_ranks)/len(blu_ranks), 2)
+        red_avg = round(sum(red_ranks)/len(red_ranks), 2)
+        team_better = 'BLU' if blu_avg > red_avg else 'RED'
+        msg = msg + f"\n{'**' if team_better == 'BLU' else ''}BLU Average: {blu_avg}{'**' if team_better == 'BLU' else ''} 🟦🟥 " \
+                    f"{'**' if team_better == 'RED' else ''}RED Average: {red_avg}{'**' if team_better == 'RED' else ''}"
+        await inter.send(msg)
+    finally:
+        db.close()

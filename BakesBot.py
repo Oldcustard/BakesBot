@@ -269,6 +269,22 @@ async def get_player_rank_context(inter: discord.ApplicationCommandInteraction):
     await openskill_tracking.get_rank(inter, inter.target)
 
 
+@client.slash_command(name='compare', description="Compare a class for balance", default_permission=False)
+@commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
+async def compare_class_rank(inter: discord.ApplicationCommandInteraction, player_class: PlayerClass):
+    await asyncio.sleep(0.5)
+    await inter.response.defer()
+    await openskill_tracking.compare_rank(inter, player_class)
+
+
+@client.slash_command(name='balance', description="Get team balance", default_permission=False)
+@commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
+async def get_team_balance(inter: discord.ApplicationCommandInteraction):
+    await asyncio.sleep(0.5)
+    await inter.response.defer()
+    await openskill_tracking.get_team_balance(inter)
+
+
 def start():
     client.run(os.getenv('TOKEN'))
 
