@@ -6,6 +6,7 @@ from elosports.elo import Elo
 
 import disnake as discord
 
+import openskill_tracking
 import player_selection
 
 
@@ -17,12 +18,16 @@ async def fetch_logs(inter: discord.ApplicationCommandInteraction, log_url):
     for game_round in log_json['rounds']:
         round_wins.append(game_round['winner'])
     score = (log_json['teams']['Blue']['score'], log_json['teams']['Red']['score'])
-    winning_team = 'BLU' if score[0] > score[1] else 'RED'
     game_type = 'AD' if log_json['info']['AD_scoring'] is True else 'KOTH'
+    if game_type == 'AD':
+        winning_team = 'RED' if score[0] > score[1] else 'BLU' #Inverted due to team playing second
+    else:
+        winning_team = 'BLU' if score[0] > score[1] else 'RED'
     await inter.send(f"Game type: {game_type}. Round wins: {round_wins}")
     await inter.send(f"Winning team: {winning_team}. Score {score[0]}-{score[1]}")
-    await update_elo(winning_team, round_wins, game_type)
-    await inter.send("elo scores updated")
+    #await update_elo(winning_team, round_wins, game_type)
+    await openskill_tracking.update_openskill(winning_team, round_wins, game_type)
+    await inter.send("openskill scores updated")
 
 
 async def update_elo(winning_team, round_wins, game_type):

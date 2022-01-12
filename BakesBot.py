@@ -16,6 +16,7 @@ import active_pug
 import elo_tracking
 import map_voting
 import messages
+import openskill_tracking
 import pug_scheduler
 import player_selection
 import player_tracking
@@ -231,7 +232,7 @@ async def drag_into_same_vc(inter: discord.ApplicationCommandInteraction):
     await player_selection.drag_into_same_vc(inter)
 
 
-@client.slash_command(name='log', description='Submit the logs.tf log for elo tracking', default_permission=False)
+@client.slash_command(name='log', description='Submit the logs.tf log for openskill tracking', default_permission=False)
 @commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
 async def fetch_logs(inter: discord.ApplicationCommandInteraction, log_url: str):
     await asyncio.sleep(0.5)
@@ -283,6 +284,47 @@ async def clear_bot_pins(inter: discord.ApplicationCommandInteraction):
             await pinned_message.unpin()
     print("Cleared announce channel pins")
     await inter.send("Cleared pins")
+
+
+@client.slash_command(name='rank', description="Display a player's confident openskill rank", default_permission=False)
+@commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
+async def get_player_rank(inter: discord.ApplicationCommandInteraction, player: discord.Member):
+    await asyncio.sleep(0.5)
+    await inter.response.defer()
+    await openskill_tracking.get_rank(inter, player)
+
+
+@client.user_command(name='Get Rank', default_permission=False)
+@commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
+async def get_player_rank_context(inter: discord.ApplicationCommandInteraction):
+    await asyncio.sleep(0.5)
+    await inter.response.defer()
+    await openskill_tracking.get_rank(inter, inter.target)
+
+
+@client.slash_command(name='compare', description="Compare a class for balance", default_permission=False)
+@commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
+async def compare_class_rank(inter: discord.ApplicationCommandInteraction, player_class: PlayerClass):
+    await asyncio.sleep(0.5)
+    await inter.response.defer()
+    await openskill_tracking.compare_rank(inter, player_class)
+
+
+@client.slash_command(name='balance', description="Get team balance", default_permission=False)
+@commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
+async def get_team_balance(inter: discord.ApplicationCommandInteraction):
+    await asyncio.sleep(0.5)
+    await inter.response.defer()
+    await openskill_tracking.get_team_balance(inter)
+
+
+@client.slash_command(name='selectall', description="Assign player to all classes on a team", default_permission=False)
+@commands.guild_permissions(GUILD_ID, user_ids={DEV_ID: True})
+async def assign_player_to_all_classes(inter: discord.ApplicationCommandInteraction, team: Team, user: discord.Member):
+    await asyncio.sleep(0.5)
+    await inter.response.defer()
+    for player_class in player_selection.blu_team.keys():
+        await player_selection.select_player(inter, team, player_class, user)
 
 
 def start():
