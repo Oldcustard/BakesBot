@@ -1,3 +1,4 @@
+import json
 from typing import List, Dict
 
 import disnake as discord
@@ -26,28 +27,16 @@ class MapVote:
                 option.remove(member)
 
 
-
 active_votes: List[MapVote] = []
-
-payload_map_list = {
-            'Swiftwater': '🚇',
-            'Badwater': '🏜',
-            'Upward': '⛰',
-            'Borneo': '🌲',
-            'Vigil': '🔭',
-            'Steel': '🕳'}
-
-koth_map_list = {
-            'Ashville': '🏭',
-            'Product': '🌉',
-            'Warmtic': '☀'}
 
 
 async def start_map_vote(inter: discord.ApplicationCommandInteraction, map_type):
-    if map_type == "Attack/Defend":
-        map_list = payload_map_list
-    elif map_type == "KOTH":
-        map_list = koth_map_list
+    with open('maps.json', 'rb') as maps_json_file:
+        maps_json = json.load(maps_json_file)
+        if map_type == "Attack/Defend":
+            map_list = maps_json['AD']
+        elif map_type == "KOTH":
+            map_list = maps_json['KOTH']
     maps = []
     selected_maps = []
     for map_name, map_emoji in map_list.items():
