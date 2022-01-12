@@ -1,3 +1,4 @@
+import json
 from typing import List, Dict
 
 import disnake as discord
@@ -26,28 +27,16 @@ class MapVote:
                 option.remove(member)
 
 
-
 active_votes: List[MapVote] = []
-
-payload_map_list = {
-            'Swiftwater': '🚇',
-            'Badwater': '🏜',
-            'Upward': '⛰',
-            'Borneo': '🌲',
-            'Vigil': '🔭',
-            'Steel': '🕳'}
-
-koth_map_list = {
-            'Ashville': '🏭',
-            'Product': '🌉',
-            'Warmtic': '☀'}
 
 
 async def start_map_vote(inter: discord.ApplicationCommandInteraction, map_type):
-    if map_type == "Attack/Defend":
-        map_list = payload_map_list
-    elif map_type == "KOTH":
-        map_list = koth_map_list
+    with open('maps.json', 'rb') as maps_json_file:
+        maps_json = json.load(maps_json_file)
+        if map_type == "Attack/Defend":
+            map_list = maps_json['AD']
+        elif map_type == "KOTH":
+            map_list = maps_json['KOTH']
     maps = []
     selected_maps = []
     for map_name, map_emoji in map_list.items():
@@ -63,7 +52,7 @@ async def start_map_vote(inter: discord.ApplicationCommandInteraction, map_type)
             select.disabled = True
             await inter.edit_original_message(view=self)
 
-    await inter.response.send_message("Select maps", view=MapSelectView())
+    await inter.send("Select maps", view=MapSelectView())
 
     def create_callback():
         async def _vote_for_map(inter: discord.MessageInteraction):
@@ -92,7 +81,7 @@ async def start_map_vote(inter: discord.ApplicationCommandInteraction, map_type)
 
         message = await messages.announceChannel.send("Map voting open. Please select from the maps below (as many as you like)", view=view)
         active_votes.append(MapVote(message, dict([(key, []) for key in selected_maps])))
-        active_pug.start_pug.messages_to_delete.append(message)
+        active_pug.active_start_pug.messages_to_delete.append(message)
 
 
 async def view_results(inter: discord.ApplicationCommandInteraction):

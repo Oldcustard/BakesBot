@@ -76,7 +76,7 @@ async def update_early_signups():
 async def warn_player(player: discord.Member, inter: discord.ApplicationCommandInteraction = None):
     async def respond(message):
         if inter:
-            await inter.response.send_message(message)
+            await inter.send(message)
         else:
             await messages.send_to_admin(message)
 
@@ -131,15 +131,15 @@ async def unwarn_player(player: discord.Member, inter: discord.ApplicationComman
         row = c.fetchone()
 
         if row is None:
-            await inter.response.send_message(f"{player_name} has had no recorded warnings. No action taken.")
+            await inter.send(f"{player_name} has had no recorded warnings. No action taken.")
         elif not row[1]:
-            await inter.response.send_message(f"{player_name} is not currently warned. No action taken.")
+            await inter.send(f"{player_name} is not currently warned. No action taken.")
         else:
             c.execute('''UPDATE warnings
                      SET warned_pugs_remaining = 0, total_warnings = total_warnings - 1
                      WHERE player = ?''', (player_id,))
             await player.send(f"Your active warning for baiting has been removed by an admin.")
-            await inter.response.send_message(f"{player_name} has had their warning removed. They now have {row[2] - 1} total warning{'s' if row[2] - 1 != 1 else ''}.")
+            await inter.send(f"{player_name} has had their warning removed. They now have {row[2] - 1} total warning{'s' if row[2] - 1 != 1 else ''}.")
             print(f"{player_name} has been unwarned.")
 
         db.commit()
@@ -280,10 +280,10 @@ async def player_status(inter: discord.ApplicationCommandInteraction, player: di
         else:
             medic_status = f"**has Medic priority** for **{medics_row[1]}** more pug{'s' if medics_row[1] != 1 else ''}."
 
-        if active_pug.start_pug is None:
+        if active_pug.active_start_pug is None:
             signed_up_classes = "**no classes**"
-        elif player in active_pug.start_pug.player_classes.keys():
-            signed_up_classes = ', '.join([str(emoji) for emoji in active_pug.start_pug.player_classes[player]])
+        elif player in active_pug.active_start_pug.player_classes.keys():
+            signed_up_classes = ', '.join([str(emoji) for emoji in active_pug.active_start_pug.player_classes[player]])
         else:
             signed_up_classes = "**no classes**"
 
