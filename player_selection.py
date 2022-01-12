@@ -59,8 +59,6 @@ async def select_player(inter: discord.ApplicationCommandInteraction, team: str,
         if bluMessage is None:
             bluMessage = await messages.announceChannel.send("BLU Team:\n" + await list_players(blu_team))
             redMessage = await messages.announceChannel.send("RED Team:\n" + await list_players(red_team))
-            await redMessage.pin()
-            await bluMessage.pin()
             active_pug.active_start_pug.messages_to_delete.append(bluMessage)
             active_pug.active_start_pug.messages_to_delete.append(redMessage)
         else:
@@ -74,8 +72,6 @@ async def select_player(inter: discord.ApplicationCommandInteraction, team: str,
         if redMessage is None:
             bluMessage = await messages.announceChannel.send("BLU Team:\n" + await list_players(blu_team))
             redMessage = await messages.announceChannel.send("RED Team:\n" + await list_players(red_team))
-            await redMessage.pin()
-            await bluMessage.pin()
             active_pug.active_start_pug.messages_to_delete.append(bluMessage)
             active_pug.active_start_pug.messages_to_delete.append(redMessage)
         else:
@@ -105,8 +101,6 @@ async def select_player_callback(inter: discord.MessageInteraction):
         if bluMessage is None:
             bluMessage = await messages.announceChannel.send("BLU Team:\n" + await list_players(blu_team))
             redMessage = await messages.announceChannel.send("RED Team:\n" + await list_players(red_team))
-            await redMessage.pin()
-            await bluMessage.pin()
             active_pug.active_start_pug.messages_to_delete.append(bluMessage)
             active_pug.active_start_pug.messages_to_delete.append(redMessage)
         else:
@@ -128,8 +122,6 @@ async def select_player_callback(inter: discord.MessageInteraction):
         if redMessage is None:
             bluMessage = await messages.announceChannel.send("BLU Team:\n" + await list_players(blu_team))
             redMessage = await messages.announceChannel.send("RED Team:\n" + await list_players(red_team))
-            await redMessage.pin()
-            await bluMessage.pin()
             active_pug.active_start_pug.messages_to_delete.append(bluMessage)
             active_pug.active_start_pug.messages_to_delete.append(redMessage)
         else:
