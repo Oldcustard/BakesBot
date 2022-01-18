@@ -307,10 +307,18 @@ async def ping_not_present(inter: discord.ApplicationCommandInteraction):
     player: discord.Member
     signed_up_players = set(blu_team.values()) | set(red_team.values())
     present_players = set(messages.bluChannel.members) | set(messages.redChannel.members) | set(messages.waitingChannel.members)
-    absent_players = [player.mention for player in (signed_up_players - present_players)]
-    message = await messages.announceChannel.send(f"Join up! {', '.join(absent_players)}")
+    absent_players = [player for player in (signed_up_players - present_players)]
+    absent_classes = []
+    for player_class, player in blu_team.items():
+        if player in absent_players:
+            absent_classes.append(player_class)
+    for player_class, player in red_team.items():
+        if player in absent_players:
+            absent_classes.append(player_class)
+    message = await messages.announceChannel.send(f"Join up! {', '.join(player.mention for player in absent_players)}")
     messages_to_delete.append(message)
-    await inter.send("Absent players have been pinged!")
+    absent_classes_string = f"Absent classes: {', '.join(absent_classes)}"
+    await inter.send(f"Absent players have been pinged!\n{absent_classes_string}")
 
 
 async def inform_player_of_late_change(player: discord.Member, player_class: str):
