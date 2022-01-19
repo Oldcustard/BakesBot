@@ -197,7 +197,6 @@ async def get_team_balance(inter: discord.ApplicationCommandInteraction):
         msg += f"\n\n**{start_pug.emojis_ids['Pyro']}{start_pug.emojis_ids['Demo']}Combo Balance{start_pug.emojis_ids['Heavy']}{start_pug.emojis_ids['Medic']}**"
         blu_combo = round((blu_ranks[2] + blu_ranks[3] + blu_ranks[4] + blu_ranks[6])/4, 2)
         red_combo = round((red_ranks[2] + red_ranks[3] + red_ranks[4] + red_ranks[6])/4, 2)
-        combo_better = 'BLU' if blu_combo > red_combo else 'RED'
         if blu_combo > red_combo:
             blu_combo = f"**{blu_combo}**"
         elif red_combo > blu_combo:
