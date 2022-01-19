@@ -173,56 +173,69 @@ async def get_team_balance(inter: discord.ApplicationCommandInteraction):
                 red_ranks.append(round(rank))
             ranks[player_class] = class_ranks
         msg = "**Class vs Class Balance**"
+        blu_name_max_length = max(map(lambda user: len(user.display_name), player_selection.blu_team.values()))
+        red_name_max_length = max(map(lambda user: len(user.display_name), player_selection.red_team.values()))
+
         for player_class, player_ranks in ranks.items():
+            blu_name = f"`{player_selection.blu_team[player_class].display_name.replace('`',''):>{blu_name_max_length}.{blu_name_max_length}} ({player_ranks[0]:+03d})`"
+            red_name = f"`({player_ranks[1]:+03d}) {player_selection.red_team[player_class].display_name.replace('`',''):<{red_name_max_length}.{red_name_max_length}}`"
+            class_emoji = str(start_pug.emojis_ids[player_class])
+            left_space = "      "
+            right_space = "      "
             if player_ranks[0] > player_ranks[1]:
-                better = 'BLU'
+                # blue player is better
+                blu_name = f"***{blu_name}***"
+                left_space = "⬅️"
             elif player_ranks[1] > player_ranks[0]:
-                better = 'RED'
-            else:
-                better = 'EVEN'
-            line = f"\n{'**' if better == 'BLU' else ''}{player_selection.blu_team[player_class].display_name} ({player_ranks[0]}){'**' if better == 'BLU' else ''}" \
-                   f" {start_pug.emojis_ids[player_class]}" \
-                   f" {'**' if better == 'RED' else ''}{player_selection.red_team[player_class].display_name} ({player_ranks[1]}){'**' if better == 'RED' else ''}"
+                # red player is better
+                red_name = f"***{red_name}***"
+                right_space = "➡️"
+
+            line = f"\n{blu_name} {left_space}{class_emoji}{right_space} {red_name}"
             msg += line
 
         blu_avg = round(sum(blu_ranks)/len(blu_ranks), 2)
         red_avg = round(sum(red_ranks)/len(red_ranks), 2)
+        blu_msg = f"BLU Average: {blu_avg}"
+        red_msg = f"RED Average: {red_avg}"
         if blu_avg > red_avg:
-            blu_avg = f"**{blu_avg}**"
+            blu_msg = f"**{blu_msg}**"
         elif red_avg > blu_avg:
-            red_avg = f"**{red_avg}**"
-        msg += f"\nBLU Average: {blu_avg} 🟦🟥 " \
-               f"RED Average: {red_avg}"
+            red_msg = f"**{red_msg}**"
+        msg += f"\n{blu_msg} 🟦🟥 {red_msg}"
 
         msg += f"\n\n**{start_pug.emojis_ids['Pyro']}{start_pug.emojis_ids['Demo']}Combo Balance{start_pug.emojis_ids['Heavy']}{start_pug.emojis_ids['Medic']}**"
         blu_combo = round((blu_ranks[2] + blu_ranks[3] + blu_ranks[4] + blu_ranks[6])/4, 2)
         red_combo = round((red_ranks[2] + red_ranks[3] + red_ranks[4] + red_ranks[6])/4, 2)
+        blu_msg = f"BLU Average: {blu_combo}"
+        red_msg = f"RED Average: {red_combo}"
         if blu_combo > red_combo:
-            blu_combo = f"**{blu_combo}**"
+            blu_msg = f"**{blu_msg}**"
         elif red_combo > blu_combo:
-            red_combo = f"**{red_combo}**"
-        msg += f"\nBLU Average: {blu_combo} 🟦🟥 " \
-               f"RED Average: {red_combo}"
+            red_msg = f"**{red_msg}**"
+        msg += f"\n{blu_msg} 🟦🟥 {red_msg}"
 
         msg += f"\n\n**{start_pug.emojis_ids['Scout']}Flank Balance{start_pug.emojis_ids['Soldier']}**"
         blu_flank = round((blu_ranks[0] + blu_ranks[1]) / 2, 2)
         red_flank = round((red_ranks[0] + red_ranks[1]) / 2, 2)
+        blu_msg = f"BLU Average: {blu_flank}"
+        red_msg = f"RED Average: {red_flank}"
         if blu_flank > red_flank:
-            blu_flank = f"**{blu_flank}**"
+            blu_msg = f"**{blu_msg}**"
         elif red_flank > blu_flank:
-            red_flank = f"**{red_flank}**"
-        msg += f"\nBLU Average: {blu_flank} 🟦🟥 " \
-               f"RED Average: {red_flank}"
+            red_msg = f"**{red_msg}**"
+        msg += f"\n{blu_msg} 🟦🟥 {red_msg}"
 
         msg += f"\n\n**{start_pug.emojis_ids['Sniper']}Picks Balance{start_pug.emojis_ids['Spy']}**"
         blu_picks = round((blu_ranks[7] + blu_ranks[8]) / 2, 2)
         red_picks = round((red_ranks[7] + red_ranks[8]) / 2, 2)
+        blu_msg = f"BLU Average: {blu_picks}"
+        red_msg = f"RED Average: {red_picks}"
         if blu_picks > red_picks:
-            blu_picks = f"**{blu_picks}**"
+            blu_msg = f"**{blu_msg}**"
         elif red_picks > blu_picks:
-            red_picks = f"**{red_picks}**"
-        msg += f"\nBLU Average: {blu_picks} 🟦🟥 " \
-               f"RED Average: {red_picks}"
+            red_msg = f"**{red_msg}**"
+        msg += f"\n{blu_msg} 🟦🟥 {red_msg}"
 
         await inter.send(msg)
     finally:
