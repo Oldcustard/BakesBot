@@ -85,11 +85,15 @@ async def select_player(inter: discord.ApplicationCommandInteraction, team: str,
 async def select_player_callback(inter: discord.MessageInteraction):
     global bluMessage, redMessage, players_changed_late
     team, player_class = inter.component.placeholder.split()
+    pug_starts_soon, _timestamp = await active_pug.active_pug_scheduler.after_penalty_trigger_check()
     if team == 'BLU':
         if len(inter.values) == 0:
-            players_changed_late.append(blu_team[player_class])
+            if pug_starts_soon:
+                players_changed_late.append(blu_team[player_class])
             blu_team[player_class] = None
         else:
+            if blu_team[player_class] is not None and pug_starts_soon:
+                players_changed_late.append(blu_team[player_class])
             player_obj = messages.guild.get_member_named(inter.values[0])
             if player_obj is None:
                 await inter.send("Player not found")
@@ -108,9 +112,12 @@ async def select_player_callback(inter: discord.MessageInteraction):
             await announce_string()
     else:
         if len(inter.values) == 0:
-            players_changed_late.append(red_team[player_class])
+            if pug_starts_soon:
+                players_changed_late.append(red_team[player_class])
             red_team[player_class] = None
         else:
+            if red_team[player_class] is not None and pug_starts_soon:
+                players_changed_late.append(red_team[player_class])
             player_obj = messages.guild.get_member_named(inter.values[0])
             if player_obj is None:
                 await inter.send("Player not found")
@@ -307,10 +314,18 @@ async def ping_not_present(inter: discord.ApplicationCommandInteraction):
     player: discord.Member
     signed_up_players = set(blu_team.values()) | set(red_team.values())
     present_players = set(messages.bluChannel.members) | set(messages.redChannel.members) | set(messages.waitingChannel.members)
-    absent_players = [player.mention for player in (signed_up_players - present_players)]
-    message = await messages.announceChannel.send(f"Join up! {', '.join(absent_players)}")
+    absent_players = [player for player in (signed_up_players - present_players)]
+    absent_classes = []
+    for player_class, player in blu_team.items():
+        if player in absent_players:
+            absent_classes.append(player_class)
+    for player_class, player in red_team.items():
+        if player in absent_players:
+            absent_classes.append(player_class)
+    message = await messages.announceChannel.send(f"Join up! {', '.join(player.mention for player in absent_players)}")
     messages_to_delete.append(message)
-    await inter.send("Absent players have been pinged!")
+    absent_classes_string = f"Absent classes: {', '.join(absent_classes)}"
+    await inter.send(f"Absent players have been pinged!\n{absent_classes_string}")
 
 
 async def inform_player_of_late_change(player: discord.Member, player_class: str):

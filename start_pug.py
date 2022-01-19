@@ -1,3 +1,4 @@
+import asyncio
 from typing import Dict, List, Tuple
 
 import disnake as discord
@@ -113,6 +114,7 @@ class StartPug:
         return earlyPugMessage, earlyPugMedicMessage
 
     async def signup_player_callback(self, inter: discord.MessageInteraction):
+        await asyncio.sleep(0.5)
         await inter.response.defer()
         if await player_tracking.check_active_baiter(inter.author):
             before_late_signup_time, late_signup_time = await self.pug_scheduler.penalty_signups_check()
