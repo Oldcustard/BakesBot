@@ -85,11 +85,15 @@ async def select_player(inter: discord.ApplicationCommandInteraction, team: str,
 async def select_player_callback(inter: discord.MessageInteraction):
     global bluMessage, redMessage, players_changed_late
     team, player_class = inter.component.placeholder.split()
+    pug_starts_soon, _timestamp = await active_pug.active_pug_scheduler.after_penalty_trigger_check()
     if team == 'BLU':
         if len(inter.values) == 0:
-            players_changed_late.append(blu_team[player_class])
+            if pug_starts_soon:
+                players_changed_late.append(blu_team[player_class])
             blu_team[player_class] = None
         else:
+            if blu_team[player_class] is not None and pug_starts_soon:
+                players_changed_late.append(blu_team[player_class])
             player_obj = messages.guild.get_member_named(inter.values[0])
             if player_obj is None:
                 await inter.send("Player not found")
@@ -108,9 +112,12 @@ async def select_player_callback(inter: discord.MessageInteraction):
             await announce_string()
     else:
         if len(inter.values) == 0:
-            players_changed_late.append(red_team[player_class])
+            if pug_starts_soon:
+                players_changed_late.append(red_team[player_class])
             red_team[player_class] = None
         else:
+            if red_team[player_class] is not None and pug_starts_soon:
+                players_changed_late.append(red_team[player_class])
             player_obj = messages.guild.get_member_named(inter.values[0])
             if player_obj is None:
                 await inter.send("Player not found")
