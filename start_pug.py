@@ -71,7 +71,7 @@ class StartPug:
             time_to_pug = time_to_pug + datetime.timedelta(days=7)  # Ensure pug is in the future
         pug_date = current_date + time_to_pug
         pug_date = pug_date.replace(hour=int(self.PUG_HOUR), minute=0, second=0, microsecond=0)
-        print(f"Pug announced. Pug is on {pug_date}")
+        print(f"Pug is on {pug_date}")
         pug_timestamp = round(datetime.datetime.timestamp(pug_date))
         pug_time_string = f"<t:{pug_timestamp}:F>"
         return pug_date, pug_time_string
@@ -92,7 +92,8 @@ class StartPug:
         return pugMessage, pug_date
 
     async def announce_early(self, early_signups_channel: discord.TextChannel, signups_channel: discord.TextChannel):
-        _pug_date, time_string = await self.get_pug_time()
+        pug_date, time_string = await self.get_pug_time()
+        self.pug_scheduler.penalty_trigger_time = pug_date - datetime.timedelta(hours=self.pug_scheduler.PENALTY_TRIGGER_OFFSET)
         announce_message = f"{messages.medic_role.mention}\n{self.EARLY_ANNOUNCE_STRING} \nPug will be on {time_string}\nPress withdraw if you can no longer play."
         medic_announce_message = f"\nEarly signups open!\nIf you want to play **Medic** for the pug on {time_string}, press the button below. Medics will gain 3 weeks of early signup!"
         early_view = discord.ui.View(timeout=None)
