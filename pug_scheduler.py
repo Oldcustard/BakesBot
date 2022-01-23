@@ -75,8 +75,6 @@ class PugScheduler:
                 self.pugMessage, self.pug_date = await self.start_pug.announce_pug(announce_channel)
                 await messages.send_to_admin(f"{messages.host_role.mention}: **Bakes Pug has been announced.**")
                 asyncio.ensure_future(self.schedule_pug_start(self.pug_date))
-                active_pug.active_pug_scheduler = self
-                active_pug.active_start_pug = self.start_pug
         except asyncio.CancelledError:
             print(f"Announcement for {announce_date} has been cancelled.")
             await messages.send_to_admin(f"Announcement for <t:{announce_timestamp}:F> has been cancelled.")

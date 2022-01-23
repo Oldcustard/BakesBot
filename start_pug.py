@@ -6,6 +6,7 @@ import time
 import datetime
 import configparser
 
+import active_pug
 import map_voting
 import messages
 import player_selection
@@ -264,4 +265,5 @@ class StartPug:
         player_selection.players_changed_late.clear()
         self.signups = dict.fromkeys(self.signups.keys(), [])
         self.player_classes = {}
+        active_pug.change_active_pug()
         print("Pug status reset; messages deleted")
