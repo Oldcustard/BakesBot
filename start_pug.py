@@ -57,7 +57,6 @@ class StartPug:
         }
 
         self.player_classes: Dict[discord.Member, List[discord.Emoji]] = {}
-        self.fill_players: List[discord.Member] = []
 
         self.signupsMessage: discord.Message | None = None
         self.signupsListMessage: discord.Message | None = None
@@ -87,9 +86,9 @@ class StartPug:
             button = discord.ui.Button(label=class_name, emoji=class_emoji)
             button.callback = self.signup_player_callback
             view.add_item(button)
-        fill_button = discord.ui.Button(label='Fill', emoji=allclass_emoji_id, style=discord.ButtonStyle.success)
+        fill_button = discord.ui.Button(label='Any Class', emoji=allclass_emoji_id, style=discord.ButtonStyle.success)
         withdraw_button = discord.ui.Button(label='Withdraw', emoji='❌', style=discord.ButtonStyle.danger)
-        fill_button.callback = self.fill_callback
+        fill_button.callback = self.signup_player_callback
         withdraw_button.callback = self.withdraw_player
         view.add_item(fill_button)
         view.add_item(withdraw_button)
@@ -107,8 +106,11 @@ class StartPug:
             button = discord.ui.Button(label=class_name, emoji=class_emoji)
             button.callback = self.signup_player_callback
             early_view.add_item(button)
+        fill_button = discord.ui.Button(label='Any Class', emoji=allclass_emoji_id, style=discord.ButtonStyle.success)
         withdraw_button = discord.ui.Button(label='Withdraw', emoji='❌', style=discord.ButtonStyle.danger)
+        fill_button.callback = self.signup_player_callback
         withdraw_button.callback = self.withdraw_player
+        early_view.add_item(fill_button)
         early_view.add_item(withdraw_button)
         earlyPugMessage: discord.Message = await early_signups_channel.send(announce_message, view=early_view)
         early_medic_view = discord.ui.View(timeout=None)
@@ -131,15 +133,22 @@ class StartPug:
                 print(
                     f"{inter.author.display_name} attempted to sign up, but was denied due to warning")
                 return
-        players = self.signups[str(inter.component.emoji)]
         if inter.author not in self.player_classes:  # Add player to the player list
             self.player_classes[inter.author] = []
+        if discord.PartialEmoji.from_str(allclass_emoji_id) in self.player_classes[inter.author]:
+            await inter.send(f"You have already signed up for any class. To sign up for specific classes, please withdraw first.", ephemeral=True)
+            return
         if inter.component.emoji in self.player_classes[inter.author]:  # Player already signed up for this class
             await inter.send(f"You are already signed up for {inter.component.emoji}{inter.component.label}", ephemeral=True)
             return
+        if str(inter.component.emoji) == allclass_emoji_id and len(self.player_classes[inter.author]) > 0:
+            await inter.send(f"You have already signed up for specific classes. To sign up for any class, please withdraw first.", ephemeral=True)
+            return
         self.player_classes[inter.author].append(inter.component.emoji)  # Add class to that player's list
         preference = len(self.player_classes[inter.author])  # Preference for this class
-        players.append((inter.author, preference))
+        if str(inter.component.emoji) != allclass_emoji_id:
+            players = self.signups[str(inter.component.emoji)]
+            players.append((inter.author, preference))
         print(f'{inter.author.display_name} has signed up for {inter.component.label}')
         if self.signupsMessage is None:
             self.signupsMessage = await messages.send_to_admin(await self.list_players_by_class())
@@ -149,35 +158,12 @@ class StartPug:
         else:
             self.signupsMessage = await self.signupsMessage.edit(content=await self.list_players_by_class())
             self.signupsListMessage = await self.signupsListMessage.edit(content=await self.list_players())
-        await inter.send(f"Successfully signed up for {inter.component.emoji}{inter.component.label} (preference {preference})", ephemeral=True)
-
-    async def fill_callback(self, inter: discord.MessageInteraction):
-        await asyncio.sleep(0.5)
-        await inter.response.defer()
-        if await player_tracking.check_active_baiter(inter.author):
-            before_late_signup_time, late_signup_time = await self.pug_scheduler.penalty_signups_check()
-            if before_late_signup_time:
-                await inter.send(
-                    f"You have a current active warning, and are subject to a late signup penalty. You will be able to signup from {late_signup_time}",
-                    ephemeral=True)
-                print(
-                    f"{inter.author.display_name} attempted to sign up, but was denied due to warning")
-                return
-        if inter.author in self.fill_players:
-            await inter.send(f"You are already signed up as a {allclass_emoji_id} fill player.",
-                             ephemeral=True)
-            return
-        self.fill_players.append(inter.author)
-        print(f'{inter.author.display_name} has signed up as a fill player.')
-        if self.signupsMessage is None:
-            self.signupsMessage = await messages.send_to_admin(await self.list_players_by_class())
-            self.signupsListMessage = await messages.send_to_admin(await self.list_players())
-            await self.signupsMessage.pin()
-            await self.signupsListMessage.pin()
+        if str(inter.component.emoji) == allclass_emoji_id:
+            await inter.send(
+                f"Successfully signed up for {inter.component.emoji}{inter.component.label}",
+                ephemeral=True)
         else:
-            self.signupsMessage = await self.signupsMessage.edit(content=await self.list_players_by_class())
-            self.signupsListMessage = await self.signupsListMessage.edit(content=await self.list_players())
-        await inter.send(f"Successfully signed up as a {allclass_emoji_id} fill player.", ephemeral=True)
+            await inter.send(f"Successfully signed up for {inter.component.emoji}{inter.component.label} (preference {preference})", ephemeral=True)
 
     async def list_players_by_class(self):
         signupClass: str
@@ -197,8 +183,7 @@ class StartPug:
         return msg
 
     async def list_players(self):
-        msg = "Signups in order: " + ', '.join(player.display_Name for player in self.player_classes.keys())
-        msg += "\nFill players: " + ", ".join(player.display_name for player in self.fill_players)
+        msg = "Signups in order: " + ', '.join(f"{player.display_name} {'(*)' if discord.PartialEmoji.from_str(allclass_emoji_id) in self.player_classes[player] else ''}" for player in self.player_classes.keys())
         return msg
 
     async def withdraw_player(self, inter: discord.ApplicationCommandInteraction | discord.MessageInteraction, user: discord.Member = None):
@@ -217,16 +202,13 @@ class StartPug:
             elif isinstance(inter, discord.MessageInteraction): # User invoked withdraw
                 await inter.send(message, ephemeral=True)
 
-        if user not in self.player_classes and user not in self.fill_players:  # user is already withdrawn
+        if user not in self.player_classes:  # user is already withdrawn
             if isinstance(inter, discord.ApplicationCommandInteraction):
                 await respond_admin(f"{user.display_name} is already withdrawn.")
             elif isinstance(inter, discord.MessageInteraction):
                 await respond_user(f"You are already withdrawn.")
             return
-        if user in self.player_classes:
-            self.player_classes.pop(user)
-        else:
-            self.fill_players.remove(user)
+        self.player_classes.pop(user)
         for signup_class in self.signups.values():
             for signup in signup_class:
                 if user in signup:
