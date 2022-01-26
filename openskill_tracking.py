@@ -1,4 +1,5 @@
 import sqlite3
+import regex
 
 import openskill
 import openskill.models
@@ -173,12 +174,14 @@ async def get_team_balance(inter: discord.ApplicationCommandInteraction):
                 red_ranks.append(round(rank))
             ranks[player_class] = class_ranks
         msg = "**Class vs Class Balance**"
-        blu_name_max_length = max(map(lambda user: len(user.display_name), player_selection.blu_team.values()))
-        red_name_max_length = max(map(lambda user: len(user.display_name), player_selection.red_team.values()))
+        blu_name_max_length = max(map(get_display_name_width, player_selection.blu_team.values()))
+        red_name_max_length = max(map(get_display_name_width, player_selection.red_team.values()))
 
         for player_class, player_ranks in ranks.items():
-            blu_name = f"`{player_selection.blu_team[player_class].display_name.replace('`',''):>{blu_name_max_length}.{blu_name_max_length}} ({player_ranks[0]:+03d})`"
-            red_name = f"`({player_ranks[1]:+03d}) {player_selection.red_team[player_class].display_name.replace('`',''):<{red_name_max_length}.{red_name_max_length}}`"
+            blu_emoji_match = regex.findall("\p{Emoji=yes}", player_selection.blu_team[player_class].display_name)
+            red_emoji_match = regex.findall("\p{Emoji=yes}", player_selection.red_team[player_class].display_name)
+            blu_name = f"`{player_selection.blu_team[player_class].display_name.replace('`',''):>{blu_name_max_length - len(blu_emoji_match)}} ({player_ranks[0]:+03d})`"
+            red_name = f"`({player_ranks[1]:+03d}) {player_selection.red_team[player_class].display_name.replace('`',''):<{red_name_max_length - len(red_emoji_match)}}`"
             class_emoji = str(start_pug.emojis_ids[player_class])
             left_space = "      "
             right_space = "      "
@@ -240,3 +243,8 @@ async def get_team_balance(inter: discord.ApplicationCommandInteraction):
         await inter.send(msg)
     finally:
         db.close()
+
+def get_display_name_width(user: discord.User):
+    base_length = len(user.display_name)
+    emoji_match = regex.findall("\p{Emoji=yes}", user.display_name)
+    return base_length + len(emoji_match)
