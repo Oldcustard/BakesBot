@@ -27,11 +27,14 @@ class PugScheduler:
         config.read('config.ini')
         timing_config = config['Timing Settings']
         if pug_id == 'main':
+            other_pug_config = config['Second Pug Settings']
             config = config['Main Pug Settings']
         elif pug_id == 'second':
+            other_pug_config = config['Main Pug Settings']
             config = config['Second Pug Settings']
 
         self.pug_enabled = bool(strtobool(config['pug enabled']))
+        self.other_pug_enabled = bool(strtobool(other_pug_config['pug enabled']))
 
         self.ANNOUNCE_WDAY = config['announce weekday']
         self.ANNOUNCE_HOUR = config['announce hour']
@@ -89,6 +92,9 @@ class PugScheduler:
             await messages.send_to_admin(f"{messages.host_role.mention}: **Early signups are open**")
             active_pug.early_pug_scheduler = self
             active_pug.early_start_pug = self.start_pug
+            if not self.other_pug_enabled:
+                active_pug.active_pug_scheduler = self
+                active_pug.active_start_pug = self.start_pug
         except asyncio.CancelledError:
             print(f"Early Announcement for {early_announce_date} has been cancelled.")
             await messages.send_to_admin(f"Early Announcement for <t:{early_announce_timestamp}:F> has been cancelled.")
