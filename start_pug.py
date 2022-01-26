@@ -6,6 +6,7 @@ import time
 import datetime
 import configparser
 
+import active_pug
 import map_voting
 import messages
 import player_selection
@@ -23,6 +24,8 @@ emojis_ids = {
     'Sniper': '<:sniper:902551045891313754>',
     'Spy': '<:spy:902551045853560842>'
 }
+
+allclass_emoji_id = '<:allclass:934032081670008842>'
 
 
 class StartPug:
@@ -71,7 +74,7 @@ class StartPug:
             time_to_pug = time_to_pug + datetime.timedelta(days=7)  # Ensure pug is in the future
         pug_date = current_date + time_to_pug
         pug_date = pug_date.replace(hour=int(self.PUG_HOUR), minute=0, second=0, microsecond=0)
-        print(f"Pug announced. Pug is on {pug_date}")
+        print(f"Pug is on {pug_date}")
         pug_timestamp = round(datetime.datetime.timestamp(pug_date))
         pug_time_string = f"<t:{pug_timestamp}:F>"
         return pug_date, pug_time_string
@@ -84,15 +87,19 @@ class StartPug:
             button = discord.ui.Button(label=class_name, emoji=class_emoji)
             button.callback = self.signup_player_callback
             view.add_item(button)
+        fill_button = discord.ui.Button(label='Any Class', emoji=allclass_emoji_id, style=discord.ButtonStyle.success)
         withdraw_button = discord.ui.Button(label='Withdraw', emoji='❌', style=discord.ButtonStyle.danger)
+        fill_button.callback = self.signup_player_callback
         withdraw_button.callback = self.withdraw_player
+        view.add_item(fill_button)
         view.add_item(withdraw_button)
         pugMessage: discord.Message = await channel.send(announce_message, view=view)
         self.messages_to_delete.append(pugMessage)
         return pugMessage, pug_date
 
     async def announce_early(self, early_signups_channel: discord.TextChannel, signups_channel: discord.TextChannel):
-        _pug_date, time_string = await self.get_pug_time()
+        pug_date, time_string = await self.get_pug_time()
+        self.pug_scheduler.penalty_trigger_time = pug_date - datetime.timedelta(hours=self.pug_scheduler.PENALTY_TRIGGER_OFFSET)
         announce_message = f"{messages.medic_role.mention}\n{self.EARLY_ANNOUNCE_STRING} \nPug will be on {time_string}\nPress withdraw if you can no longer play."
         medic_announce_message = f"@everyone\nEarly signups open!\nIf you want to play **Medic** for the pug on {time_string}, press the button below. Medics will gain 3 weeks of early signup!"
         early_view = discord.ui.View(timeout=None)
@@ -100,8 +107,11 @@ class StartPug:
             button = discord.ui.Button(label=class_name, emoji=class_emoji)
             button.callback = self.signup_player_callback
             early_view.add_item(button)
+        fill_button = discord.ui.Button(label='Any Class', emoji=allclass_emoji_id, style=discord.ButtonStyle.success)
         withdraw_button = discord.ui.Button(label='Withdraw', emoji='❌', style=discord.ButtonStyle.danger)
+        fill_button.callback = self.signup_player_callback
         withdraw_button.callback = self.withdraw_player
+        early_view.add_item(fill_button)
         early_view.add_item(withdraw_button)
         earlyPugMessage: discord.Message = await early_signups_channel.send(announce_message, view=early_view)
         early_medic_view = discord.ui.View(timeout=None)
@@ -124,15 +134,22 @@ class StartPug:
                 print(
                     f"{inter.author.display_name} attempted to sign up, but was denied due to warning")
                 return
-        players = self.signups[str(inter.component.emoji)]
         if inter.author not in self.player_classes:  # Add player to the player list
             self.player_classes[inter.author] = []
+        if discord.PartialEmoji.from_str(allclass_emoji_id) in self.player_classes[inter.author]:
+            await inter.send(f"You have already signed up for any class. To sign up for specific classes, please withdraw first.", ephemeral=True)
+            return
         if inter.component.emoji in self.player_classes[inter.author]:  # Player already signed up for this class
             await inter.send(f"You are already signed up for {inter.component.emoji}{inter.component.label}", ephemeral=True)
             return
+        if str(inter.component.emoji) == allclass_emoji_id and len(self.player_classes[inter.author]) > 0:
+            await inter.send(f"You have already signed up for specific classes. To sign up for any class, please withdraw first.", ephemeral=True)
+            return
         self.player_classes[inter.author].append(inter.component.emoji)  # Add class to that player's list
         preference = len(self.player_classes[inter.author])  # Preference for this class
-        players.append((inter.author, preference))
+        if str(inter.component.emoji) != allclass_emoji_id:
+            players = self.signups[str(inter.component.emoji)]
+            players.append((inter.author, preference))
         print(f'{inter.author.display_name} has signed up for {inter.component.label}')
         if self.signupsMessage is None:
             self.signupsMessage = await messages.send_to_admin(await self.list_players_by_class())
@@ -142,7 +159,12 @@ class StartPug:
         else:
             self.signupsMessage = await self.signupsMessage.edit(content=await self.list_players_by_class())
             self.signupsListMessage = await self.signupsListMessage.edit(content=await self.list_players())
-        await inter.send(f"Successfully signed up for {inter.component.emoji}{inter.component.label} (preference {preference})", ephemeral=True)
+        if str(inter.component.emoji) == allclass_emoji_id:
+            await inter.send(
+                f"Successfully signed up for {inter.component.emoji}{inter.component.label}",
+                ephemeral=True)
+        else:
+            await inter.send(f"Successfully signed up for {inter.component.emoji}{inter.component.label} (preference {preference})", ephemeral=True)
 
     async def list_players_by_class(self):
         signupClass: str
@@ -162,12 +184,7 @@ class StartPug:
         return msg
 
     async def list_players(self):
-        msg = ''
-        players = self.player_classes.keys()
-        player_names = []
-        for player in players:
-            player_names.append(player.display_name)
-        msg = "Signups in order: " + ', '.join(player_names)
+        msg = "Signups in order: " + ', '.join(f"{player.display_name} {'(*)' if discord.PartialEmoji.from_str(allclass_emoji_id) in self.player_classes[player] else ''}" for player in self.player_classes.keys())
         return msg
 
     async def withdraw_player(self, inter: discord.ApplicationCommandInteraction | discord.MessageInteraction, user: discord.Member = None):
@@ -263,4 +280,5 @@ class StartPug:
         player_selection.players_changed_late.clear()
         self.signups = dict.fromkeys(self.signups.keys(), [])
         self.player_classes = {}
+        active_pug.change_active_pug()
         print("Pug status reset; messages deleted")

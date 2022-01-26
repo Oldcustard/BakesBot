@@ -67,8 +67,6 @@ class PugScheduler:
                                                       microsecond=0)
                 early_announce_date = announce_date - datetime.timedelta(hours=self.EARLY_OFFSET)
                 self.penalty_signup_time = announce_date + datetime.timedelta(hours=self.LATE_SIGNUP_PENALTY)
-                pug_date_for_penalty, _time_string = await self.start_pug.get_pug_time()
-                self.penalty_trigger_time = pug_date_for_penalty - datetime.timedelta(hours=self.PENALTY_TRIGGER_OFFSET)
                 self.early_announcement_future = asyncio.ensure_future(self.schedule_early_announcement(messages.earlyAnnounceChannel, announce_channel, early_announce_date))
                 print(f"Pug announcement scheduled for {announce_date}")
                 announce_timestamp = round(datetime.datetime.timestamp(announce_date))
@@ -77,8 +75,6 @@ class PugScheduler:
                 self.pugMessage, self.pug_date = await self.start_pug.announce_pug(announce_channel)
                 await messages.send_to_admin(f"{messages.host_role.mention}: **Bakes Pug has been announced.**")
                 asyncio.ensure_future(self.schedule_pug_start(self.pug_date))
-                active_pug.active_pug_scheduler = self
-                active_pug.active_start_pug = self.start_pug
         except asyncio.CancelledError:
             print(f"Announcement for {announce_date} has been cancelled.")
             await messages.send_to_admin(f"Announcement for <t:{announce_timestamp}:F> has been cancelled.")
