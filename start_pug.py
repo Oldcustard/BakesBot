@@ -184,7 +184,7 @@ class StartPug:
         return msg
 
     async def list_players(self):
-        msg = "Signups in order: " + ', '.join(f"{player.display_name} {'(*)' if discord.PartialEmoji.from_str(allclass_emoji_id) in self.player_classes[player] else ''}" for player in self.player_classes.keys())
+        msg = "Signups in order: " + ', '.join(f"{player.display_name}{' (*)' if discord.PartialEmoji.from_str(allclass_emoji_id) in self.player_classes[player] else ''}" for player in self.player_classes.keys())
         return msg
 
     async def withdraw_player(self, inter: discord.ApplicationCommandInteraction | discord.MessageInteraction, user: discord.Member = None):
