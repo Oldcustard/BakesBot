@@ -158,20 +158,20 @@ async def get_team_balance(inter: discord.ApplicationCommandInteraction):
             row = c.fetchone()
             if row is None:
                 class_ranks.append(0)
-                blu_ranks.append(0)
+                blu_ranks.append(openskill.create_rating([25, 8.3333]))
             else:
                 rank = openskill.ordinal(float(row[0]), float(row[1]))
                 class_ranks.append(round(rank))
-                blu_ranks.append(round(rank))
+                blu_ranks.append(openskill.create_rating([row[0], row[1]]))
             c.execute(f'''SELECT {player_class}_mean, {player_class}_std FROM openskill WHERE player_id = ?''', (red_player.id,))
             row = c.fetchone()
             if row is None:
                 class_ranks.append(0)
-                red_ranks.append(0)
+                red_ranks.append(openskill.create_rating([25, 8.3333]))
             else:
                 rank = openskill.ordinal(float(row[0]), float(row[1]))
                 class_ranks.append(round(rank))
-                red_ranks.append(round(rank))
+                red_ranks.append(openskill.create_rating([row[0], row[1]]))
             ranks[player_class] = class_ranks
         msg = "**Class vs Class Balance**"
         blu_name_max_length = max(map(get_display_name_width, player_selection.blu_team.values()))
@@ -197,46 +197,42 @@ async def get_team_balance(inter: discord.ApplicationCommandInteraction):
             line = f"\n{blu_name} {left_space}{class_emoji}{right_space} {red_name}"
             msg += line
 
-        blu_avg = round(sum(blu_ranks)/len(blu_ranks), 2)
-        red_avg = round(sum(red_ranks)/len(red_ranks), 2)
-        blu_msg = f"BLU Average: {blu_avg}"
-        red_msg = f"RED Average: {red_avg}"
-        if blu_avg > red_avg:
+        win_percent = openskill.predict_win([blu_ranks, red_ranks])
+        blu_msg = f"BLU Win Prediction: {round(win_percent[0]*100, 1)}%"
+        red_msg = f"RED Win Prediction: {round(win_percent[1]*100, 1)}%"
+        if win_percent[0] > win_percent[1]:
             blu_msg = f"**{blu_msg}**"
-        elif red_avg > blu_avg:
+        elif win_percent[1] > win_percent[0]:
             red_msg = f"**{red_msg}**"
         msg += f"\n{blu_msg} 🟦🟥 {red_msg}"
 
         msg += f"\n\n**{start_pug.emojis_ids['Pyro']}{start_pug.emojis_ids['Demo']}Combo Balance{start_pug.emojis_ids['Heavy']}{start_pug.emojis_ids['Medic']}**"
-        blu_combo = round((blu_ranks[2] + blu_ranks[3] + blu_ranks[4] + blu_ranks[6])/4, 2)
-        red_combo = round((red_ranks[2] + red_ranks[3] + red_ranks[4] + red_ranks[6])/4, 2)
-        blu_msg = f"BLU Average: {blu_combo}"
-        red_msg = f"RED Average: {red_combo}"
-        if blu_combo > red_combo:
+        combo_percent = openskill.predict_win([[blu_ranks[2], blu_ranks[3], blu_ranks[4], blu_ranks[6]], [red_ranks[2], red_ranks[3], red_ranks[4], red_ranks[6]]])
+        blu_msg = f"BLU Win Prediction: {round(combo_percent[0]*100, 1)}%"
+        red_msg = f"RED Win Prediction: {round(combo_percent[1]*100, 1)}%"
+        if combo_percent[0] > combo_percent[1]:
             blu_msg = f"**{blu_msg}**"
-        elif red_combo > blu_combo:
+        elif combo_percent[1] > combo_percent[0]:
             red_msg = f"**{red_msg}**"
         msg += f"\n{blu_msg} 🟦🟥 {red_msg}"
 
         msg += f"\n\n**{start_pug.emojis_ids['Scout']}Flank Balance{start_pug.emojis_ids['Soldier']}**"
-        blu_flank = round((blu_ranks[0] + blu_ranks[1]) / 2, 2)
-        red_flank = round((red_ranks[0] + red_ranks[1]) / 2, 2)
-        blu_msg = f"BLU Average: {blu_flank}"
-        red_msg = f"RED Average: {red_flank}"
-        if blu_flank > red_flank:
+        flank_percent = openskill.predict_win([[blu_ranks[0], blu_ranks[1]], [red_ranks[0], red_ranks[1]]])
+        blu_msg = f"BLU Win Prediction: {round(flank_percent[0]*100, 1)}%"
+        red_msg = f"RED Win Prediction: {round(flank_percent[1]*100, 1)}%"
+        if flank_percent[0] > flank_percent[1]:
             blu_msg = f"**{blu_msg}**"
-        elif red_flank > blu_flank:
+        elif flank_percent[1] > flank_percent[0]:
             red_msg = f"**{red_msg}**"
         msg += f"\n{blu_msg} 🟦🟥 {red_msg}"
 
         msg += f"\n\n**{start_pug.emojis_ids['Sniper']}Picks Balance{start_pug.emojis_ids['Spy']}**"
-        blu_picks = round((blu_ranks[7] + blu_ranks[8]) / 2, 2)
-        red_picks = round((red_ranks[7] + red_ranks[8]) / 2, 2)
-        blu_msg = f"BLU Average: {blu_picks}"
-        red_msg = f"RED Average: {red_picks}"
-        if blu_picks > red_picks:
+        picks_percent = openskill.predict_win([[blu_ranks[7], blu_ranks[8]], [red_ranks[7], red_ranks[8]]]) #78
+        blu_msg = f"BLU Average: {round(picks_percent[0]*100, 1)}%"
+        red_msg = f"RED Average: {round(picks_percent[1]*100, 1)}%"
+        if picks_percent[0] > picks_percent[1]:
             blu_msg = f"**{blu_msg}**"
-        elif red_picks > blu_picks:
+        elif picks_percent[1] > picks_percent[0]:
             red_msg = f"**{red_msg}**"
         msg += f"\n{blu_msg} 🟦🟥 {red_msg}"
 
