@@ -32,6 +32,7 @@ async def add_medic(player: discord.User):
 
 async def decrement_medic_counters():
     db = sqlite3.connect('players.db')
+    decrement_value = 2 if active_pug.active_pug_scheduler.other_pug_enabled else 1
     try:
         c = db.cursor()
 
@@ -39,10 +40,10 @@ async def decrement_medic_counters():
             (player TEXT PRIMARY KEY, pugs_remaining INTEGER)''')
 
         c.execute('''UPDATE medics
-        SET pugs_remaining = pugs_remaining - 1''')  # Reduce weeks remaining by 1
+        SET pugs_remaining = pugs_remaining - ?''', (decrement_value,))  # Reduce weeks remaining by the decrement value
 
         c.execute('''DELETE FROM medics
-        WHERE pugs_remaining = 0''')  # Delete from table if weeks remaining is 0
+        WHERE pugs_remaining <= 0''')  # Delete from table if weeks remaining is 0
 
         c.execute('''SELECT player, pugs_remaining FROM medics''')
         medics = c.fetchall()
@@ -149,11 +150,14 @@ async def unwarn_player(player: discord.Member, inter: discord.ApplicationComman
 
 async def decrement_active_warnings():
     db = sqlite3.connect('players.db')
+    decrement_value = 2 if active_pug.active_pug_scheduler.other_pug_enabled else 1
     try:
         c = db.cursor()
 
         c.execute('''UPDATE warnings
-           SET warned_pugs_remaining = warned_pugs_remaining - 1 WHERE warned_pugs_remaining > 0''')  # Decrement active warnings.
+           SET warned_pugs_remaining = warned_pugs_remaining - ? WHERE warned_pugs_remaining > 1''', (decrement_value,))  # Decrement active warnings.
+        c.execute('''UPDATE warnings
+           SET warned_pugs_remaining = warned_pugs_remaining - 1 WHERE warned_pugs_remaining == 1''')
 
         db.commit()
     finally:
@@ -250,6 +254,7 @@ async def player_status(inter: discord.ApplicationCommandInteraction, player: di
     player_name = player.display_name
     player_id = player.id
     db = sqlite3.connect('players.db')
+    two_pugs = active_pug.active_pug_scheduler.other_pug_enabled
     try:
         c = db.cursor()
 
@@ -265,7 +270,8 @@ async def player_status(inter: discord.ApplicationCommandInteraction, player: di
             active_warning = "**not currently warned**"
             total_warnings = warnings_row[2]
         else:
-            active_warning = f"**currently warned for {warnings_row[1]} more pugs**"
+            pugs_remaining = warnings_row[1] // 2 + (warnings_row[1] % 2 > 0) if two_pugs else warnings_row[1]
+            active_warning = f"**currently warned for {pugs_remaining} more pugs**"
             total_warnings = warnings_row[2]
 
         if warnings_row is None:
@@ -278,7 +284,8 @@ async def player_status(inter: discord.ApplicationCommandInteraction, player: di
         if medics_row is None:
             medic_status = "**does not have Medic priority**."
         else:
-            medic_status = f"**has Medic priority** for **{medics_row[1]}** more pug{'s' if medics_row[1] != 1 else ''}."
+            pugs_remaining = (medics_row[1] // 2) + (medics_row[1] % 2 > 0) if two_pugs else warnings_row[1]
+            medic_status = f"**has Medic priority** for **{pugs_remaining}** more pug{'s' if medics_row[1] != 1 else ''}."
 
         if active_pug.active_start_pug is None:
             signed_up_classes = "**no classes**"
