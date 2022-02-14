@@ -140,12 +140,22 @@ async def load_select_options(team: str, player_class: str) -> List[discord.Sele
     options: List[discord.SelectOption] = []
     for player, _pref in active_pug.active_start_pug.signups[start_pug.emojis_ids[player_class]]:
         option = discord.SelectOption(label=player.display_name, emoji=start_pug.emojis_ids[player_class], value=player.display_name)
-        if team == 'BLU' and blu_team[player_class] == player:
-            option.default = True
-        elif team == 'RED' and red_team[player_class] == player:
-            option.default = True
-        elif player in blu_team.values() or player in red_team.values():
+        if player in blu_team.values() or player in red_team.values():
             continue
+        options.append(option)
+    for player, signups in start_pug.active_pug.active_start_pug.player_classes.items():
+        if discord.PartialEmoji.from_str(start_pug.allclass_emoji_id) in signups:
+            option = discord.SelectOption(label=player.display_name, emoji=start_pug.emojis_ids[player_class], value=player.display_name)
+            if player in blu_team.values() or player in red_team.values():
+                continue
+            options.append(option)
+    if team == 'BLU' and blu_team[player_class] is not None:
+        option = discord.SelectOption(label=blu_team[player_class].display_name, emoji=start_pug.emojis_ids[player_class])
+        option.default = True
+        options.append(option)
+    elif team == 'RED' and red_team[player_class] is not None:
+        option = discord.SelectOption(label=red_team[player_class].display_name, emoji=start_pug.emojis_ids[player_class])
+        option.default = True
         options.append(option)
     return options
 
