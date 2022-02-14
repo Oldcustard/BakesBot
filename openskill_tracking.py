@@ -50,30 +50,6 @@ async def update_openskill(winning_team, round_wins, game_type):
             row = c.fetchone()
             red_players[row[0]] = [row[1], row[2]]
 
-        if game_type == 'KOTH':
-            for winner in round_wins:
-                blu_ratings = [openskill.create_rating(player) for player in blu_players.values()]
-                red_ratings = [openskill.create_rating(player) for player in red_players.values()]
-                if winner == 'Blue':
-                    [blu_ratings, red_ratings] = openskill.rate([blu_ratings, red_ratings], model=openskill.models.BradleyTerryFull)
-                elif winner == 'Red':
-                    [red_ratings, blu_ratings] = openskill.rate([red_ratings, blu_ratings], model=openskill.models.BradleyTerryFull)
-                for i, player in enumerate(blu_players):
-                    blu_players[player] = blu_ratings[i]
-                for i, player in enumerate(red_players):
-                    red_players[player] = red_ratings[i]
-
-                for player_class, player in player_selection.blu_team.items():
-                    if player is None:
-                        continue
-                    c.execute(f'''UPDATE openskill 
-                    SET {player_class}_mean = ?, {player_class}_std = ? WHERE player_id = ?''', (blu_players[str(player.id)][0], blu_players[str(player.id)][1], player.id))
-                for player_class, player in player_selection.red_team.items():
-                    if player is None:
-                        continue
-                    c.execute(f'''UPDATE openskill 
-                    SET {player_class}_mean = ?, {player_class}_std = ? WHERE player_id = ?''', (red_players[str(player.id)][0], red_players[str(player.id)][1], player.id))
-        elif game_type == 'AD':
             blu_ratings = [openskill.create_rating(player) for player in blu_players.values()]
             red_ratings = [openskill.create_rating(player) for player in red_players.values()]
             if winning_team == 'BLU':
