@@ -228,8 +228,8 @@ async def get_team_balance(inter: discord.ApplicationCommandInteraction):
 
         msg += f"\n\n**{start_pug.emojis_ids['Sniper']}Picks Balance{start_pug.emojis_ids['Spy']}**"
         picks_percent = openskill.predict_win([[blu_ranks[7], blu_ranks[8]], [red_ranks[7], red_ranks[8]]]) #78
-        blu_msg = f"BLU Average: {round(picks_percent[0]*100, 1)}%"
-        red_msg = f"RED Average: {round(picks_percent[1]*100, 1)}%"
+        blu_msg = f"BLU Win Prediction: {round(picks_percent[0]*100, 1)}%"
+        red_msg = f"RED Win Prediction: {round(picks_percent[1]*100, 1)}%"
         if picks_percent[0] > picks_percent[1]:
             blu_msg = f"**{blu_msg}**"
         elif picks_percent[1] > picks_percent[0]:
