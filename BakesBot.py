@@ -327,6 +327,15 @@ async def assign_player_to_all_classes(inter: discord.ApplicationCommandInteract
         await player_selection.select_player(inter, team, player_class, user)
 
 
+@client.slash_command(name='forceactive', description="Force the current early pug to become active", default_permission=False)
+@commands.guild_permissions(GUILD_ID, user_ids={DEV_ID: True})
+async def force_active_pug(inter: discord.ApplicationCommandInteraction):
+    await asyncio.sleep(0.5)
+    await inter.response.defer()
+    active_pug.change_active_pug()
+    await inter.send("Active pug set.")
+
+
 def start():
     client.run(os.getenv('TOKEN'))
 
