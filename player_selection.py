@@ -46,6 +46,7 @@ players_changed_late: List[discord.Member] = []
 
 async def select_player(inter: discord.ApplicationCommandInteraction, team: str, player_class: str, player_obj: discord.Member):
     global bluMessage, redMessage
+    pug_starts_soon, _timestamp = await active_pug.active_pug_scheduler.after_penalty_trigger_check()
     if player_obj is None:
         await inter.send(f"Player {player_obj} not found. Try different capitalisation or mention them directly.")
         return
@@ -53,6 +54,8 @@ async def select_player(inter: discord.ApplicationCommandInteraction, team: str,
         await inter.send(f"Class not recognised")
         return
     if team.lower() in blu_name:
+        if pug_starts_soon:
+            players_changed_late.append(blu_team[player_class])
         await inform_player_of_late_change(player_obj, player_class.capitalize())
         blu_team[player_class.capitalize()] = player_obj
         await inter.send(f"{player_obj.display_name} selected for BLU {player_class}")
@@ -66,6 +69,8 @@ async def select_player(inter: discord.ApplicationCommandInteraction, team: str,
             await announce_string()
 
     elif team.lower() == 'red':
+        if pug_starts_soon:
+            players_changed_late.append(red_team[player_class])
         await inform_player_of_late_change(player_obj, player_class.capitalize())
         red_team[player_class.capitalize()] = player_obj
         await inter.send(f"{player_obj.display_name} selected for RED {player_class}")
