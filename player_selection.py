@@ -46,6 +46,7 @@ players_changed_late: List[discord.Member] = []
 
 async def select_player(inter: discord.ApplicationCommandInteraction, team: str, player_class: str, player_obj: discord.Member):
     global bluMessage, redMessage
+    pug_starts_soon, _timestamp = await active_pug.active_pug_scheduler.after_penalty_trigger_check()
     if player_obj is None:
         await inter.send(f"Player {player_obj} not found. Try different capitalisation or mention them directly.")
         return
@@ -53,6 +54,8 @@ async def select_player(inter: discord.ApplicationCommandInteraction, team: str,
         await inter.send(f"Class not recognised")
         return
     if team.lower() in blu_name:
+        if pug_starts_soon:
+            players_changed_late.append(blu_team[player_class])
         await inform_player_of_late_change(player_obj, player_class.capitalize())
         blu_team[player_class.capitalize()] = player_obj
         await inter.send(f"{player_obj.display_name} selected for BLU {player_class}")
@@ -66,6 +69,8 @@ async def select_player(inter: discord.ApplicationCommandInteraction, team: str,
             await announce_string()
 
     elif team.lower() == 'red':
+        if pug_starts_soon:
+            players_changed_late.append(red_team[player_class])
         await inform_player_of_late_change(player_obj, player_class.capitalize())
         red_team[player_class.capitalize()] = player_obj
         await inter.send(f"{player_obj.display_name} selected for RED {player_class}")
@@ -140,12 +145,22 @@ async def load_select_options(team: str, player_class: str) -> List[discord.Sele
     options: List[discord.SelectOption] = []
     for player, _pref in active_pug.active_start_pug.signups[start_pug.emojis_ids[player_class]]:
         option = discord.SelectOption(label=player.display_name, emoji=start_pug.emojis_ids[player_class], value=player.display_name)
-        if team == 'BLU' and blu_team[player_class] == player:
-            option.default = True
-        elif team == 'RED' and red_team[player_class] == player:
-            option.default = True
-        elif player in blu_team.values() or player in red_team.values():
+        if player in blu_team.values() or player in red_team.values():
             continue
+        options.append(option)
+    for player, signups in start_pug.active_pug.active_start_pug.player_classes.items():
+        if discord.PartialEmoji.from_str(start_pug.allclass_emoji_id) in signups:
+            option = discord.SelectOption(label=player.display_name, emoji=start_pug.emojis_ids[player_class], value=player.display_name)
+            if player in blu_team.values() or player in red_team.values():
+                continue
+            options.append(option)
+    if team == 'BLU' and blu_team[player_class] is not None:
+        option = discord.SelectOption(label=blu_team[player_class].display_name, emoji=start_pug.emojis_ids[player_class])
+        option.default = True
+        options.append(option)
+    elif team == 'RED' and red_team[player_class] is not None:
+        option = discord.SelectOption(label=red_team[player_class].display_name, emoji=start_pug.emojis_ids[player_class])
+        option.default = True
         options.append(option)
     return options
 
