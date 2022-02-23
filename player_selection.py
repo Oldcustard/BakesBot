@@ -1,5 +1,6 @@
+import asyncio
 import re
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 import disnake as discord
 
@@ -42,6 +43,7 @@ timeMessage: discord.Message | None = None
 messages_to_delete: List[discord.Message] = []
 current_select_msgs: List[discord.MessageReference] = []
 players_changed_late: List[discord.Member] = []
+pending_players: Dict[discord.Member, Tuple[str, str]] = {}
 
 
 async def select_player(inter: discord.ApplicationCommandInteraction, team: str, player_class: str, player_obj: discord.Member):
@@ -55,9 +57,11 @@ async def select_player(inter: discord.ApplicationCommandInteraction, team: str,
         return
     if team.lower() in blu_name:
         if pug_starts_soon:
-            players_changed_late.append(blu_team[player_class])
-        await inform_player_of_late_change(player_obj, player_class.capitalize())
-        blu_team[player_class.capitalize()] = player_obj
+            if blu_team[player_class] is not None:
+                players_changed_late.append(blu_team[player_class])
+            await inform_player_of_late_change(player_obj, 'BLU', player_class.capitalize())
+        else:
+            blu_team[player_class] = player_obj
         await inter.send(f"{player_obj.display_name} selected for BLU {player_class}")
         if bluMessage is None:
             bluMessage = await messages.announceChannel.send("BLU Team:\n" + await list_players(blu_team))
@@ -70,9 +74,11 @@ async def select_player(inter: discord.ApplicationCommandInteraction, team: str,
 
     elif team.lower() == 'red':
         if pug_starts_soon:
-            players_changed_late.append(red_team[player_class])
-        await inform_player_of_late_change(player_obj, player_class.capitalize())
-        red_team[player_class.capitalize()] = player_obj
+            if red_team[player_class] is not None:
+                players_changed_late.append(red_team[player_class])
+            await inform_player_of_late_change(player_obj, 'RED', player_class.capitalize())
+        else:
+            red_team[player_class] = player_obj
         await inter.send(f"{player_obj.display_name} selected for RED {player_class}")
         if redMessage is None:
             bluMessage = await messages.announceChannel.send("BLU Team:\n" + await list_players(blu_team))
@@ -97,14 +103,16 @@ async def select_player_callback(inter: discord.MessageInteraction):
                 players_changed_late.append(blu_team[player_class])
             blu_team[player_class] = None
         else:
-            if blu_team[player_class] is not None and pug_starts_soon:
-                players_changed_late.append(blu_team[player_class])
             player_obj = messages.guild.get_member_named(inter.values[0])
             if player_obj is None:
                 await inter.send("Player not found")
                 return
-            await inform_player_of_late_change(player_obj, player_class.capitalize())
-            blu_team[player_class] = player_obj
+            if pug_starts_soon:
+                if blu_team[player_class] is not None:
+                    players_changed_late.append(blu_team[player_class])
+                await inform_player_of_late_change(player_obj, 'BLU', player_class.capitalize())
+            else:
+                blu_team[player_class] = player_obj
         await inter.response.defer()
         await update_select_options()
         if bluMessage is None:
@@ -121,14 +129,16 @@ async def select_player_callback(inter: discord.MessageInteraction):
                 players_changed_late.append(red_team[player_class])
             red_team[player_class] = None
         else:
-            if red_team[player_class] is not None and pug_starts_soon:
-                players_changed_late.append(red_team[player_class])
             player_obj = messages.guild.get_member_named(inter.values[0])
             if player_obj is None:
                 await inter.send("Player not found")
                 return
-            await inform_player_of_late_change(player_obj, player_class.capitalize())
-            red_team[player_class] = player_obj
+            if pug_starts_soon:
+                if red_team[player_class] is not None:
+                    players_changed_late.append(red_team[player_class])
+                await inform_player_of_late_change(player_obj, 'RED', player_class.capitalize())
+            else:
+                red_team[player_class] = player_obj
         await inter.response.defer()
         await update_select_options()
         if redMessage is None:
@@ -145,7 +155,7 @@ async def load_select_options(team: str, player_class: str) -> List[discord.Sele
     options: List[discord.SelectOption] = []
     for player, _pref in active_pug.active_start_pug.signups[start_pug.emojis_ids[player_class]]:
         option = discord.SelectOption(label=player.display_name, emoji=start_pug.emojis_ids[player_class], value=player.display_name)
-        if player in blu_team.values() or player in red_team.values():
+        if player in blu_team.values() or player in red_team.values() or player in pending_players.keys():
             continue
         options.append(option)
     for player, signups in start_pug.active_pug.active_start_pug.player_classes.items():
@@ -162,6 +172,11 @@ async def load_select_options(team: str, player_class: str) -> List[discord.Sele
         option = discord.SelectOption(label=red_team[player_class].display_name, emoji=start_pug.emojis_ids[player_class])
         option.default = True
         options.append(option)
+    for player, assignment in pending_players.items():
+        if assignment[0] == team and assignment[1] == player_class:
+            option = discord.SelectOption(label=player.display_name + ' (pending)', emoji=start_pug.emojis_ids[player_class])
+            option.default = True
+            options.append(option)
     return options
 
 
@@ -343,20 +358,60 @@ async def ping_not_present(inter: discord.ApplicationCommandInteraction):
     await inter.send(f"Absent players have been pinged!\n{absent_classes_string}")
 
 
-async def inform_player_of_late_change(player: discord.Member, player_class: str):
+async def inform_player_of_late_change(player: discord.Member, team: str, player_class: str):
     global players_changed_late
     pug_starts_soon, _timestamp = await active_pug.active_pug_scheduler.after_penalty_trigger_check()
     signed_up_players = list(blu_team.values()) + list(red_team.values())
     if pug_starts_soon and (player in signed_up_players or player in players_changed_late):
+        if team == 'BLU':
+            blu_team[player_class] = player
+        elif team == 'RED':
+            red_team[player_class] = player
         await player.send(f"**Please Note:** Your class in the upcoming Bakes Pug has been switched to **{player_class}**.")
         await messages.send_to_admin(f"{player.display_name} has been informed of the late change")
         print(f"{player.display_name} informed of late class change")
     elif pug_starts_soon:
-        await player.send(f"**IMPORTANT:** You have just been assigned to play **{player_class}** in the upcoming Bakes Pug.\nIf you are unable to make it, please withdraw by pressing ❌ on the pug announcement.")
-        await messages.send_to_admin(f"{player.display_name} has been informed of the late assignment")
+        pending_players[player] = (team, player_class)
+        view = discord.ui.View(timeout=10800)
+        yes_button = discord.ui.Button(style=discord.ButtonStyle.success, label="I can play", emoji="✔")
+        no_button = discord.ui.Button(style=discord.ButtonStyle.danger, label="I can't play", emoji="❌")
+        yes_button.callback = yes_button_callback
+        no_button.callback = no_button_callback
+        view.add_item(yes_button)
+        view.add_item(no_button)
+        await player.send(f"**IMPORTANT:** You have just been assigned to play **{player_class}** in the upcoming Bakes Pug.\nPlease confirm whether you can play by using the buttons below (there will be no penalty for indicating you cannot play)", view=view)
+        await messages.send_to_admin(f"{player.display_name} has been informed of the late assignment, they will be added pending confirmation.")
         print(f"{player.display_name} informed of late assignment")
 
 
+async def yes_button_callback(inter: discord.MessageInteraction):
+    global bluMessage, redMessage
+    await asyncio.sleep(0.5)
+    await inter.response.defer()
+    if inter.author not in pending_players.keys():
+        await inter.send("You have already responded.")
+        return
+    team, player_class = pending_players[inter.author]
+    if team == 'BLU':
+        blu_team[player_class] = inter.author
+    elif team == 'RED':
+        red_team[player_class] = inter.author
+    pending_players.pop(inter.author)
+    bluMessage = await bluMessage.edit(content="BLU Team:\n" + await list_players(blu_team))
+    redMessage = await redMessage.edit(content="RED Team:\n" + await list_players(red_team))
+    await announce_string()
+    await inter.send("You have confirmed you will play. **Please note** you will now be expected to play and will face a warning for being a no-show.")
+    await messages.send_to_admin(f"{messages.host_role.mention}: {inter.author.display_name} has confirmed they will play {team} {player_class}")
 
 
-
+async def no_button_callback(inter: discord.MessageInteraction):
+    await asyncio.sleep(0.5)
+    await inter.response.defer()
+    if inter.author not in pending_players.keys():
+        await inter.send("You have already responded.")
+        return
+    pending_players.pop(inter.author)
+    await inter.send("You have confirmed you will not play.")
+    if inter.author in active_pug.active_start_pug.player_classes.keys():
+        await active_pug.active_start_pug.withdraw_player(inter, inter.author)
+    await messages.send_to_admin(f"{messages.host_role.mention}: {inter.author.display_name} has indicated they **cannot** play.")
