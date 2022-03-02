@@ -46,7 +46,7 @@ players_changed_late: List[discord.Member] = []
 pending_players: Dict[discord.Member, Tuple[str, str]] = {}
 
 
-async def select_player(inter: discord.ApplicationCommandInteraction, team: str, player_class: str, player_obj: discord.Member):
+async def select_player(inter: discord.ApplicationCommandInteraction, team: str, player_class: str, player_obj: discord.Member, force=False):
     global bluMessage, redMessage
     pug_starts_soon, _timestamp = await active_pug.active_pug_scheduler.after_penalty_trigger_check()
     if player_obj is None:
@@ -56,7 +56,7 @@ async def select_player(inter: discord.ApplicationCommandInteraction, team: str,
         await inter.send(f"Class not recognised")
         return
     if team.lower() in blu_name:
-        if pug_starts_soon:
+        if pug_starts_soon and not force:
             if blu_team[player_class] is not None:
                 players_changed_late.append(blu_team[player_class])
             await inform_player_of_late_change(player_obj, 'BLU', player_class.capitalize())
@@ -73,7 +73,7 @@ async def select_player(inter: discord.ApplicationCommandInteraction, team: str,
             await announce_string()
 
     elif team.lower() == 'red':
-        if pug_starts_soon:
+        if pug_starts_soon and not force:
             if red_team[player_class] is not None:
                 players_changed_late.append(red_team[player_class])
             await inform_player_of_late_change(player_obj, 'RED', player_class.capitalize())
@@ -164,6 +164,12 @@ async def load_select_options(team: str, player_class: str) -> List[discord.Sele
             if player in blu_team.values() or player in red_team.values():
                 continue
             options.append(option)
+    for player, assignment in pending_players.items():
+        if assignment[0] == team and assignment[1] == player_class:
+            option = discord.SelectOption(label=player.display_name + ' (pending)', emoji=start_pug.emojis_ids[player_class])
+            option.default = True
+            options.append(option)
+            return options
     if team == 'BLU' and blu_team[player_class] is not None:
         option = discord.SelectOption(label=blu_team[player_class].display_name, emoji=start_pug.emojis_ids[player_class])
         option.default = True
@@ -172,11 +178,6 @@ async def load_select_options(team: str, player_class: str) -> List[discord.Sele
         option = discord.SelectOption(label=red_team[player_class].display_name, emoji=start_pug.emojis_ids[player_class])
         option.default = True
         options.append(option)
-    for player, assignment in pending_players.items():
-        if assignment[0] == team and assignment[1] == player_class:
-            option = discord.SelectOption(label=player.display_name + ' (pending)', emoji=start_pug.emojis_ids[player_class])
-            option.default = True
-            options.append(option)
     return options
 
 
