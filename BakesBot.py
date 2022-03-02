@@ -95,6 +95,17 @@ async def select_player(inter: discord.ApplicationCommandInteraction, team: Team
         await player_selection.select_player(inter, team, player_class, player)
 
 
+@client.slash_command(name='forceselect', description='Force select a player for a class (they will not receive confirmation)', default_permission=False)
+@commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
+async def select_player(inter: discord.ApplicationCommandInteraction, team: Team, player_class: PlayerClass, *, player: discord.Member):
+    if active_pug.active_start_pug.signupsMessage is None:
+        await inter.send("Player selection only available after pug is announced")
+    else:
+        await asyncio.sleep(0.5)
+        await inter.response.defer()
+        await player_selection.select_player(inter, team, player_class, player, True)
+
+
 @client.slash_command(name='select', description='Select players for classes.', default_permission=False)
 @commands.guild_permissions(GUILD_ID, {HOST_ROLE_ID: True})
 async def select_player_new(inter: discord.ApplicationCommandInteraction):
