@@ -164,6 +164,12 @@ async def load_select_options(team: str, player_class: str) -> List[discord.Sele
             if player in blu_team.values() or player in red_team.values():
                 continue
             options.append(option)
+    for player, assignment in pending_players.items():
+        if assignment[0] == team and assignment[1] == player_class:
+            option = discord.SelectOption(label=player.display_name + ' (pending)', emoji=start_pug.emojis_ids[player_class])
+            option.default = True
+            options.append(option)
+            return options
     if team == 'BLU' and blu_team[player_class] is not None:
         option = discord.SelectOption(label=blu_team[player_class].display_name, emoji=start_pug.emojis_ids[player_class])
         option.default = True
@@ -172,11 +178,6 @@ async def load_select_options(team: str, player_class: str) -> List[discord.Sele
         option = discord.SelectOption(label=red_team[player_class].display_name, emoji=start_pug.emojis_ids[player_class])
         option.default = True
         options.append(option)
-    for player, assignment in pending_players.items():
-        if assignment[0] == team and assignment[1] == player_class:
-            option = discord.SelectOption(label=player.display_name + ' (pending)', emoji=start_pug.emojis_ids[player_class])
-            option.default = True
-            options.append(option)
     return options
 
 
